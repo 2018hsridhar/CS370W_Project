@@ -1,0 +1,97 @@
+-----------------------------------
+--- THE NEXT STEPS TO BE MADE ! ---
+-----------------------------------
+
+1. FIND a set of background readings/papers to undersatnd heat curvature surface blending methods OR ask Nathan to send you this information
+2. REVIEW critical code components that I need , from Nathan, and go over any confusing aspects. Some of the inputs and outputs to critical subroutines still confuse me !
+3. WRITE more up ... over break, do write ups for { Rigid_ICP, MCF, Gradient Descent } . Read up critical background over Thanksgiving break, and IMPELMENT WHAT YOU CAN !!!
+4. **** SET UP equation for evaluation of an alignment ( energy functional ) 
+
+     - critical aspects that I need too consider for evaluation of an alignemnt / energy functional
+     [1] gradient descent requires my functional to have a set of variables to evaluate it against ( area, curvature, tangents ... anything else ) ??
+     [2] The functional needs to be at least ONCE differentiable . BUT if it is 2x differentiable, can I consider other methods ( i.e. Secant method ) ??
+     [3] Will the fact that the function is convex or concave, for its ENTIRE or a SUBSET of the domain, come to matter?
+
+
+5. **** SET UP equation for performing gradient descent on the alignment .. I understand a laymans gradient descent, but I don't undersand how this scales to a (4x4) matrix !
+
+----------------------------------------------------
+--- DOUBTS TO GO OVER WITH VOUGA [ OR OTHERS ]  ---
+------------------------------------
+1. Ensure you understand the deal with (manifold-watertight ) meshes and how they are related to the boundary, range / depth images  ! 
+       Just to be clear, solving this boundary ; it is 3D data ! Nathan's code takes 2D data ( note :: that could be a type, or dumb limitation ) 
+2. 
+
+	[1] GENERATE an alignment between the two objects
+	[2] CALCULATE the enclosing box, and tetrahedralize the entire box (add vertices where necessary)
+	[3] MARK all original vertices as "hot" and perform heat flow until the number of connected components is 1
+	[4] PERFORM curvature flow, keeping all* original vertices constant.
+
+	I don't understand steps [2] and [3] 
+        [2] Why is this tetrahedralization step critical? What is tetrahedralization, in fact ? 
+        [3] so heat eminates from the FIXED CONSTANT vertices / original vertices, yet it is the new vertices that are getting deformed !
+3.  What are the differences amongst { matching, alignment, surface reconstruction, surface modelling, leveling, blending, etc.,  } ? A lot of terms are used in a rather interchangeable manner ! 
+4.
+5.
+6.
+7.
+8.
+
+-------------------------------------------
+--- What progress did I make this week --- 
+-------------------------------------------
+[a] I read the following papers :: 
+    1.
+    2.
+    3.
+    4.
+    5.
+
+	I found that many of them are useful for thinking/extending future ideas
+	BUT I also learned that most of them do not match my problem domain. 
+	NONETHELESS, I can incorporate them as means of future extensions to my research
+   		and try to incorporate the knowledge I learned from them !
+
+[b] I set up various meetings with Nathan and Brady, to better understand their codebase and problem at hand
+
+[c] I was able to better formalize my problem statement; wrote up a short abstract. 
+
+[d] I got beter clarity on my existing knowledge base. I also learnt how to write up a depth report
+
+[e] I found a set of more papers , and useful background too consider. This helped btter formalize the problem, and formalize an understanding of concepts such as ::
+    [1] Geometric PDES and ideas of higher-order diffeqs + discretizations 
+    [2] Rigid vs nonRigidIcp, and the set of characteristics that uniquely define Chen-Medioni's RigidICP algorithm
+
+[f] I am VERY confident that my MCF is correct, and so too, is RigidICP
+
+[g] Installed MeshLab, go to play around/use that .... SHIT, I still need to do this !
+
+------------------------------
+--- MAJOR RESEARCH LESSONS ---
+------------------------------
+[1] Just like documentation ,get your research into writing ! Writing really makes you hash out every compoennt that was initially difficult to understand ! Yes, its an annoying, BUT critical, step 
+[2] Sometimes, going back over the basics can be useful
+[3] A later paper can explain a concept better than the original paper
+[4] If you can understand the intro-conclusion-abstract just like an SAT exam, you have a good enough idea of the paper, and can immediately ascertain whether it does or does not belong to your problem domain. 
+[5] Be VERY consistent with making progress in research
+[6] Learned how to collobarate amongst multiple researchers/people of different experience. Formulating a problem staetment well to thsoe who have no exposure to your domain is rather critical
+[7]
+[8]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

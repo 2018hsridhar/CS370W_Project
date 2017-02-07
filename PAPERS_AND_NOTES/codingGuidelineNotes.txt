@@ -1,0 +1,32 @@
+
+---------------------------------------
+Some coding stuff I have found out
+---------------------------------------
+
+[1] Should have refactored this code, amongst a set of namespaces and classes initially, to make it easier to 
+	(a) call
+	(b) understand flow of the code
+[2] prototyped functions, in c++, require the ';' character
+[3] Need an extern-const variable, when a variable can get included multiple types ( i.e. meanCurvatureFlow.cpp and main.cpp both #include meanCurvatureFlow.h )
+ 	- Cannot instantiate, when extern isused! 
+    - Extern is a "hey. I'll declare this, but it MUST be defined l8r in another file". It doesn't actually resolve the global-var inclusion problem!
+
+[4] References are always better than variables ( call-by-ref, vs call-by-val ) semantics
+[5]
+[6]
+[7]
+[8]
+[9]
+[10]
+
+
+
+
+
+---------------------------------------
+Future questions to answer thyself
+---------------------------------------
+[1] What is <Eigen/Core>?
+[2] What is the difference here? need to read up Eigen lib in more depth ... 
+- bool meshHasBoundary(const Ref<const MatrixXd>& V, const Ref<const MatrixXi>& F);
+- bool meshHasBoundary(const Eigen::MatrixXd& V, const Eigen::MatrixXi &F);

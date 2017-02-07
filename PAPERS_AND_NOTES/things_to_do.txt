@@ -1,0 +1,9 @@
+1. #TODO :: Restructure pipeline, with keyboard code, to do the following
+	(a) restore original image data
+	(b) apply MCF
+	(c) apply rigidICp
+	(d) test out the pipeline
+	(e) generate and output useful statistics
+2. eventualty determine if MCF::meshHasBoundary(), needs to be public, or private 
+	-- honestly, this method is useless as fuck ! it's 2 lines to determine if there is a boundary !
+	-- buit it's kinda a nice utility @ timsa ( perhaps for testing code, in the pipeline ! ) 

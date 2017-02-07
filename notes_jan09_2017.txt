@@ -1,0 +1,59 @@
+--------------------
+--- Jan 09 Notes ---
+--------------------
+1. Refer to canonical example, to get the original cmake, and CMakeLists.txt files, from Alec Jacobson's set up
+	https://github.com/libigl/libigl-example-project
+
+---------------------
+---- Jan 10 Notes ---
+---------------------
+1. So the src does include the meanCurvatureFlow.cpp code
+2. It compiles, but it is somehow not linking. make fails, but cmake passes? 
+3. IF i do put the inlcude in "main.cpp", the code is recognized ( but can't detect var issue exists ) ... What is happenning???
+	---> needs to be done ( research why again !) ... see evouga/tiling
+4. Put the include <igl/...>, #include <set> files in .cpp files ... not .h files, as those are just methods ( except for maybe something like #include <Eigen/Core> )
+	QUESTION :: <Eigen> vs <Eigen/Core> ... is what? I see <Eigen/Core> used for header files!
+5. Follow the input-output arguement style, to keep mostly consistent with LibIgl style! 
+	---> this will prevent dumb, extern reference issues ... and also keeps to LibIgl standards better! 
+	--- In all honestly, Clements Boundary-Original Marker's ideal, is far better than my approach of different methods! 
+	--- why is this stopping critera zero, too? that also confuses me !
+	--- why did I code it up for loop style? Because that was motivated by Kazhdan's 512 iterations, but that's an entirely different story! 
+6. what is <constexpr> ??? WTF!
+7.  Note that Kazhdan, under Empirical Eval, givesa good delta timestep val ( 10^-3)
+**** a flow cannot proceed, if \exists a singularity ... why ... [1] cannot further deform the shape, and [2] numerical instability, div by 0 issue @ singularity ( due to surface area being used as a minimizer, right??) !
+8. MCF stopping critera
+	- I noticed that Clements used both the norm of the idfferences of previouis, vs current vertex positions, in MCF
+		and also calculated a discretized DIRICHLET ENERGY of MCF
+	- Q1 :: is this related to Appendix C, Energy of the Flow ( I barely understand that itself, the continuous formulation ) 
+	- Q2 :: What is the mathematics behind that equation?
+	- FOR NOW, I will proceed with the norm difference method !
+9.
+
+---------------------
+---- Jan 11 Notes ---
+---------------------
+1. What is the difference between "const" vs "constexpr", and what if you use "static" @ the same time?
+	... i.e "static constexpr double x= 0.0;"
+2. I do not understand most sparse matrix manipulations, or how LibIgl's "prune()" method actually works!
+3. Why is it that the mass amtrix changes over time, but stiffness does not ( well, it does, but it is realized that a const stiffness matrix can be used )? What do these quantities intuitively represnet, really?
+	- isn't mass matrix based on average of given neighbors? 
+4. "fprintf()" versus "printf()"?
+5. Note :: only after "make" successfully execute, are the binary files actually produced ( ... as u remmeber ... CMake, just gets you the Makefiles :-P ) 
+6. ... in calculation of Dirichlet Energy, why is it only "L0", used in ze calculation ! 
+7. ... only the main pipeline, will have a set of different keys - be an extensible program ( for trying out cases ) ! 
+8. In general, as a coding practice, are included code bases/libraries put in .h, or .cpp 
+9. Do you ever include a "namespace" in a header file? Does not seem so ... cuz I got compiler errs when I tried ? 
+10. Include <Eigen/Core> in order for Header files to recognize Eigen based data types. 
+11. ORGANIZE code into namespaces ... for logical coherence !
+12. if u will be coding namespaces ... include them both in the header, and source file ( see stackoverflow, creating-a-c-namespace-in-header-and-source-cpp). 
+13. ... when to use namespaces versus classes?
+	- in my codebase, I use namespaces, since I'm not really instantiating anything ( as a class ) .. my code, really, is a just a collection of methods, that should be grouped under a common name.
+	- ... #TODO::need to check on more ...
+14. When to do "using namespace <name> versus <name>::method()" ... not sure atm !
+15. I think the "public-private" thing , for methods, only applies in c++ classes, and NOT namespaces!
+	- and what about interfaces? does that exist anywhere, or do I have to make a class :-( 
+16. Need the cmake (directory), albeit one usually only needs cMakeList.txt, since cmake/FindLIBIGL.cmake code, is used to establish LibIGL + other critical libraries !
+
+
+
+

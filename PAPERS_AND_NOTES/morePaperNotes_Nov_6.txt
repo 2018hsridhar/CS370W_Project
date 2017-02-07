@@ -1,0 +1,26 @@
+Based on discussion with Billy Swartworth
+
+1. Yes, I am assuming that we have 3D-model data ( from the point cloud ). The question of how to convert a 2D image to a point cloud does not need to be addressed
+2. I am assuming that an IDEAL , but not ACCURATe, alignment is provided by the user. That is, we already have a good idea about how the two pieces/meshes are supposed to fit ... we just don't have a good idea how to fill in the remaining space.
+3. What assumptiosn can I make about my input mesh data/3D models? I will most likely assume they are the same size and in the form of point-clouds
+4. What is the idea of letting R be both a "Rotation" and "Reflection" matrix? I'm not sure if this too is also critical
+
+
+Questions on Mean-Curvature-Flow
+1. Can I split vector(x(t)) by each of the n-components that define each n-tupel x_i? I'm not sure if I can do this, as I would also think that the mass and stiffness matrices, then, need to be calculated based on this subset of VERTEX information
+    -- for starters, I can't image how to solve this any other way ! I need 3 equatinos for 3 unknowns per row ! I do not have this!
+   -- so the question is ... do I need to recalculate the mass/stiffness matrices appropriately?
+    => my understanding :: this shouldn't matter, given that mass & stiffness matrices are only related to the basis functions, and not vertex values :-) 
+2. How to actually solve that equation? The LHS=RHS is not split apart well at the moment.
+    -- well, in acutally, this probably isn't hard too. its just x = A\B;
+3. Do I need to homogenoize the system? I think not ... but I am unsure?
+    => my understanding :: I think not. the system does not really involve a ( translation + rotation ) issue [ that I know of ] ??
+4. Should I be using doubles or float ?
+5. For solving AX=B, which decompoisition should be used ( see " Linear algebra and decompoisitions " ) 
+6.
+
+
+ 
+
+
+

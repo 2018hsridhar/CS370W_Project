@@ -46,14 +46,17 @@ option(LIBIGL_WITH_GLFW        "Use GLFW"           ON)
 option(LIBIGL_WITH_BBW         "Use BBW"            OFF)
 option(LIBIGL_WITH_EMBREE      "Use Embree"         OFF)
 option(LIBIGL_WITH_PNG         "Use PNG"            OFF)
+# I might want to turn on TetGen and Triangle, l8r down the road!
 option(LIBIGL_WITH_TETGEN      "Use Tetgen"         OFF)
 option(LIBIGL_WITH_TRIANGLE    "Use Triangle"       OFF)
 option(LIBIGL_WITH_XML         "Use XML"            OFF)
 option(LIBIGL_WITH_LIM         "Use LIM"            OFF)
 option(LIBIGL_WITH_COMISO      "Use CoMiso"         OFF)
+option(LIBIGL_WITH_BOOLEAN     "Use Cork boolean"   OFF) # This option is not supported yet
 option(LIBIGL_WITH_MATLAB      "Use Matlab"         OFF) # This option is not supported yet
 option(LIBIGL_WITH_MOSEK       "Use MOSEK"          OFF) # This option is not supported yet
 option(LIBIGL_WITH_CGAL        "Use CGAL"           OFF)
+#option(LIBIGL_WITH_CGAL        "Use CGAL"           ON)
 if(LIBIGL_WITH_CGAL) # Do not remove or move this block, the cgal build system fails without it
   find_package(CGAL REQUIRED)
   set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE CACHE BOOL "CGAL's CMAKE Setup is super annoying ")
@@ -71,6 +74,9 @@ message("libigl libraries: ${LIBIGL_LIBRARIES}")
 message("libigl extra sources: ${LIBIGL_EXTRA_SOURCES}")
 message("libigl extra libraries: ${LIBIGL_EXTRA_LIBRARIES}")
 message("libigl definitions: ${LIBIGL_DEFINITIONS}")
+
+# Do I need to use libtourtre later?
+#find_package(libtourtre REQUIRED)
 
 # Prepare the build environment
 include_directories(${LIBIGL_INCLUDE_DIRS})

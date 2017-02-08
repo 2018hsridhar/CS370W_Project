@@ -2,10 +2,12 @@
 #define ICP_H
 
 #include "tutorial_shared_path.h"
-#include <Eigen/Core>
+//#include <Eigen/Core>
+using namespace Eigen;
 
 namespace ICP
 {
+	void applyRigidICP(Eigen::MatrixXd& V_one, Eigen::MatrixXd& V_two, Eigen::MatrixXd& result);
 }
 
 #endif

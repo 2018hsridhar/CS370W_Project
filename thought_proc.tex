@@ -1,0 +1,64 @@
+\documentclass{article}
+\begin{document}
+
+\title*{My Grahics Thought Process}
+\author{Hari Sridhar}
+\date{\today}
+\newpage
+
+\part{Feb 07 2016}
+\section{Software Development Practices}
+\begin{itemize}
+	\item having a helpers.h, helpers.cpp, for a hodgepot of useful functions around the codebase, seems rather useful. 
+	\\ Later refactoring can be implemented to set some of these methods private, or belonging to various classes
+	\item The need for good namespaces, to undersatnd where things logically fit, makes more sense to me now!
+	\item For things that belong in a hodgepot class or header file ( i.e. globals.h, helpers.h), ALWAYS keep a running tab on where things are used, so that if there is a potential to refactor those codebases, then they can be succesfully refactored l8r down that road.
+\end{itemize}
+
+\section{Refactoring Large Codebases}
+\subsection{A need for a testing directory/directory tree}
+This issue arose when refactoring lots of the graphics code
+\\ But I noticed that I need to include some code to consistently test that components still work, as expected, in case I end up changing major components!
+\\ More ever, I need to cincorporate testing in a nice way ( i.e. each piece of testing, possesss its own viewer, and can be well-modified with a couple of nice, user based parameters )
+\newpage
+
+\part{Feb 08 2016}
+% seems that this version of LaTex ( pdfLatex), does not support \chapter{}
+\section{Notes on CGal}
+\begin{itemize}
+	\item Seems that LibIgl's igl/copyLeft, provide ssome nice methods that work in sync with CGAL
+	\item What about any methods that interface between data types, in CGAL, versus data types, in LibIgl? 
+	\item STOP ... confusing triangultion, with remeshing. Remeshing, does use triangulation, BUT they are not the same thing! 
+	\item Appears that CMakeLists.txt needed to be enabled to find CGAL, but I currently do NOT posses CGAL :-(
+	\item Do I also need to go about configuring CGAL?? GAAH this will be anoying as fuck !
+		see http://doc.cgal.org/Manual/3.4/doc_html/installation_manual/Chapter_installation_manual.html
+\end{itemize}
+
+\section{More things to look at in depth}
+\begin{itemize}
+	\item What is Remeshing of faces, according to intersection detection and construction?
+	\item What is a core library ( CGAL vs CGAL_Core, Eigen vs Eigne_Core)?
+	\item Do be able to set up an install CGAL utilities thyself ( for now, I will gladly skip this step ). Same for a standalone ap that just needs Eigen ( ... I did this once, naa ) ?? 
+	\item seriously ... if u refactor, make sure it #()@*U works
+	\item Keep trying to learn more about CMake, and make files
+	\item why is it that ignoring the inclusion of specific header files ( i.e. #include <iostream> ), can end up affecting a lot of other code on the way down? This seems SO stupid!
+	\item Note :: always set up header files, and method signatures ... you NEVER want to refactor these l8r down the road!
+	\item Note :: do I really need a "using namespace std" put in every single file! This is rather redundant.
+	\item Note :: always be sure that you know the header file of where a method is incoming from ... else, you might just happen to have othre header files GLADLY "hide" this away from you! 
+\end{itemize}
+
+\section{Thoughts}
+\begin{itemize}
+	\item Always ... write up a report, of progress that was made, roadblocks, things learnt, etc., 
+	\item To incorporate l8r for paper writing, write up a short segment on the remeshing approach, as you IMPLEMENT remeshing
+	\item Mark down a timeline of goals, that you want to accomplish! Seriously!
+	\item What exactly is mesh subdivision ... not fully familiar yet, atm!
+	\item Use the term \textit{Geometric algorithms}, to describe one's knowledge of graphics algos
+	\item \textbf{TBD} 
+\end{itemize}
+
+\end{document}
+
+
+
+

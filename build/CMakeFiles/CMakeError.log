@@ -1,0 +1,55 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_012bd/fast"
+/usr/bin/make -f CMakeFiles/cmTC_012bd.dir/build.make CMakeFiles/cmTC_012bd.dir/build
+make[1]: Entering directory '/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_012bd.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_012bd.dir/CheckSymbolExists.c.o   -c /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_012bd
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_012bd.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_012bd.dir/CheckSymbolExists.c.o  -o cmTC_012bd -rdynamic 
+CMakeFiles/cmTC_012bd.dir/CheckSymbolExists.c.o: In function `main':
+CheckSymbolExists.c:(.text+0x16): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_012bd.dir/build.make:97: recipe for target 'cmTC_012bd' failed
+make[1]: *** [cmTC_012bd] Error 1
+make[1]: Leaving directory '/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_012bd/fast' failed
+make: *** [cmTC_012bd/fast] Error 2
+
+File /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_170c2/fast"
+/usr/bin/make -f CMakeFiles/cmTC_170c2.dir/build.make CMakeFiles/cmTC_170c2.dir/build
+make[1]: Entering directory '/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_170c2.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_170c2.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_170c2
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_170c2.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_170c2.dir/CheckFunctionExists.c.o  -o cmTC_170c2 -rdynamic -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_170c2.dir/build.make:97: recipe for target 'cmTC_170c2' failed
+make[1]: *** [cmTC_170c2] Error 1
+make[1]: Leaving directory '/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_170c2/fast' failed
+make: *** [cmTC_170c2/fast] Error 2
+
+

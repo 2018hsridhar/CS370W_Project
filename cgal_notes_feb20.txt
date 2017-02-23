@@ -1,0 +1,54 @@
+---------------------
+--- Notes on CGAL ---
+---------------------
+1. use "cgal_create_CMakeLists.txt", to create a CMakeLists.txt file, for compiling CGAL apps. Execute this script, inside your app directory. 
+	- pass in the '-s' flag, to build just a SINGLE executable, among the src files.
+	- it should work with most src file endings
+2. CGALConfig.cmake is located in /p/CGAl-4.9/build/
+
+--------------------------------
+--- Essential 3rd-Party Libs ---
+--------------------------------
+1. 5 componenets of CGAL are :: {libCGAL, libCGAL_Core, libCGAL_ImageIO, libCGAL_Qt5 }
+2. List is {STL,Boost,CMP,MPFR,zlib,OpenGL,Qt5 }
+3.
+4. configuring with CGAL != autom built with CGAL + other libs. You must build the examples/demo targets ( or own projects ) yourself!
+5. Your code may need essential libs ( QT or OpenGL)
+
+
+-----------------
+--- Questions ---
+-----------------
+1. Where can I set vars ( i.e. WITH_examples=ON, WITH_demos=ON)?? 
+2. 
+
+
+
+--------------------------
+--- Notes on Remeshing ---
+--------------------------
+1. Need to find out specifically what the differences amongst { refine, fair, isotropic } remeshing are.
+2. Subdivision != remeshing != triangulation (tetrahedralization). Subdivision can still leave triangles of very long length, sadly. Remeshing, on the other hand, attempts to ad more triangles to the trimesh, whose aspect rations are as close to one another as possible.
+3. Tetrahedralization - given an point cloud, go perform a Tetrahedralization ( in 2D-case, a triangulation ). Oftentimes, uses a strategy such as forwarding techniques or Delaunay.
+
+
+
+
+
+/* my earlier notes on tetrahedralization */
+  // SOLVE FOR A TETRAHEDRALIZATION, based on (scene.V, scene.F)
+	// triangulate makes sense ONLY for 2-dimensional data ( i.e. triangulate a polygon, or a boundary ) ... okay ... I need to study this differenec, for sure { when to triangulate, versus tetrahedralize, a mesh/surface } ... since I care about the boundary, and since the interpolating surface, between the boundary, doesn't need any more vertices insside ... it's a triangulation !
+
+
+	// seems liike it shoudl work for an interp surface ( nothing inside ) ... but vertex is 3-d data... hence, kinda screwed 
+	// but generating vertices inside ... that is a job best reserved for TETGEN!
+
+	// do I care ONLY about the convex hull, or also the "interior" of a given surface?? not sure!
+	// ... I guess a tetrahedralized interior! 
+	Eigen::MatrixXd TV;
+	Eigen::MatrixXi TT;
+	Eigen::MatrixXi TF;
+	/// ... something seems ammiss here /// 
+	igl::tetrahedralize(scene.V,scene.F,"pq1.414a0.01", TV,TT,TF);	
+*/
+	

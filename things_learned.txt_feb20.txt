@@ -1,0 +1,35 @@
+1. Whenever you start using a new library ... always ... read the ReadMe.Md, and understand structure, before starting out on codebase
+2. EITHER find, or try to set up, the most basic example ( HelloWorld ) using a lib feature. Know the min set of things you need
+3. Note ... these are the example include cgals != including every single CGAL library header file ! 
+4. Remember :: igl::copyleft::cgal::<your_thing> , to reference the namesapce set up! 
+5.TRACK the full list of dependencies, starting from your clone
+	- CGAL_Qt5 :: needs to be installed on the system!
+6. READ THE @#()$*#@ CMAKE output! seriously! yes, it's time, but it can save you more time later!
+7. really understand ... do you want to install teh lib? configure it? build it? run/configure the examples! PLEASE BE SPECIFIC AS POSSIBLE!
+
+
+
+-------------------
+--- To look up ---
+-------------------
+1. The CGAL/scripts files ... I think one of these creates a CMakeLists.txt for you! 
+2. note ... CGAL's tutoirlas ... kinda suck .... use that other pdf
+
+
+-----------------------
+--- Useful links ----
+-----------------------
+1. http://stackoverflow.com/questions/7724569/debug-vs-release-in-cmakeA
+	- if you type in say, RELEASE ... uhh, well, that's not a valid option
+2.https://cmake.org/Wiki/CMake_Useful_Variables#Compilers_and_ToolsA
+3. ... remember ... look @ compilation of own-nonshipped program 
+4. ... https://graphics.stanford.edu/courses/cs368-04-spring/manuals/CGAL_Tutorial.pdfA ... for realy learning! skip the "tutorial.h" part, if ened be
+
+----------------------
+--- A new weakness ---
+----------------------
+1. Yes, documentation might seem horribly written, and systems @ first seem confusing. BUT FOCUS on reading slowly. This could have said you so much time on the CGAL set up ( as Dr. Vouga mentioned, it should NOT have taken this long! ). More ever, I keep noticing this issue ... libIgl set up, boundary_loop issue! FOCUS on reading in as much depth ... plus, you're more likely to read, then write code, TH! 
+2. ALWAYS ... confirm that your input and output files, ARE in the format you expect it to be. DO NOT just test them blindly.
+3. ALSO ... be wary about your file paths, when you read and write em!
+3. Searching for papers, when it comes to the depth report ... slow down, and really think about the terms you want to search for. "Nonoverlapping image alignment" got me somewhere, and then "Nonoverlapping mesh alignment" got me a better result, than random searches such as "Non overlapping partial scan alignment/registration". THINK ... in the minds of the author, what would you call this? 
+

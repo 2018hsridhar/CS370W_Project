@@ -1,0 +1,134 @@
+\documentclass{article}
+\begin{document}
+
+%%%% 4PCS DEPTH REPORT  %%%%
+
+\section{Assumptions}
+\begin{enumerate}[(i)]
+	\item wer
+\end{enumerate}
+
+\section{Limitations}
+\begin{enumerate}[(i)]
+	\item wer
+\end{enumerate}
+
+\section{What stands out}
+\begin{itemize}
+	\item wer
+\end{itemize}
+
+\section{The paper story}
+
+\section{Summary of Related Works, Section 2}
+
+\section{The five C's}
+\begin{itemize}
+	\item 
+	\item Clarity - 
+	\item Category -
+	\item Context -
+	\item Correctness - 
+	\item Related to :: 
+\end{itemize}
+
+
+\section{Key or Unknown Vocabulary}
+\begin{enumerate}[(i)]
+\end{enumerate}
+
+\section{References of Interest}
+
+\section{More questions}
+\begin{enumerate}[(i)]
+\end{enumerate}
+
+\section{Learnings from Tonight's Paper Reading}
+\begin{itemize}
+	\item Always assign some sort of useful keyword/acronym to a paper ( i.e. this is the DARSAC, or this is the OJB MODELLING} paper. Don't do it by author name though!
+	\item Look up critical keywords : i.e. partially overlaping range image alignment. 
+	\item If you are going to do a depth report, start out with a survey paper ... seriously! Also, the age of papers matters heavily!
+	\item Read the referneces slowly, to properly digest them!
+\end{itemize}
+
+\section{More questions}
+\begin{itemize}
+	\item Why do we compare to just ICP and it's variants, which specifically focus on the problem of Rigid-Body Pairwise Iterative Alignment? What about NonRigid-Body alignments? 
+	\item What is the different between a local versus a global alignment algorithm? 
+	\item Can I really make that claim, that NOT ONLY does the original RigidICP paper fail to meet up to par, BUT so do any other variants of RigidICP? This sounds like a rather strong assumption to make!
+	\item NEED I be familiar with how different ICP variants actually work?? not sure!
+	\item Why do we not try a stitching approach? Why use MCF and minimizing the interpolatig surface along the normal? What makes this better? 
+	\item Different in alignment vs registration vs matching vs stitching GAAHHH! \textit{I think stiching can be used, post alignment. tbh, an interpolating surface 'stiches' the boundaries of two non-overlapping meshes} 
+\end{itemize}
+	
+\section{Constraints enforced by resesarch}
+\begin{itemize}
+	\item Initialy boundaries are preserved.
+	\item Alignment is rigid in natur
+	\item Interpolating surface is always a watertight mesh
+\end{itemize}
+
+\section{Uniqueness of Vouga and My approach} 
+\begin{itemize} 
+\item Independent of shape features ( i.e. colors,illumination ), and only dependent on curvature of the shape ( nonetheless, this does limit a certain class of shapes though ) 
+\item Method is extendable to gradient descent related techniques.  \item I believe that the initial approximation does not neccesarily have to be good, since stoich grad desc will end up moving us to better approx ( it will converge, basically ) ... need to code up ( to see how sensitive to alignment ) 
+\item We preserve the initial boundaries of the two partial scan inputs. 
+\item Does not require an optimal initial alignment.
+\item Works specifically on the zero-overlap case.
+\end{itemize} 
+% read up 4PCS in more depth ... turns out it fails with 0 overlap ( handles no-overlap case though ! ) ... same with Qixing Huang's method
+
+% Rigid vs NonRigid ... in rigid, you preserve lengths POST transformation. Both can be a transformation + rotation matrix ... I think?  I also think that they differ by whether the shape get's deformed or not ... but what about a conformal map? Is that Rigid, or NonRigid? 
+
+\section{Common issues with alignment problems}
+\begin{itemize}
+	\item Too big a search space http://ieeexplore.ieee.org/document/6120055/, POSSIBLE to get stuck @ a local minima or maxima. Issues with stoich grad desc, hill climbing, etc., 
+	\item Lack of sufficient CORRECT correspondance points ... issue with RANSAC or RANSAC-DARCES?
+	\item How to handle outliers and noise \textbf{LOOK UP MORE ON THIS SECTION}
+	\item Need for a good initial guess?
+	\item Computation time
+	\item fail to converge to a solution
+	\item converges, but error is not sufficiently minimzed
+	\item topological or geometric constraints are broken. 
+\end{itemize}
+
+\section{More applications of research}
+\begin{itemize}
+	\item Hole-filling, given 2 meshes, and non-overlap of the two regions ... oohh, this is useful :-) 
+	\item (in image world) Panorama / Mosaic-stitching ... I guess one could extend this to the 3D case, now with objects ( i.e. artifact reconstruction?)
+	\item Optimal stitching
+	\item  Non-overlapping range camera set ups
+	\item 3D Object modelling
+\end{itemize}
+
+\section{Useful Links}
+\begin{itemize}
+	\item http://www.cis.upenn.edu/~bjbrown/iccv05\_course/bibliography.pdf
+	\item https://people.eecs.berkeley.edu/~pabbeel/cs287-fa11/slides/scan-matching.pdf
+	\item http://www.cs.utexas.edu/~huangqx/CS395\_Lecture\_VII.pdf
+	\item http://www.cis.upenn.edu/~bjbrown/iccv05\_course/
+	\item https://www.researchgate.net/profile/Susana_Brandao/publications
+\end{itemize}
+
+
+% assumptions papers make, and whether they do and do not match the problem domain! 
+% maybe the algo approxes ... can you wrap it! 
+% it's like researching libraries-frameworks
+% hopefully, if u find something that resolves the issue ... uhhh!
+% search the newer ones ... those that cite these two
+% compare to other methods
+% thin theoretically ... then I do have to experiemnt ( 0 overlap ...)
+% some methods might actually work later! ... show it fails ( i.e. RigidICP, 4PCS )
+% rigid alignment - input shapes do not change!
+	% can say ... we don't need to compare against non-rigid ( summarize their methods ... )
+% do try out some of their src codes, if possible !
+
+
+% see if there are issues in the 1st floor vs 3rd floor lab machines
+% 1 paragraph that don't apply ( i.e. nonRigid, other weird alignments ) 
+% look at abit @ older methods ... maybe ... 
+
+% some of these papers ... irrelevant ... other's are relevant!
+% note :: you should have a good idea about what makes your specific RESEARCH area difficult ( i.e. what are the common difficulties that are encounteed in the alignment /registrstion problem? ) 
+
+\end{document}

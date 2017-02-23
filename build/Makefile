@@ -246,6 +246,33 @@ helpers.cpp.s:
 	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.s
 .PHONY : helpers.cpp.s
 
+icp.o: icp.cpp.o
+
+.PHONY : icp.o
+
+# target to build an object file
+icp.cpp.o:
+	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.o
+.PHONY : icp.cpp.o
+
+icp.i: icp.cpp.i
+
+.PHONY : icp.i
+
+# target to preprocess a source file
+icp.cpp.i:
+	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.i
+.PHONY : icp.cpp.i
+
+icp.s: icp.cpp.s
+
+.PHONY : icp.s
+
+# target to generate assembly for a file
+icp.cpp.s:
+	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.s
+.PHONY : icp.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -320,6 +347,9 @@ help:
 	@echo "... helpers.o"
 	@echo "... helpers.i"
 	@echo "... helpers.s"
+	@echo "... icp.o"
+	@echo "... icp.i"
+	@echo "... icp.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

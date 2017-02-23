@@ -10,12 +10,18 @@ set(CMAKE_C_COMPILER_ID "GNU")
 
 # Preprocessor definitions for this target.
 set(CMAKE_TARGET_DEFINITIONS_C
+  "CGAL_USE_GMP"
+  "CGAL_USE_MPFR"
   "GLEW_BUILD"
   "GLEW_NO_GLU"
   )
 
 # The include file search paths:
 set(CMAKE_C_TARGET_INCLUDE_PATH
+  "/usr/include/x86_64-linux-gnu"
+  "."
+  "/p/CGAL-4.9/build/include"
+  "/p/CGAL-4.9/include"
   "/v/filer4b/v38q001/hari2018/CS370C/libigl/external/nanogui/ext/glew/include"
   )
 

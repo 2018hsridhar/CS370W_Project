@@ -7,6 +7,9 @@ link_directories(
 	"/opt/local/lib"
 	"/lusr/lib"
     "/lusr/opt/glfw-3.1.2/lib"
+	"/var/local"
+	"/p"
+	"/p/CGAL-4.9"
 )
 
 find_package(LIBIGL QUIET)
@@ -55,10 +58,10 @@ option(LIBIGL_WITH_COMISO      "Use CoMiso"         OFF)
 option(LIBIGL_WITH_BOOLEAN     "Use Cork boolean"   OFF) # This option is not supported yet
 option(LIBIGL_WITH_MATLAB      "Use Matlab"         OFF) # This option is not supported yet
 option(LIBIGL_WITH_MOSEK       "Use MOSEK"          OFF) # This option is not supported yet
-option(LIBIGL_WITH_CGAL        "Use CGAL"           OFF)
-#option(LIBIGL_WITH_CGAL        "Use CGAL"           ON)
+option(LIBIGL_WITH_CGAL        "Use CGAL"           ON)
 if(LIBIGL_WITH_CGAL) # Do not remove or move this block, the cgal build system fails without it
   find_package(CGAL REQUIRED)
+  message("Found CGAL")
   set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE CACHE BOOL "CGAL's CMAKE Setup is super annoying ")
   include(${CGAL_USE_FILE})
 endif()

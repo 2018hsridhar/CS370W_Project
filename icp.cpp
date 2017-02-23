@@ -24,7 +24,7 @@ Eigen::MatrixXi F_two;
 Eigen::MatrixXd V_approx;
 Eigen::MatrixXi F_approx;
 
-
+/*
 bool key_down( igl::viewer::Viewer& viewer, unsigned char key, int modifier)
 {
   std::cout << "Key : " << key << (unsigned int) key << std::endl;
@@ -51,14 +51,14 @@ bool key_down( igl::viewer::Viewer& viewer, unsigned char key, int modifier)
   }
   return false;
 }
+*/
 
+/*
 int main(int argc, char *argv[])
 {
 
-  /***********************************************************/ 
   // PRINT out critical information to user / developer 
   // LOAD mesh data , in OFF format
-  /***********************************************************/ 
   std::cout << R"(
 1 switch to identity view
 2 Switch to rotated view
@@ -74,14 +74,13 @@ int main(int argc, char *argv[])
 
   ICP::applyRigidICP(V_one, V_two, V_approx);
 
-  /***********************************************************/ 
   // SETUP LibIgl Viewer 
-  /***********************************************************/ 
   igl::viewer::Viewer viewer;
   viewer.callback_key_down = &key_down;
   viewer.data.set_mesh(V_one, F_one);
   viewer.launch();
 }
+*/
 
 namespace ICP
 {
@@ -169,6 +168,7 @@ namespace ICP
 	V_approx = HELPER::normalizeHomogenousMatrix(rigidIcpMesh);
 	}
 }
+
 /***********************************************************/ 
 // #TODO :: APPROACH 2 ( using surface normals ... code this up later ) 
 //Eigen::MatrixXd meshOneVertexNormals_prime = transformMat_k * meshOneVertexNormals;

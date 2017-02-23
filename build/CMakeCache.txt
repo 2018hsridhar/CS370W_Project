@@ -17,12 +17,29 @@
 //Build shared libraries
 BUILD_SHARED_LIBS:BOOL=OFF
 
+//Activate the debug messages of the script FindBoost
+Boost_DEBUG:BOOL=OFF
+
+//Link with static Boost libraries
+CGAL_Boost_USE_STATIC_LIBS:BOOL=OFF
+
+//The directory containing CGALConfig.cmake. This is either the
+// binary directory where CGAL was configured or PREFIX/lib/CGAL
+// for an installation.
+CGAL_DIR:PATH=/p/CGAL-4.9/build
+
+//Set this to TRUE if you want to define or modify any of CMAKE_*_FLAGS.
+// When this is FALSE, all the CMAKE_*_FLAGS flags are overriden
+// with the values used when building the CGAL libs. For CGAL_*_flags
+// (used for ADDITIONAL flags) , there is no need to set this to
+// TRUE.
+CGAL_DONT_OVERRIDE_CMAKE_FLAGS:BOOL=TRUE
+
 //Path to a program.
 CMAKE_AR:FILEPATH=/usr/bin/ar
 
-//Choose the type of build, options are: None(CMAKE_CXX_FLAGS or
-// CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.
-CMAKE_BUILD_TYPE:STRING=
+//Build type: Release or Debug
+CMAKE_BUILD_TYPE:STRING=Release
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -229,7 +246,7 @@ LIBIGL_WITH_BBW:BOOL=OFF
 LIBIGL_WITH_BOOLEAN:BOOL=OFF
 
 //Use CGAL
-LIBIGL_WITH_CGAL:BOOL=OFF
+LIBIGL_WITH_CGAL:BOOL=ON
 
 //Use CoMiso
 LIBIGL_WITH_COMISO:BOOL=OFF
@@ -490,11 +507,11 @@ X11_xf86misc_INCLUDE_PATH:PATH=X11_xf86misc_INCLUDE_PATH-NOTFOUND
 //Path to a file.
 X11_xf86vmode_INCLUDE_PATH:PATH=/usr/include
 
-//Dependencies for target
-glew_LIB_DEPENDS:STATIC=
+//Dependencies for the target
+glew_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libmpfr.so;general;/usr/lib/x86_64-linux-gnu/libgmp.so;general;/p/CGAL-4.9/build/lib/libCGAL.so.12.0.0;general;/usr/lib/x86_64-linux-gnu/libboost_thread.so;general;/usr/lib/x86_64-linux-gnu/libboost_system.so;general;/usr/lib/x86_64-linux-gnu/libboost_chrono.so;general;/usr/lib/x86_64-linux-gnu/libboost_date_time.so;general;/usr/lib/x86_64-linux-gnu/libboost_atomic.so;general;/usr/lib/x86_64-linux-gnu/libpthread.so;
 
-//Dependencies for target
-glfw_LIB_DEPENDS:STATIC=
+//Dependencies for the target
+glfw_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libmpfr.so;general;/usr/lib/x86_64-linux-gnu/libgmp.so;general;/p/CGAL-4.9/build/lib/libCGAL.so.12.0.0;general;/usr/lib/x86_64-linux-gnu/libboost_thread.so;general;/usr/lib/x86_64-linux-gnu/libboost_system.so;general;/usr/lib/x86_64-linux-gnu/libboost_chrono.so;general;/usr/lib/x86_64-linux-gnu/libboost_date_time.so;general;/usr/lib/x86_64-linux-gnu/libboost_atomic.so;general;/usr/lib/x86_64-linux-gnu/libpthread.so;
 
 //Value Computed by CMake
 libigl_BINARY_DIR:STATIC=/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/libigl
@@ -507,6 +524,10 @@ libigl_SOURCE_DIR:STATIC=/v/filer4b/v38q001/hari2018/CS370C/libigl/shared/cmake
 # INTERNAL cache entries
 ########################
 
+//ADVANCED property for variable: Boost_DEBUG
+Boost_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CGAL_Boost_USE_STATIC_LIBS
+CGAL_Boost_USE_STATIC_LIBS-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_AR
 CMAKE_AR-ADVANCED:INTERNAL=1
 //This is the directory where this CMakeCache.txt was created

@@ -1,6 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/main.cpp.o"
   "CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/meanCurvatureFlow.cpp.o"
+  "CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o"
   "CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.o"
   "CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.o"
   "CS370C_RESEARCH_PROJECt_bin,.pdb"

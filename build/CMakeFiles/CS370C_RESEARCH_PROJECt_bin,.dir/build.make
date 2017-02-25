@@ -105,9 +105,33 @@ CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/meanCurvatureFlow.cpp.o.provides: CM
 CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/meanCurvatureFlow.cpp.o.provides.build: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/meanCurvatureFlow.cpp.o
 
 
+CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/flags.make
+CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o: ../remesh.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o -c /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/remesh.cpp
+
+CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.i"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/remesh.cpp > CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.i
+
+CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.s"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/remesh.cpp -o CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.s
+
+CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o.requires:
+
+.PHONY : CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o.requires
+
+CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o.provides: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o.requires
+	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o.provides.build
+.PHONY : CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o.provides
+
+CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o.provides.build: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o
+
+
 CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.o: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/flags.make
 CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.o: ../helpers.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.o -c /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/helpers.cpp
 
 CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.i: cmake_force
@@ -131,7 +155,7 @@ CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.o.provides.build: CMakeF
 
 CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.o: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/flags.make
 CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.o: ../icp.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.o -c /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/icp.cpp
 
 CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.i: cmake_force
@@ -157,6 +181,7 @@ CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.o.provides.build: CMakeFiles
 CS370C_RESEARCH_PROJECt_bin,_OBJECTS = \
 "CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/main.cpp.o" \
 "CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/meanCurvatureFlow.cpp.o" \
+"CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o" \
 "CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.o" \
 "CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.o"
 
@@ -165,6 +190,7 @@ CS370C_RESEARCH_PROJECt_bin,_EXTERNAL_OBJECTS =
 
 CS370C_RESEARCH_PROJECt_bin,: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/main.cpp.o
 CS370C_RESEARCH_PROJECt_bin,: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/meanCurvatureFlow.cpp.o
+CS370C_RESEARCH_PROJECt_bin,: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o
 CS370C_RESEARCH_PROJECt_bin,: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.o
 CS370C_RESEARCH_PROJECt_bin,: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.o
 CS370C_RESEARCH_PROJECt_bin,: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make
@@ -204,7 +230,7 @@ CS370C_RESEARCH_PROJECt_bin,: /usr/lib/x86_64-linux-gnu/libXinerama.so
 CS370C_RESEARCH_PROJECt_bin,: /usr/lib/x86_64-linux-gnu/libXxf86vm.so
 CS370C_RESEARCH_PROJECt_bin,: /usr/lib/x86_64-linux-gnu/libXcursor.so
 CS370C_RESEARCH_PROJECt_bin,: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable CS370C_RESEARCH_PROJECt_bin,"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable CS370C_RESEARCH_PROJECt_bin,"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -214,6 +240,7 @@ CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build: CS370C_RESEARCH_PROJECt_bin,
 
 CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/requires: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/main.cpp.o.requires
 CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/requires: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/meanCurvatureFlow.cpp.o.requires
+CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/requires: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o.requires
 CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/requires: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/helpers.cpp.o.requires
 CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/requires: CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/icp.cpp.o.requires
 

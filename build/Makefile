@@ -327,6 +327,33 @@ meanCurvatureFlow.cpp.s:
 	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/meanCurvatureFlow.cpp.s
 .PHONY : meanCurvatureFlow.cpp.s
 
+remesh.o: remesh.cpp.o
+
+.PHONY : remesh.o
+
+# target to build an object file
+remesh.cpp.o:
+	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.o
+.PHONY : remesh.cpp.o
+
+remesh.i: remesh.cpp.i
+
+.PHONY : remesh.i
+
+# target to preprocess a source file
+remesh.cpp.i:
+	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.i
+.PHONY : remesh.cpp.i
+
+remesh.s: remesh.cpp.s
+
+.PHONY : remesh.s
+
+# target to generate assembly for a file
+remesh.cpp.s:
+	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/remesh.cpp.s
+.PHONY : remesh.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -356,6 +383,9 @@ help:
 	@echo "... meanCurvatureFlow.o"
 	@echo "... meanCurvatureFlow.i"
 	@echo "... meanCurvatureFlow.s"
+	@echo "... remesh.o"
+	@echo "... remesh.i"
+	@echo "... remesh.s"
 .PHONY : help
 
 

@@ -9,22 +9,24 @@
 #include <igl/procrustes.h>
 #include <igl/all_pairs_distances.h> 
 #include "helpers.h"
-#include "glob_defs.h"
+//#include "glob_defs.h"
 #include "icp.h"
 
 using namespace Eigen;  
 using namespace std;
 
-Eigen::MatrixXd V_one;
-Eigen::MatrixXi F_one;
-
-Eigen::MatrixXd V_two;
-Eigen::MatrixXi F_two;
-
-Eigen::MatrixXd V_approx;
-Eigen::MatrixXi F_approx;
-
 /*
+
+Eigen::MatrixXd V_one;
+	Eigen::MatrixXi F_one;
+
+	Eigen::MatrixXd V_two;
+	Eigen::MatrixXi F_two;
+
+	Eigen::MatrixXd V_approx;
+	Eigen::MatrixXi F_approx;
+
+
 bool key_down( igl::viewer::Viewer& viewer, unsigned char key, int modifier)
 {
   std::cout << "Key : " << key << (unsigned int) key << std::endl;
@@ -84,8 +86,9 @@ int main(int argc, char *argv[])
 
 namespace ICP
 {
-	void applyRigidICP(Eigen::MatrixXd& V_one, Eigen::MatrixXd& V_two, Eigen::MatrixXd& result)
+	void applyRigidICP(Eigen::MatrixXd& V_one, Eigen::MatrixXd& V_two, Eigen::MatrixXd& V_transformed)
 	{
+	
 	/***********************************************************/ 
 	// PREALLOCATE matrices for computation ( p_i, q, transformation_iter_k)
 	/***********************************************************/ 
@@ -163,9 +166,8 @@ namespace ICP
 		/***********************************************************/ 
 		// CALCULATE the mesh based on RIGID ICP transformation 
 		/***********************************************************/ 
-	F_approx = F_one;
 	Eigen::MatrixXd rigidIcpMesh = (p_i * T_k).rowwise() + zeroTranslate.transpose(); 
-	V_approx = HELPER::normalizeHomogenousMatrix(rigidIcpMesh);
+	V_transformed = HELPER::normalizeHomogenousMatrix(rigidIcpMesh);
 	}
 }
 

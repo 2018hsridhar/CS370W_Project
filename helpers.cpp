@@ -1,7 +1,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry> // for homogenous, and for hnormalized ... well, this is annoying!
 
-#include "glob_defs.h"
+//#include "glob_defs.h"
 #include "helpers.h"
 
 namespace HELPER 

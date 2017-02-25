@@ -8,7 +8,7 @@
 #include <igl/point_mesh_squared_distance.h>
 #include <igl/slice.h>
 #include <igl/boundary_loop.h>
-using namespace Eigen;
+using namespace Eigen; // how to fix this "using namespace" annoying issue? 
 
 // #TODO  :: store a notion of the original markers? unsure atm
 namespace OFFSET
@@ -17,7 +17,7 @@ namespace OFFSET
 								const Eigen::MatrixXd &V2, const Eigen::MatrixXi &F2, 
 								Eigen::MatrixXd& vOff, Eigen::MatrixXi& fOff);
 	bool edgesAreEqual(const Ref<const Eigen::Vector2i>& e1, const Ref<Eigen::Vector2i>& e2);
-//	void solveSeedEdge(Eigen::Vector2i& seedEdge);
+	void constructSeedEdge(Eigen::VectorXi& bndIndexesV1, Eigen::MatrixXd& bndVertsV1,Eigen::VectorXi& bndVertsV2,Eigen::Vector2i& seedEdge);
 
 
 

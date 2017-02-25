@@ -7,7 +7,7 @@ using namespace Eigen;
 
 namespace ICP
 {
-	void applyRigidICP(Eigen::MatrixXd& V_one, Eigen::MatrixXd& V_two, Eigen::MatrixXd& result);
+	void applyRigidICP(Eigen::MatrixXd& V_one, Eigen::MatrixXd& V_two, Eigen::MatrixXd& V_transformed);
 }
 
 #endif

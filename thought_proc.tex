@@ -56,6 +56,10 @@ This issue arose when refactoring lots of the graphics code
 	\item What exactly is mesh subdivision ... not fully familiar yet, atm!
 	\item Use the term \textit{Geometric algorithms}, to describe one's knowledge of graphics algos
 	\item always a good idea to take out unsused header files, and using namespaces ( just declare like <namespace>::<class>)
+	\item When it comes to refactoring ... refactor, s.t. you achieve a specific goal. Refactoring still comes to to Knuths "Premature optimization", and it's best to keep making progress on your program, then optimize. I guess refactoring is a good thing to do if you feel like doing nothing else, but in a sense, it's kinda liek cleaning your room, vs doing your hw.
+	\item Err :: parameter reshadowing = redeclaration of a var
+	\item TRY to avoid unused variables ... while not compile time errs, they do mess up code quality :-(
+	\item One idea - try to avoid dumping a lot of stuff into header files ( *according to Brady ). In my view, header files seem useful ONLY for (i) global vars (ii) namespace-method fwd declarations
 	\item \textbf{TBD} 
 \end{itemize}
 

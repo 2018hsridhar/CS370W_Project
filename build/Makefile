@@ -219,6 +219,33 @@ glfw/fast:
 	$(MAKE) -f libigl/glfw/src/CMakeFiles/glfw.dir/build.make libigl/glfw/src/CMakeFiles/glfw.dir/build
 .PHONY : glfw/fast
 
+glob_defs.o: glob_defs.cpp.o
+
+.PHONY : glob_defs.o
+
+# target to build an object file
+glob_defs.cpp.o:
+	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/glob_defs.cpp.o
+.PHONY : glob_defs.cpp.o
+
+glob_defs.i: glob_defs.cpp.i
+
+.PHONY : glob_defs.i
+
+# target to preprocess a source file
+glob_defs.cpp.i:
+	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/glob_defs.cpp.i
+.PHONY : glob_defs.cpp.i
+
+glob_defs.s: glob_defs.cpp.s
+
+.PHONY : glob_defs.s
+
+# target to generate assembly for a file
+glob_defs.cpp.s:
+	$(MAKE) -f CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/build.make CMakeFiles/CS370C_RESEARCH_PROJECt_bin,.dir/glob_defs.cpp.s
+.PHONY : glob_defs.cpp.s
+
 helpers.o: helpers.cpp.o
 
 .PHONY : helpers.o
@@ -371,6 +398,9 @@ help:
 	@echo "... uninstall"
 	@echo "... glfw_objects"
 	@echo "... glfw"
+	@echo "... glob_defs.o"
+	@echo "... glob_defs.i"
+	@echo "... glob_defs.s"
 	@echo "... helpers.o"
 	@echo "... helpers.i"
 	@echo "... helpers.s"

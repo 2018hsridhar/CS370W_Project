@@ -13,6 +13,7 @@
 	\\ Later refactoring can be implemented to set some of these methods private, or belonging to various classes
 	\item The need for good namespaces, to undersatnd where things logically fit, makes more sense to me now!
 	\item For things that belong in a hodgepot class or header file ( i.e. globals.h, helpers.h), ALWAYS keep a running tab on where things are used, so that if there is a potential to refactor those codebases, then they can be succesfully refactored l8r down that road.
+	\item For inclusion of useful, const global vars ... use the "glob.h, glob.cpp" pattern - see http://stackoverflow.com/questions/1045501/how-do-i-share-variables-between-different-c-files
 \end{itemize}
 
 \section{Refactoring Large Codebases}

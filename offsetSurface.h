@@ -17,9 +17,11 @@ namespace OFFSET
 								const Eigen::MatrixXd &V2, const Eigen::MatrixXi &F2, 
 								Eigen::MatrixXd& vOff, Eigen::MatrixXi& fOff);
 	bool edgesAreEqual(const Ref<const Eigen::Vector2i>& e1, const Ref<Eigen::Vector2i>& e2);
-	void constructSeedEdge(Eigen::VectorXi& bndIndexesV1, Eigen::MatrixXd& bndVertsV1,Eigen::VectorXi& bndVertsV2,Eigen::Vector2i& seedEdge);
-
-
+	void constructSeedEdgeIndices(Eigen::VectorXi& bndIndexesSrc, Eigen::MatrixXd& bndVertsSrc,
+							Eigen::VectorXi& bndIndexesDest, Eigen::MatrixXd& bndVertsDest,	
+							Eigen::Vector2i& seedEdge);
+}
+#endif
 
 //void fillBoundaryIndexes(std::vector<bool> verticesBoundaryStatus, int numBoundaryVertices,int* indexesArray);
 //template <typename T>
@@ -30,6 +32,4 @@ namespace OFFSET
 //std::vector<int> findAdjBndryVertsInScan2(int vertIdx);
 //int findClosestAdjBndryNodeInScan1(std::vector<int> bndryVertices, int myVertexIndex, int prev_v1);
 //int findClosestAdjBndryNodeInScan2(std::vector<int> bndryVertices, int myVertexIndex, int prev_v2);
-}
 
-#endif

@@ -1,5 +1,5 @@
 #ifndef GLOBS_DEF_H
-//#define GLOBS_DEF_H
+#define GLOBS_DEF_H
 
 #include "tutorial_shared_path.h"
 
@@ -10,8 +10,13 @@
 // Put all the globally-used numbers in here.
 namespace GLOBAL
 {
-	const char* remeshInputFile = TUTORIAL_SHARED_PATH "/pig.off";
-	const char* remeshOutputFile = TUTORIAL_SHARED_PATH "/pigRemesh.off";
+//	const char* remeshInputFile = TUTORIAL_SHARED_PATH "/pig.off";
+//	const char* remeshOutputFile = TUTORIAL_SHARED_PATH "/pigRemesh.off";
+	extern const char* remeshInputFile;
+    extern const char* remeshOutputFile;
+
+	extern const char* offsetGenScan1File;
+	extern const char* offsetGenScan2File;
 }
 #endif
 

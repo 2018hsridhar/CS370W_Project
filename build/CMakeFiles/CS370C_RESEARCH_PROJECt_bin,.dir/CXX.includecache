@@ -5256,6 +5256,12 @@ features.h
 bits/resource.h
 -
 
+/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/glob_defs.cpp
+tutorial_shared_path.h
+/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/tutorial_shared_path.h
+glob_defs.h
+/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/glob_defs.h
+
 /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/glob_defs.h
 tutorial_shared_path.h
 /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/tutorial_shared_path.h
@@ -5309,6 +5315,8 @@ offsetSurface.h
 /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/offsetSurface.h
 remesh.h
 /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/remesh.h
+glob_defs.h
+/v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/glob_defs.h
 
 /v/filer4b/v38q001/hari2018/CS370C/PROJECTS/CS370W_Project/meanCurvatureFlow.cpp
 meanCurvatureFlow.h

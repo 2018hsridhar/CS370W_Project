@@ -1,0 +1,21 @@
+#ifndef GLOBS_DEF_H
+#define GLOBS_DEF_H
+
+#include "tutorial_shared_path.h"
+#include "glob_defs.h"
+
+namespace GLOBAL
+{
+	const char* remeshInputFile = TUTORIAL_SHARED_PATH "/offset.off";
+    const char* remeshOutputFile = TUTORIAL_SHARED_PATH "/offsetRemesh.off";
+
+//	const char* offsetGenInputFile = TUTORIAL_SHARED_PATH "/planexy.off";
+ //   const char* offsetGenOutputFile = TUTORIAL_SHARED_PATH "/planexy2.off";
+	const char* offsetGenScan1File= TUTORIAL_SHARED_PATH "/camelhead.off";
+    const char* offsetGenScan2File= TUTORIAL_SHARED_PATH "/camelhead2.off";
+}
+#endif
+
+
+
+

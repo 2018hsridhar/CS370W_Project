@@ -2,7 +2,6 @@
 #define ICP_H
 
 #include "tutorial_shared_path.h"
-//#include <Eigen/Core>
 using namespace Eigen;
 
 namespace ICP

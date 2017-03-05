@@ -15,6 +15,7 @@ using namespace Eigen;
 // #TODO  :: store a notion of the original markers? unsure atm
 namespace INTERP_SURF 
 {
+	int mod(int a, int b);
 	void generateOffsetSurface(const Eigen::MatrixXd &V1, const Eigen::MatrixXi &F1, 
 								const Eigen::MatrixXd &V2, const Eigen::MatrixXi &F2, 
 								Eigen::MatrixXd& vOff, Eigen::MatrixXi& fOff);

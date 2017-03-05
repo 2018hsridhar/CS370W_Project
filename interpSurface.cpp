@@ -15,6 +15,12 @@ using namespace igl;
 
 namespace INTERP_SURF 
 {
+
+	int mod(int a, int b)
+	{
+		return (a%b+b)%b;
+	}
+
 	void generateOffsetSurface(const Eigen::MatrixXd &V1, const Eigen::MatrixXi &F1, 
 								const Eigen::MatrixXd &V2, const Eigen::MatrixXi &F2, 
 								Eigen::MatrixXd& vOff, Eigen::MatrixXi& fOff)
@@ -91,10 +97,9 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			int p_i = bndIndexesScan1(i);
 			int q_j = bndIndexesScan2(j);
 
-			//int newI = (((i-1) % numBoundaryVerticesScan1) + numBoundaryVerticesScan1) % numBoundaryVerticesScan1;
-			//if((i-1) % numBoundaryVerticesScan1 < 0) std::cout << "Less than 0 " << std::endl; 
 			int p_i_plus_1 = bndIndexesScan1((i + 1) % numBoundaryVerticesScan1);
-			int q_j_plus_1 = bndIndexesScan2((j + 1) % numBoundaryVerticesScan2); 
+			int j_1 = INTERP_SURF::mod(j-1,numBoundaryVerticesScan2);
+			int q_j_plus_1 = bndIndexesScan2(j_1);
 
 			//  assess d(b_p_i, b_p_i_plus_1) <= d(b_q_j, b_q_j_plus_1)
 			Eigen::VectorXd b_p_i = V1.row(p_i);
@@ -117,8 +122,8 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			}
 			else {  
 				newEdge = Eigen::Vector2i(p_i, (q_j_plus_1 + V1.rows()));
-				newFace = Eigen::Vector3i(p_i,(q_j_plus_1 + V1.rows()),(q_j + V1.rows()));
-				j = (j + 1) % numBoundaryVerticesScan2;
+				newFace = Eigen::Vector3i(p_i,(q_j + V1.rows()),(q_j_plus_1 + V1.rows()));
+				j = INTERP_SURF::mod(j - 1, numBoundaryVerticesScan2);
 				std::cout << "in scan 2 " << std::endl;
 			}
 
@@ -129,9 +134,9 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			iter++;
 			std::cout << iter << std::endl;
 		} 
-		while(iter <= 5);
-		//while(iter <= 0);
-		//while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
+		//while(iter <= 20);
+		//while(iter <= 5);
+		while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 		std::cout << "max iter val = " << iter << std::endl;
 
 		// remeshing works for 1 iteration? 
@@ -146,16 +151,11 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		Eigen::MatrixXi faces = Eigen::Map<Eigen::MatrixXi,RowMajor> (&newTriangleFaces[0],3,numOfFaces); 
 		interpolatedSurface.F = faces.transpose();
 
-		
-		
-
 		// CREATE one huge interpolating mesh that contians 
 		// both the two partial scans, and the interpolating surface
 
 		igl::cat(1,V1,V2,vOff);
 		igl::cat(1,F1, MatrixXi(F2.array() + V1.rows()), scans.F);
-		//Eigen::MatrixXi fTemp;
-		//igl::cat(1,scans.F, interpolatedSurface.F, fTemp);
 		igl::cat(1,scans.F, interpolatedSurface.F, fOff);
 
 		for(int i = 0; i < fOff.rows(); i++)
@@ -198,4 +198,6 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		double edgeNormDist =  (e1- e2).norm();
 		return (edgeNormDist == 0);
 	}
+
+
 }

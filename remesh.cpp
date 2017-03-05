@@ -24,8 +24,7 @@ struct halfedge2edge
   }
   const Mesh& m_mesh;
   std::vector<edge_descriptor>& m_edges;
-};
-
+}; 
 // Preallocation of V,F
 /*
 Eigen::MatrixXd V;
@@ -92,8 +91,8 @@ namespace REMESH
 			std::cerr << "Not a valid off file." << std::endl;
 			return;
 		}
-		double target_edge_length = 0.25;
-		//double target_edge_length = 0.1;
+		double target_edge_length = 1.0;
+		//double target_edge_length = 0.05;
 		unsigned int nb_iter = 3;
 		std::cout << "Split border...";
 		std::vector<edge_descriptor> border;

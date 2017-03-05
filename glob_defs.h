@@ -19,8 +19,8 @@ namespace GLOBAL
 	extern const char* remeshInputFile;
     extern const char* remeshOutputFile;
 
-	extern const char* offsetGenScan1File;
-	extern const char* offsetGenScan2File;
+	extern const char* interpSurfGenScan1File;
+	extern const char* interpSurfGenScan2File;
 
 	extern const char* rigidIcpInputScanFile;
 	extern const char* rigidIcpOutputScanFile;

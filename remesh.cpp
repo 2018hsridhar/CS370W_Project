@@ -80,6 +80,8 @@ int main(int argc, char* argv[])
 // NOTE :: you configure the file, outside of your code!
 namespace REMESH
 { 
+	// note :: you need to take the max target_edge_len, and divide by some val! 
+	// feed in a param here!
 	void remeshSurface(Eigen::MatrixXd& V, Eigen::MatrixXi& F, 
 							Eigen::MatrixXd& Vr, Eigen::MatrixXi& Fr)
 	{
@@ -90,7 +92,8 @@ namespace REMESH
 			std::cerr << "Not a valid off file." << std::endl;
 			return;
 		}
-		double target_edge_length = 0.04;
+		double target_edge_length = 0.25;
+		//double target_edge_length = 0.1;
 		unsigned int nb_iter = 3;
 		std::cout << "Split border...";
 		std::vector<edge_descriptor> border;
@@ -103,7 +106,7 @@ namespace REMESH
 			<< " (" << num_faces(mesh) << " faces)..." << std::endl;
 		PMP::isotropic_remeshing(
 			faces(mesh),
-			target_edge_length / 2,
+			target_edge_length/10,
 			mesh,
 			PMP::parameters::number_of_iterations(nb_iter)
 			.protect_constraints(true)//i.e. protect border, here

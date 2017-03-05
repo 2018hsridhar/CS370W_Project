@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(CS370C_RESEARCH_PROJECt)
+project(CS370C_RESEARCH_PROJECT)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 link_directories(
@@ -86,16 +86,14 @@ include_directories(${LIBIGL_INCLUDE_DIRS})
 add_definitions(${LIBIGL_DEFINITIONS})
 
 # Add your project files
-SET(BINARY_FILES "${CMAKE_CURRENT_LIST_DIR}/main.cpp") # set a scalar/list var BINARY_FILES <- ../main.cpp 
-MESSAGE("Will be removing binary files ${BINARY_FILES}") # why is this considered a BINARY_FILE??
+SET(BINARY_FILES "${CMAKE_CURRENT_LIST_DIR}/main.cpp") 
+MESSAGE("Will be removing binary files ${BINARY_FILES}") 
 FILE(GLOB SRCFILES *.cpp)
-### GOAL :: ONLY the main.cpp file, will get converted into a binary/executable ( I believe ) 
 message("Project sources (before) are : ${SRCFILES}")
 list(REMOVE_ITEM SRCFILES ${BINARY_FILES})
 message("Project sources (after) are : ${SRCFILES}")
 
-##### 
-# ... why were SRC_FILES and main.cpp both split up here? ... not sure, but will find out l8r!
+# compile and link main
 add_executable(${PROJECT_NAME}_bin, main.cpp ${SRCFILES} ${LIBIGL_EXTRA_SOURCES})
 target_link_libraries(${PROJECT_NAME}_bin, ${LIBIGL_LIBRARIES} ${LIBIGL_EXTRA_LIBRARIES} )
 

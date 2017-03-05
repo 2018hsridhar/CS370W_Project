@@ -14,6 +14,9 @@
 	\item The need for good namespaces, to undersatnd where things logically fit, makes more sense to me now!
 	\item For things that belong in a hodgepot class or header file ( i.e. globals.h, helpers.h), ALWAYS keep a running tab on where things are used, so that if there is a potential to refactor those codebases, then they can be succesfully refactored l8r down that road.
 	\item For inclusion of useful, const global vars ... use the "glob.h, glob.cpp" pattern - see http://stackoverflow.com/questions/1045501/how-do-i-share-variables-between-different-c-files
+	\item Always incorporate a .gitignore. It turns out that you seldom want to store your project build, or compiler files, it GitHub all the time. Be more efficient with this. Same for *.swp files , or some libs
+	\item Start using branches and merges, in development ( every time u change ... no matter size ... BRANCH!). The MASTER must always be a working copy!  ( see https://www.atlassian.com/git/tutorials/using-branches ) 
+	\item Man ... it'd be nice to have a UTILITIES directory, that consists of a bunch of nice helper methods and programs :-). But, this increases development a bit :-(.
 \end{itemize}
 
 \section{Refactoring Large Codebases}
@@ -62,6 +65,34 @@ This issue arose when refactoring lots of the graphics code
 	\item TRY to avoid unused variables ... while not compile time errs, they do mess up code quality :-(
 	\item One idea - try to avoid dumping a lot of stuff into header files ( *according to Brady ). In my view, header files seem useful ONLY for (i) global vars (ii) namespace-method fwd declarations
 	\item \textbf{TBD} 
+\end{itemize}
+
+\section{Github madness - dealing with branches}
+\subsection{A concise overview}
+\begin{itemize}
+	\item REMEMBER : brnaches = pointers, NOT copies, to commits!
+	\item The master / main brnach should always be stable code.
+	\item https://www.atlassian.com/git/tutorials/using-branches - for setting up git branches
+	\item http://stackoverflow.com/questions/14628540/why-do-i-only-see-my-master-branch-on-github
+	\item Seems that branches are very useful, say, IF I want to develop two independent features concurrently. Also useful to start different feature histories, before merging to main.
+	\item \textit{How recursively deep should my branches be?} 
+	\item Development MUST always take plane on a branch, NEVER on a detahed HEAD. You need to have a REF to new commits! 
+	\item You can go to nonHEAD nodes, to old commits, in a read only mode
+
+
+	\item http://stackoverflow.com/questions/8965781/update-an-outdated-branch-against-master-in-a-git-repo 
+	\item \texit{How to ensure that I can stash my own changes, when master updates, but NOT lose my changes? unsure atm!}
+	\item http://stackoverflow.com/questions/20808892/git-diff-between-current-branch-and-master-but-not-including-unmerged-master-com
+\end{itemize}
+
+\subsection{New Terminology to familiarize with}
+\begin{itemize}
+	\item Project history
+	\item Staging Area
+	\item Working dir
+	\item Checkout
+	\item Merge
+	\item Stable vs Unstable code
 \end{itemize}
 
 \end{document}

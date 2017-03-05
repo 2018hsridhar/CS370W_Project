@@ -134,9 +134,9 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			iter++;
 			std::cout << iter << std::endl;
 		} 
-		//while(iter <= 20);
-		//while(iter <= 5);
-		while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
+		//while(iter <= 0);
+		while(iter <= 200);
+		//while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 		std::cout << "max iter val = " << iter << std::endl;
 
 		// remeshing works for 1 iteration? 

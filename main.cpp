@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
 
 	//  SETUP LibIgl Viewer 
 	igl::viewer::Viewer viewer;
-	//viewer.data.set_mesh(scene.V, scene.F); 
-	viewer.data.set_mesh(remeshed.V, remeshed.F); 
+	viewer.data.set_mesh(scene.V, scene.F); 
+	//viewer.data.set_mesh(remeshed.V, remeshed.F); 
 	viewer.launch();
 
 /*

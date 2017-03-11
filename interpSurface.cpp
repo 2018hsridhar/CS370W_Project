@@ -183,7 +183,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				int q_j = bndIndexesScan2(j);
 				int q_j_plus_1 = bndIndexesScan2(INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
 
-				Eigen::Vector2i newEdge = Eigen::Vector2i(p_i,(q_j_plus_1 + V1.rows()));
+				newEdge = Eigen::Vector2i(p_i,(q_j_plus_1 + V1.rows()));
 				Eigen::Vector3i newFace = Eigen::Vector3i(p_i,(q_j + V1.rows()),(q_j_plus_1 + V1.rows()));
 				// push new face, perform next iteration
 				newTriangleFaces.push_back(newFace(0));
@@ -205,7 +205,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				int p_i = bndIndexesScan1(i);
 				int p_i_plus_1 = bndIndexesScan1((i+1) % numBoundaryVerticesScan1);
 
-				Eigen::Vector2i newEdge = Eigen::Vector2i(p_i_plus_1, (q_j + V1.rows()));
+				newEdge = Eigen::Vector2i(p_i_plus_1, (q_j + V1.rows()));
 				Eigen::Vector3i newFace = Eigen::Vector3i(q_j + V1.rows(), p_i_plus_1,p_i);
 
 				// push new face, perform next iteration
@@ -215,7 +215,6 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				i = (i + 1) % numBoundaryVerticesScan1;
 				cout << "iter = " << iter << endl;
 				iter++;
-				break;
 			} while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 		}
 

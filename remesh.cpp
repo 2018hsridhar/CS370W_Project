@@ -91,8 +91,8 @@ namespace REMESH
 			std::cerr << "Not a valid off file." << std::endl;
 			return;
 		}
-		double target_edge_length = 1.0;
-		//double target_edge_length = 0.05;
+		//double target_edge_length = 1.0;
+		double target_edge_length = 0.25;
 		unsigned int nb_iter = 3;
 		std::cout << "Split border...";
 		std::vector<edge_descriptor> border;

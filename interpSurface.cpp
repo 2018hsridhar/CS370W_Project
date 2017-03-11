@@ -160,12 +160,10 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			}
 	
 			iter++;
-			std::cout << iter << std::endl;
+			//std::cout << iter << std::endl;
 
 		} 
 		while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
-		//while(iter <= 0);
-		//while(iter <= 200);
 
 		// [2] CLEAN UP PHASE - if the new Edge happens to be adjacent to a seed vertex
 		iter = 0;
@@ -190,7 +188,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				newTriangleFaces.push_back(newFace(1));
 				newTriangleFaces.push_back(newFace(2));
 				j = INTERP_SURF::mod(j - 1, numBoundaryVerticesScan2);
-				cout << "iter = " << iter << endl;
+			//	cout << "iter = " << iter << endl;
 				iter++;
 			} while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 		}
@@ -213,7 +211,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				newTriangleFaces.push_back(newFace(1));
 				newTriangleFaces.push_back(newFace(2));
 				i = (i + 1) % numBoundaryVerticesScan1;
-				cout << "iter = " << iter << endl;
+			//	cout << "iter = " << iter << endl;
 				iter++;
 			} while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 		}

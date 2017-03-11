@@ -1,0 +1,104 @@
+\documentclass{article}
+\begin{document}
+
+%%%%%%%% PRELIMS %%%%%%%%%%
+%%%%%%%%%% paper story / abstract %%%%%%%%%%%%%%%%%%%%
+\section{The paper story}
+
+%%%%%%%%%%% the five c's %%%%%%%%%%%%%%%%
+\section{The five C's}
+\begin{itemize}
+	\item Clarity - Well written.
+	\item Category - Description of a method that tackles 3D model creation, based on alignment of 2 nonoverlapping partial scans
+	\item Contributions - new method for aligning and stitching 2 nonoverlapping meshes, based just on boundary information. Breakable into 3 main contributions.
+	\item Correctness - Assumptions appear to be valid
+	\item Context/Related to :: Alignment scheme algorithms ( RigidIcp), our research project
+\end{itemize}
+
+%%%%%%%%%%% key/unknown vocab %%%%%%%%%%
+\section{Key or Unknown Vocabulary}
+\begin{enumerate}[(i)]
+	\item Digitation of objects -
+	\item Range Sensor
+	\item Point cloud filtering approaches [ Kazhdan ] - 
+	\item Convex Hull Approx - 
+	\item Ball Pivoting - is this what I'm doing? 
+	\item pos procesing
+\end{enumerate}
+
+%%%%% THE DEPTH REPORT %%%%%%%%%%
+%%%%%%%%%%% introduction %%%%%%%%%%%%%%%%
+\section{Summary of Introduction}
+	% JANSOM is a method that tackles 3D model creation, based on alignment of 2 nonoverlapping partial scans.
+	%  Easy to obtain non-overlapping meshes
+	% Uses only boundary geometry for alignment
+	% Can be used for hole-filing
+	% ASSUMED that boundaries of scans are the same geometric struct, from different viewpoint. Formulates alignment as minization of total edge len. Recognizes the difficulties associated with this assumption ( lack of a priori knowledge, lack of good boundaries)
+	% Contributions to address limitations are :
+	% 	- introducion of cost function to penalize edge lens and intersections
+	% 	- solving assisgments, via constraint generation (change of vars), changes from a combinatorial to disc Linear Programming problem
+	% 	- a new stitching algo
+
+\section{Summary of Related Works, Section 2}
+% Little work has been done in the case of zero overlap
+% Use of range scans for 3D obj modelling - motivation for mesh stitching 
+% 	- [ Turk and Levoy, 1994 ] - 3 step alignment + stitch algo - uses ICP to alignA - fails here, due to lack of overlap ( no ICP )
+% 	- [ Paulay et Al, 2005 ] - use parts of other objs for hole filing - nonrigid alignment - then use Turk's approach
+% 	- [ Borodn et Al, 2002 ] - assumes previously registered meshes. stitches by minimzing lengths of new edges, BUT does create and delete boundary vertices
+% Overall, these approaches ... kinda assume a good initial alignment, or overlap. hence, they fail to solve the problem.
+
+\section{Mesh Alignment}
+% Add new, non-self interesting, edges, interpolating the boundaries, s.t. total length of all edges is minimized. 
+%  Solves cost function J = J_1 + J_2 ( penalize ( len + intersection ))
+% 
+
+
+\section{References of Interest}
+	%#TODO
+
+%%% JANSOM - AN OVERVIEW REPROT %%%%%%%%%%%%
+\section{Assumptions}
+
+\section{Limitations}
+\begin{enumerate}[(i)]
+	\item wer
+\end{enumerate}
+
+\section{What stands out}
+\begin{itemize}
+	\item wer
+\end{itemize}
+
+\section{Constraints enforced by resesarch}
+\begin{itemize}
+\end{itemize}
+
+\section{Questions on JASNOM paper}
+\begin{itemize}
+
+\end{itemize}
+
+\section{Concerns about JASNOM paper}
+\begin{itemize}
+
+\end{itemize}
+
+\section{Thoughts on MetaLearning}
+\begin{itemize}
+	\item How do I tell if a paper's methodologies and results are reproducible or not? Sure, the math is easy to assess, but the exp setup? 
+	\item How do I tell if enough , or too much , detail has been imparted into specific sections?
+	\item How to notice open issues that are not ever handled again (Krishnamurti)?
+\end{itemize}
+
+\section{Things learned in today's reading + Keenan Crane's Heat Flow Presentation}
+\begin{itemize}
+	\item Shriram Krishnamuti's paper:: It is also difficult from the sparse description to determine exactly why the outcome was as it was. While the authors deserve praise for laying out all the events in a total order, we are not given enough detail about what happens at each step to be able to reproduce the outcome \\
+		- suggest to me that I should state while Keenan Crane's paper was well laid-out, his work isn't exactly the most reproducible
+	\item TODO
+\end{itemize}
+
+\end{document}
+
+% nice note :: due to planar topology, range images INDUCE an intrinsic mesh in point clouds, but do not represent the whole object.
+
+

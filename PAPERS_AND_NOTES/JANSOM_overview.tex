@@ -1,0 +1,65 @@
+\documentclass{article}
+\begin{document}
+
+%%% JANSOM - AN OVERVIEW REPROT %%%%%%%%%%%%
+\section{Assumptions}
+
+\section{Limitations}
+\begin{enumerate}[(i)]
+	\item wer
+\end{enumerate}
+
+\section{What stands out}
+\begin{itemize}
+	\item Really good point bought up ... even with the existence of correspondances, you're not guaranteed a good triangular mesh (in the interpolating surface construction approach), or a good alignment scheme!
+\end{itemize}
+
+\section{Constraints enforced by resesarch}
+\begin{itemize}
+\end{itemize}
+
+%%%%%%%%% QUESTIONS %%%%%%%%%%%%
+\section{Questions on JASNOM paper}
+\begin{itemize}
+	\item Why don't mesh boundaries change considerably under small view point perturbations?
+	\item If the boundaries correspond with each other, I am curious ... those are a set of overlapping points? Why not use existing approaches? Do corresponds have to be within the region EXCLUDING the boundary, in order to apply correspondance-based schemes?
+	\item I am confused about what they mean exactly, in the pos-processing section
+	\item Meaning of using existing triangles to ensure manifoldness? TBH, how do I also ensure this step? 
+\end{itemize}
+
+%%%%%%%%% CONCERNS %%%%%%%%%%%%
+\section{Concerns about JASNOM paper}
+\begin{itemize}
+	\item Mention of exploting underlying manifold structure of range images? Do they get back to this? 	
+	\item Does there method of obtaining non-overlapping meshes, possibly interfere with their evaluations? Is this also something I can adopt?
+	\item I understand how stitching helps with registration of meshes, BUT not merging of meshes
+	\item What makes their stitching algo, different from established work in the field? 
+\end{itemize}
+
+\section{Thoughts on MetaLearning}
+\begin{itemize}
+	\item How do I tell if a paper's methodologies and results are reproducible or not? Sure, the math is easy to assess, but the exp setup? 
+	\item How do I tell if enough , or too much , detail has been imparted into specific sections?
+	\item How to notice open issues that are not ever handled again (Krishnamurti)?
+	\item How are some of the mathematical drawings produced ( i.e. graphs, tri meshes)? Are there $\LaTeX{}$ sources for that? 
+\end{itemize}
+
+\section{Things learned in today's reading + Keenan Crane's Heat Flow Presentation}
+\begin{itemize}
+	\item Shriram Krishnamuti's paper:: It is also difficult from the sparse description to determine exactly why the outcome was as it was. While the authors deserve praise for laying out all the events in a total order, we are not given enough detail about what happens at each step to be able to reproduce the outcome \\
+		- suggest to me that I should state while Keenan Crane's paper was well laid-out, his work isn't exactly the most reproducible
+	\item Always remember ... they need to set it up to convince you. What do you think they will do?
+\end{itemize}
+
+%%%%%%%%%%%%%% RESEARCH IDEAS %%%%%%%%%%%%
+\section{Ideas for Vouga and My Research}
+\begin{itemize}
+	\item Given that MCF, applied to the interpolating surface, yields a minimal surface ... I'm curious how good this would be for stitching a set of non-overlapping range meshes ( inspired by JASNOM )? Possible future work? 
+	\item 
+\end{itemize}
+
+
+\end{document}
+
+
+

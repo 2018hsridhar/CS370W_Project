@@ -1,8 +1,11 @@
-﻿// MY FILES
+﻿// MY LIBRARIES  
 #include "glob_defs.h"
 #include "meanCurvatureFlow.h"
 #include "interpSurface.h"
 #include "remesh.h"
+#include "sgd.h"
+
+// LibIgl includes
 #include <igl/writeOFF.h>
 
 using namespace Eigen;  
@@ -27,7 +30,6 @@ int main(int argc, char *argv[])
 		std::cout << "Failed to load partial scan two." << std::endl;
 	}
 
-/*
 	INTERP_SURF::generateOffsetSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
 	double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
 	REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
@@ -40,8 +42,10 @@ int main(int argc, char *argv[])
     if(hasBndry) std::cout << "INPUT Mesh does have a boundary.\n";
 	Eigen::MatrixXd Vc;
 	MCF::computeMeanCurvatureFlow(V,F,0.001, Vc);
-	igl::writeOFF(GLOBAL::meanCurvFlowOutputScanFile,Vc,F);
-*/
+	double energy = SGD::calculateSurfaceEnergy(Vc,F);
+	std::cout << energy << std::endl;
+
+//	igl::writeOFF(GLOBAL::meanCurvFlowOutputScanFile,Vc,F);
 
 /*
     igl::viewer::Viewer viewer;

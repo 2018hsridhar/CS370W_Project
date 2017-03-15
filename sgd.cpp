@@ -10,6 +10,7 @@ using namespace std;
 
 namespace SGD
 {
+/*
 	void generateTransMats(Eigen::Matrix4d& input, std::vector<Eigen::Matrix4d>& transMats)
 	{
 		// SET UP random number generator , for epsilon values
@@ -54,6 +55,7 @@ namespace SGD
 			transMats.push_back(perturbedRotAndTransMat);
 		}
 	}
+*/
 
 	// ENERGY is calculated merely off of surface area - can extend further, if need be #TODO
 	// possibly useful libraries ( for later ) ?
@@ -61,7 +63,7 @@ namespace SGD
 	// 		- per_corner/edge/face/vertex normals
 	// 		- doublearea.h
 	//		- gaussian_curvature.h
-	double calculateSurfaceEnergy(Eigen::VectorXd& V, Eigen::VectorXi& F)
+	double calculateSurfaceEnergy(Eigen::MatrixXd& V, Eigen::MatrixXi& F)
 	{
 		// solve for surface area of input mesh
 		Eigen::VectorXd dbla;
@@ -75,6 +77,7 @@ namespace SGD
 		return result;
 	}
 
+/*
 	void findOptimalTransMat(std::vector<Eigen::Matrix4d>& transMats, std::vector<double>& energies, Eigen::Matrix4d& opt)
 	{
 		assert(transMats.size() == energies.size());
@@ -95,6 +98,7 @@ namespace SGD
 		// return corresponding permutation matrix
 		opt = transMats[idxMaxNRG];	
 	}
+*/
 }
 
 // REFERNCE THIS FOR RANDOMIZER :: 

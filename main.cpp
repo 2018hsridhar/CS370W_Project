@@ -3,6 +3,7 @@
 #include "meanCurvatureFlow.h"
 #include "interpSurface.h"
 #include "remesh.h"
+#include <igl/writeOFF.h>
 
 using namespace Eigen;  
 using namespace igl;
@@ -36,18 +37,18 @@ int main(int argc, char *argv[])
 	//viewer.data.set_mesh(remeshed.V, remeshed.F); 
 	//viewer.launch();
 
-/*
 	// code to test in data generation
-    Eigen::MatrixXd V;
-    Eigen::MatrixXi F;
-
+	Eigen::MatrixXd V = remeshed.V;
+    Eigen::MatrixXi F = remeshed.F;
     // LOAD mesh data ( OFF format )
     //igl::readOFF(TUTORIAL_SHARED_PATH "/camelhead.off",V,F);
-    igl::readOFF(TUTORIAL_SHARED_PATH "/cow.off",V,F);
+    //igl::readOFF(TUTORIAL_SHARED_PATH "/cow.off",V,F);
     bool hasBndry = MCF::meshHasBoundary(V,F);
     if(hasBndry) std::cout << "INPUT Mesh does have a boundary.\n";
 	Eigen::MatrixXd Vc;
 	MCF::computeMeanCurvatureFlow(V,F,0.001, Vc);
+	igl::writeOFF(GLOBAL::meanCurvFlowOutputScanFile,Vc,F);
+/*
     igl::viewer::Viewer viewer;
 	viewer.data.set_mesh(Vc,F);
     viewer.launch();

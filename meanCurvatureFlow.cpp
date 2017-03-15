@@ -92,6 +92,7 @@ namespace MCF
 		Vc = V;
 		double diff;
 		constexpr double mcfStoppingVal = 10;  
+		//constexpr double mcfStoppingVal = 10;  
 		// #TODO :: fix difference of norm calculation ... it becomes constant, @ some point of time ... this is not good !
 
 		//CALCUALTE the initial mass and stiffness matrices
@@ -105,13 +106,10 @@ namespace MCF
 			Eigen::SparseMatrix<double> A = ( M - ( timestep * L));
 			Eigen::MatrixXd B = ( M * Vc); 
 			Eigen::SimplicialLLT<Eigen::SparseMatrix<double> > solver; 
-			// #TODO :: why does Clements use a SparseLU solver, specifically? 
 			solver.compute(A); 
 			if(solver.info() != Eigen::Success) {
 				std::cout << "Decomposition of A failed." << std::endl;
 			}
-			// #TODO :: DISCOVER difference in these 
-			// 		two if-conditinos ( solve and evaluate stage ) ! 
 			auto updatedMeshVertices = solver.solve(B);
 			if ( solver.info() != Eigen::Success )  {
 				std::cout << "Solving B failed." << std::endl;
@@ -121,9 +119,6 @@ namespace MCF
 				std::cout << "Solving B failed." << std::endl;
 			}
 			int numVertices = Vc.rows();
-			// assert(solver.info() == Eigen::Success) 
-			// #TODO :: figure out how to use "assert()"
-
 			// SOLVE for difference, between current and previous iteration of MCF ( Vc vs U )
 			for(int i = 0; i < numVertices; i++)
 			{

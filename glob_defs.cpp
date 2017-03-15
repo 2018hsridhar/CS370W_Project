@@ -17,6 +17,8 @@ namespace GLOBAL
 	const char* rigidIcpInputScanFile = TUTORIAL_SHARED_PATH "/bunny.off";
 	const char* rigidIcpOutputScanFile = TUTORIAL_SHARED_PATH "/bunny90.off";
 
+	const char* meanCurvFlowOutputScanFile = TUTORIAL_SHARED_PATH "/result.off";
+
 	// a nice user setting, for my configuration!
 	const char* viewMesh = TUTORIAL_SHARED_PATH "/planexy.off";
 }

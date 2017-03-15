@@ -11,7 +11,6 @@ namespace MCF
 	void computeMeanCurvatureFlow(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, double timestep, Eigen::MatrixXd &Vc);
 	void computeMeanCurvatureFlowWaterTight(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, double timestep, Eigen::MatrixXd &Vc);
 	void computeMeanCurvatureFlowBoundary(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, std::vector<bool> B, double timestep, Eigen::MatrixXd &Vc);
-
 }
 
 #endif

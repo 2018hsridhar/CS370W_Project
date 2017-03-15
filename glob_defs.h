@@ -42,10 +42,11 @@ namespace GLOBAL
     extern enum algo_comp; // unsure if useful
 	*/
 
-	extern const unsigned int MAXITERS;	
-	extern const unsigned int MCF_STEPS;
-	extern const double TOLERANCE; 
-	
+	extern const unsigned int MCF_STEPS; // for MCF
+	extern const unsigned int MAXITERS;	 // for RigidICP
+	extern const double TOLERANCE;  // for RigidICP
+
+    extern const int numTransMats;
 }
 #endif
 

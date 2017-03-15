@@ -21,6 +21,7 @@ namespace GLOBAL
 
 	// a nice user setting, for my configuration!
 	const char* viewMesh = TUTORIAL_SHARED_PATH "/planexy.off";
+    const int numTransMats = 1;
 }
 #endif
 

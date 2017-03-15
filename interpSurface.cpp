@@ -32,7 +32,7 @@ namespace INTERP_SURF
 		{
 			Eigen::MatrixXd V; 
 			Eigen::MatrixXi F;
-		} scans,interpolatedSurface;
+		} scans;
 
 		std::vector<std::vector<int>> Adjacency_Scan1;
 		std::vector<std::vector<int>> Adjacency_Scan2;
@@ -84,33 +84,43 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		Eigen:Vector2i seedEdge;
 		int i = seedEdgeIndices(0); 
 		int j = seedEdgeIndices(1);
+		int qOffset = numBoundaryVerticesScan1;
+/*
+		cout << i << endl;
+	    cout << j << endl;
+        cout << bndVertsScan1.rows() << endl;
+        cout << bndVertsScan2.rows() << endl;
+        exit(0);
+*/
 		
-		seedEdge(0) = bndIndexesScan1(i);
-		seedEdge(1) =  bndIndexesScan2(j) + V1.rows();
+		//seedEdge(0) = bndIndexesScan1(i);
+		//seedEdge(1) =  bndIndexesScan2(j) + qOffset;
+		//seedEdge(1) =  bndIndexesScan2(j) + V1.rows();
+		seedEdge(0) = i;
+		seedEdge(1) = j + qOffset;
 		Eigen::Vector2i newEdge;
 
 		// [2] keep alternating edge solving, using the adj lists
 	// NOTE :: you DO NOT walk in the same direction, for these cases!
 		std::cout << "PROGRESSING over Greedy Zippering Surface Reconstruction Algorithm.\n ";
-		int iter = 0; 
 		bool edgesToScan1 = false;
 		bool edgesToScan2 = false; 
 		do
 		{
 			// [1] GATHER INDEX AND VERTEX DATA 
 			// set up {p_i,p_i+1, q_i,q_i+1}
-			int p_i = bndIndexesScan1(i);
-			int q_j = bndIndexesScan2(j);
+			int p_i = i;
+			int q_j = j;
 
-			int p_i_plus_1 = bndIndexesScan1((i + 1) % numBoundaryVerticesScan1);
-			int q_j_plus_1 = bndIndexesScan2(INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
+			int p_i_plus_1 = ((i + 1) % numBoundaryVerticesScan1);
+			int q_j_plus_1 = (INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
 
 			//  assess d(b_p_i, b_p_i_plus_1) <= d(b_q_j, b_q_j_plus_1)
-			Eigen::VectorXd b_p_i = V1.row(p_i);
-			Eigen::VectorXd b_q_j = V2.row(q_j);
+			Eigen::VectorXd b_p_i = bndVertsScan1.row(p_i);
+			Eigen::VectorXd b_q_j = bndVertsScan2.row(q_j);
 
-			Eigen::VectorXd b_p_i_plus_1 = V1.row(p_i_plus_1);
-			Eigen::VectorXd b_q_j_plus_1 = V2.row(q_j_plus_1);
+			Eigen::VectorXd b_p_i_plus_1 = bndVertsScan1.row(p_i_plus_1);
+			Eigen::VectorXd b_q_j_plus_1 = bndVertsScan2.row(q_j_plus_1);
 	
 			// adding the edges, as usual
 			double scan1Distance =  (b_q_j - b_p_i_plus_1).squaredNorm(); // from scan 1
@@ -120,8 +130,8 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 
 			if (isItEdgeInScanOne) 
 			{
-				newEdge = Eigen::Vector2i(p_i_plus_1, (q_j + V1.rows()));
-				newFace = Eigen::Vector3i(q_j + V1.rows(), p_i_plus_1,p_i);
+				newEdge = Eigen::Vector2i(p_i_plus_1, q_j + qOffset);
+				newFace = Eigen::Vector3i(q_j + qOffset, p_i_plus_1,p_i);
 				i = (i + 1) % numBoundaryVerticesScan1;
 
 				// push new face, perform next iteration
@@ -136,87 +146,75 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 					std::cout << "Met same p_i seed edge point" << std::endl;
 					break;
 				}
-
-				//	std::cout << "in scan 1 " << std::endl;
 			}
 			else 
 			{  
-				newEdge = Eigen::Vector2i(p_i, (q_j_plus_1 + V1.rows()));
-				newFace = Eigen::Vector3i(p_i,(q_j + V1.rows()),(q_j_plus_1 + V1.rows()));
+				newEdge = Eigen::Vector2i(p_i, (q_j_plus_1 + qOffset));
+				newFace = Eigen::Vector3i(p_i,(q_j + qOffset),(q_j_plus_1 + qOffset));
 				j = INTERP_SURF::mod(j - 1, numBoundaryVerticesScan2);
-			//	std::cout << "in scan 2 " << std::endl;
 
 				// push new face, perform next iteration
 				newTriangleFaces.push_back(newFace(0));
 				newTriangleFaces.push_back(newFace(1));
 				newTriangleFaces.push_back(newFace(2));
 
-				if (q_j_plus_1 + V1.rows() == seedEdge(1)) 
+				//if (q_j_plus_1 + V1.rows() == seedEdge(1)) 
+				if (q_j_plus_1 + qOffset == seedEdge(1)) 
 				{
 					edgesToScan1 = true;
 					std::cout << "Met same q_j seed edge point" << std::endl;
 					break;
 				}
 			}
-	
-			iter++;
-			//std::cout << iter << std::endl;
-
 		} 
 		while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 
 		// [2] CLEAN UP PHASE - if the new Edge happens to be adjacent to a seed vertex
-		iter = 0;
 		// do not push back 2 repeated triangles --- you have to look in the mesh, to detect this :-P!
 		if(edgesToScan2)
 		{
 			std::cout << "Cleaning up to Scan 2" << '\n';
-			assert(bndIndexesScan1(i) == seedEdge(0));
-			int p_i = bndIndexesScan1(i);
+			assert(i == seedEdge(0));
+			int p_i = i;
 
 			// #TODO :: check if do-while, mustbe converted to a while loop
 			// I am basically overwriting my first triangle here ... that is the issue!
 			do
 			{
-				int q_j = bndIndexesScan2(j);
-				int q_j_plus_1 = bndIndexesScan2(INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
+				int q_j = j;
+				int q_j_plus_1 = (INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
 
-				newEdge = Eigen::Vector2i(p_i,(q_j_plus_1 + V1.rows()));
-				Eigen::Vector3i newFace = Eigen::Vector3i(p_i,(q_j + V1.rows()),(q_j_plus_1 + V1.rows()));
+				newEdge = Eigen::Vector2i(p_i,(q_j_plus_1 + qOffset));
+				Eigen::Vector3i newFace = Eigen::Vector3i(p_i,(q_j + qOffset),(q_j_plus_1 + qOffset));
+
 				// push new face, perform next iteration
 				newTriangleFaces.push_back(newFace(0));
 				newTriangleFaces.push_back(newFace(1));
 				newTriangleFaces.push_back(newFace(2));
 				j = INTERP_SURF::mod(j - 1, numBoundaryVerticesScan2);
-			//	cout << "iter = " << iter << endl;
-				iter++;
 			} while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 		}
 		if (edgesToScan1)
 		{
 			std::cout << "Cleaning up to Scan 1" << '\n';
 			assert(bndIndexesScan2(j) == seedEdge(1));
-			int q_j = bndIndexesScan2(j);
+			int q_j = j;
 
 			do
 			{
-				int p_i = bndIndexesScan1(i);
-				int p_i_plus_1 = bndIndexesScan1((i+1) % numBoundaryVerticesScan1);
+				int p_i = i;
+				int p_i_plus_1 = ((i+1) % numBoundaryVerticesScan1);
 
-				newEdge = Eigen::Vector2i(p_i_plus_1, (q_j + V1.rows()));
-				Eigen::Vector3i newFace = Eigen::Vector3i(q_j + V1.rows(), p_i_plus_1,p_i);
+				newEdge = Eigen::Vector2i(p_i_plus_1, (q_j + qOffset));
+				Eigen::Vector3i newFace = Eigen::Vector3i(q_j + qOffset,  p_i_plus_1,p_i);
 
 				// push new face, perform next iteration
 				newTriangleFaces.push_back(newFace(0));
 				newTriangleFaces.push_back(newFace(1));
 				newTriangleFaces.push_back(newFace(2));
 				i = (i + 1) % numBoundaryVerticesScan1;
-			//	cout << "iter = " << iter << endl;
-				iter++;
 			} while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 		}
-
-		std::cout << "max iter val = " << iter << std::endl;
 
 		//////////////////////////////////////////////////////////////////////////
 		// [3] end once you have the original edge data ! Add this last face  ///
@@ -226,14 +224,11 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		std::cout << "Constructing interpolating surface vertex and face data.\n";
 		int numOfFaces = newTriangleFaces.size() / 3;
 		Eigen::MatrixXi faces = Eigen::Map<Eigen::MatrixXi,RowMajor> (&newTriangleFaces[0],3,numOfFaces); 
-		interpolatedSurface.F = faces.transpose();
 
-		// CREATE one huge interpolating mesh that contians 
-		// both the two partial scans, and the interpolating surface
-
-		igl::cat(1,V1,V2,vOff);
-		igl::cat(1,F1, MatrixXi(F2.array() + V1.rows()), scans.F);
-		igl::cat(1,scans.F, interpolatedSurface.F, fOff);
+		// CREATE (V,F) off mesh to represent interpolating 
+		// surface of the two partial scans.
+		igl::cat(1,bndVertsScan1, bndVertsScan2,vOff);
+		fOff = faces.transpose();
 
 		// assert that indices, used to construct face data, are correct
 		for(int i = 0; i < fOff.rows(); i++)
@@ -250,14 +245,13 @@ std::vector<bool> boundaryVerticesStatus_scan1;
      * method does not account for offset by vertices in a scan.
      * It assumes that for both scans, the boundary indices 
      * commence from 0 to scan length - 1
+     * RESULT :: indices into 'bndVertsSrc' and 'bndVertsDest'
      */
 	void constructSeedEdgeIndices(Eigen::VectorXi& bndIndexesSrc, Eigen::MatrixXd& bndVertsSrc,
 							Eigen::VectorXi& bndIndexesDest, Eigen::MatrixXd& bndVertsDest,	
 							Eigen::Vector2i& seedEdge)
 	{
-        int scan1SeedIdx = bndIndexesSrc(0); 
 		Eigen::MatrixXd scan1SeedPoint = bndVertsSrc.row(0);
-
 		Eigen::MatrixXd closestPointToSeedInScan2;
 		Eigen::VectorXd smallestSquaredDists;
 		Eigen::VectorXi Ele = Eigen::VectorXi::LinSpaced(bndVertsDest.rows(), 0, bndVertsDest.rows() - 1);
@@ -266,7 +260,6 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 										Ele,
 										smallestSquaredDists,smallestDistIndxs,
 										closestPointToSeedInScan2);
-
 		seedEdge = Eigen::Vector2i( 0, smallestDistIndxs(0));
 	}	
 

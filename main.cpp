@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 	{
 		Eigen::MatrixXd V; 
 		Eigen::MatrixXi F;
-	} scan1,scan2,scene, remeshed;
+	} scan1,scan2,interp,remeshed;
 
 	if(!readOFF(GLOBAL::interpSurfGenScan1File,scan1.V,scan1.F)) {
 		std::cout << "Failed to load partial scan one." << std::endl;
@@ -26,14 +26,15 @@ int main(int argc, char *argv[])
 		std::cout << "Failed to load partial scan two." << std::endl;
 	}
 
-	INTERP_SURF::generateOffsetSurface(scan1.V,scan1.F,scan2.V,scan2.F, scene.V,scene.F);
-	REMESH::remeshSurface(scene.V,scene.F,remeshed.V,remeshed.F);
+	INTERP_SURF::generateOffsetSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
+	double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
+	REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
 
 	//  SETUP LibIgl Viewer 
 	igl::viewer::Viewer viewer;
 	//viewer.data.set_mesh(scene.V, scene.F); 
-	viewer.data.set_mesh(remeshed.V, remeshed.F); 
-	viewer.launch();
+	//viewer.data.set_mesh(remeshed.V, remeshed.F); 
+	//viewer.launch();
 
 /*
 	// code to test in data generation

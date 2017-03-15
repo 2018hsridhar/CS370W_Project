@@ -7,6 +7,8 @@
 #include <igl/readOFF.h>
 #include <igl/writeOFF.h>
 #include <igl/viewer/Viewer.h>
+#include <igl/avg_edge_length.h>
+#include <igl/cat.h>
 
 // CGAL includes
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
@@ -26,7 +28,9 @@ using namespace Eigen;
 namespace REMESH 
 {
 	void remeshSurface(Eigen::MatrixXd& V, Eigen::MatrixXi& F, 
-							Eigen::MatrixXd& Vr, Eigen::MatrixXi& Fr);
+						Eigen::MatrixXd& Vr, Eigen::MatrixXi& Fr, 
+						double target_edge_length);
+	double avgEdgeLenInputMeshes(Eigen::MatrixXd& V1, Eigen::MatrixXi& F1, Eigen::MatrixXd& V2, Eigen::MatrixXi& F2);
 
 }
 

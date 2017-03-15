@@ -82,7 +82,8 @@ namespace REMESH
 	// note :: you need to take the max target_edge_len, and divide by some val! 
 	// feed in a param here!
 	void remeshSurface(Eigen::MatrixXd& V, Eigen::MatrixXi& F, 
-							Eigen::MatrixXd& Vr, Eigen::MatrixXi& Fr)
+							Eigen::MatrixXd& Vr, Eigen::MatrixXi& Fr,
+							double target_edge_length)
 	{
 		igl::writeOFF(GLOBAL::remeshInputFile,V,F);
 		std::ifstream input(GLOBAL::remeshInputFile);
@@ -91,8 +92,6 @@ namespace REMESH
 			std::cerr << "Not a valid off file." << std::endl;
 			return;
 		}
-		double target_edge_length = 1.0;
-//		double target_edge_length = 0.15;
 		unsigned int nb_iter = 3;
 		std::cout << "Split border...";
 		std::vector<edge_descriptor> border;
@@ -105,7 +104,7 @@ namespace REMESH
 			<< " (" << num_faces(mesh) << " faces)..." << std::endl;
 		PMP::isotropic_remeshing(
 			faces(mesh),
-			target_edge_length/10,
+			target_edge_length,
 			mesh,
 			PMP::parameters::number_of_iterations(nb_iter)
 			.protect_constraints(true)//i.e. protect border, here
@@ -115,6 +114,16 @@ namespace REMESH
 		cube_off << mesh;
 		cube_off.close();
 		igl::readOFF(GLOBAL::remeshOutputFile, Vr,Fr);
+	}
+
+	double avgEdgeLenInputMeshes(Eigen::MatrixXd& V1, Eigen::MatrixXi& F1,
+							 	Eigen::MatrixXd& V2, Eigen::MatrixXi& F2)
+	{
+		Eigen::MatrixXd V_cat;
+		Eigen::MatrixXi F_cat;
+		igl::cat(1,V1,V2,V_cat);
+		igl::cat(1,F1,MatrixXi(F2.array() + V1.rows()), F_cat);	
+		return igl::avg_edge_length(V_cat,F_cat);
 	}
 }
 

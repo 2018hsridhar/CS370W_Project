@@ -1,19 +1,19 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
-#include <iostream> // lol forgot this! ... how does this keep messing me up!
-#include <vector>
 #include <Eigen/Core>
+#include <Eigen/Geometry> 
 
 using namespace Eigen; 
+
+#include <iostream>
+#include <vector>
 
 namespace HELPER
 {
 	Eigen::MatrixXd convertToHomogenousForm(const Ref<const MatrixXd>& mat);
 	Eigen::MatrixXd normalizeHomogenousMatrix (const Ref<const MatrixXd>& mat);
+	void applyRigidTransformation(const Eigen::MatrixXd& V, const Eigen::MatrixXd& T, Eigen::MatrixXd& vOut);
 }
 
-#endif // HELPERS_H
-
-
-
+#endif 

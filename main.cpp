@@ -4,6 +4,7 @@
 #include "interpSurface.h"
 #include "remesh.h"
 #include "sgd.h"
+#include "helpers.h"
 
 // LibIgl includes
 #include <igl/writeOFF.h>
@@ -16,7 +17,7 @@ struct Mesh
 {
 	Eigen::MatrixXd V; 
 	Eigen::MatrixXi F;
-} scan1,scan2,interp,remeshed;
+} scan1,scan2,interp,remeshed, result;
 
 // testing one iteration of SGD - from 1 matrices ( init @ I ) to 5 matrices ( @ what SGD produes for thee ). I should desend specifically on the one with LOWEST energy!
 
@@ -48,14 +49,18 @@ int main(int argc, char *argv[])
 		for(int i = 0; i < transMats.size(); ++i)
 		{
 			cout << "i = [" << i << "]" << endl;
-			cout << "Applying pipeline to transition mat" << endl;
+			cout << "Applying pipeline, with transition matrix" << endl;
 			cout << transMats[i] << endl;
 
+			cout << "Apply Rigid Transformation to Scan 1 Mesh" << endl;
+			Eigen::MatrixXd transScan1;	
+			HELPER::applyRigidTransformation(scan1.V,T,transScan1);
+
 			cout << "Generating interpolating surface" << endl;
-			INTERP_SURF::generateOffsetSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
+			INTERP_SURF::generateOffsetSurface(transScan1,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
 
 			cout << "Remeshing interpolating surface" << endl;
-			double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
+			double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(transScan1,scan1.F,scan2.V,scan2.F);
 			REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
 
 			cout << "Flowing the interpolating surface" << endl;
@@ -73,11 +78,24 @@ int main(int argc, char *argv[])
 		SGD::findOptimalTransMat(transMats,energies,T);
 		transMats.clear();
 		SGD::generateTransMats(T,transMats);
+		cout << "OPTIMAL transition matrix is : " << endl;
+		cout << T << endl;
 		cout << "-----------------------------------------------" << endl;
 	}
 	cout << "Pipeline execution finished" << endl;	
-	cout << "Optimal transition matrix is : " << endl;
+	cout << "END RESULT transition matrix is : " << endl;
 	cout << T << endl;
+
+
+	// write data to output file  - create one huge mesh
+	// result.V, result.F
+	Eigen::MatrixXd transScan1;	
+	HELPER::applyRigidTransformation(scan1.V,T,transScan1);
+	igl::cat(1,transScan1,scan2.V,result.V);
+	igl::cat(1,scan1.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
+	igl::writeOFF(GLOBAL::pipelineOutputFile, result.V, result.F);
+
+	cout << "Wrote off file for aligned meshes" << endl;
     return 0;
 }
 

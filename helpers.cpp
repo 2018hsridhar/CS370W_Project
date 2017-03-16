@@ -1,8 +1,6 @@
-#include <Eigen/Core>
-#include <Eigen/Geometry> // for homogenous, and for hnormalized ... well, this is annoying!
-
-//#include "glob_defs.h"
 #include "helpers.h"
+#include <Eigen/Core>
+#include <Eigen/Geometry> 
 
 namespace HELPER 
 {
@@ -18,5 +16,13 @@ namespace HELPER
 		Eigen::MatrixXd normalizedMatrix;
 		normalizedMatrix = mat.transpose().colwise().hnormalized().transpose(); 
 		return normalizedMatrix;
+	}
+
+	void applyRigidTransformation(const Eigen::MatrixXd& V, const Eigen::MatrixXd& T, Eigen::MatrixXd& vOut)
+	{
+		Eigen::VectorXd zeroTranslate = Eigen::Vector4d (0,0,0,0);
+		Eigen::MatrixXd p_i = HELPER::convertToHomogenousForm(V);
+		Eigen::MatrixXd transV = (p_i * T).rowwise() + zeroTranslate.transpose();
+		vOut = HELPER::normalizeHomogenousMatrix(transV);
 	}
 }

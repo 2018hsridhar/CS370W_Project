@@ -9,8 +9,10 @@
 #include <igl/writeOFF.h>
 
 using namespace Eigen;  
+using namespace std;
 using namespace igl;
 
+// of course you will have an isuse here, since glob_defs.h does not get linked to this program, ONLY to the main program!
 int main(int argc, char *argv[])
 {
 	// code to test offset surface gen + remeshing
@@ -35,6 +37,7 @@ int main(int argc, char *argv[])
 	REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
 
 	//  SETUP LibIgl Viewer 
+/*
 	igl::viewer::Viewer viewer;
 	Eigen::MatrixXd V = remeshed.V;
     Eigen::MatrixXi F = remeshed.F;
@@ -43,8 +46,7 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXd Vc;
 	MCF::computeMeanCurvatureFlow(V,F,0.001, Vc);
 	double energy = SGD::calculateSurfaceEnergy(Vc,F);
-	std::cout << energy << std::endl;
-
+*/
 //	igl::writeOFF(GLOBAL::meanCurvFlowOutputScanFile,Vc,F);
 
 /*
@@ -53,7 +55,18 @@ int main(int argc, char *argv[])
     viewer.launch();
 */
 		// Develop an initial transformation matrix, filled with random data 
-		//Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
+		Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
+		std::vector<Eigen::Matrix4d> transMats;	
+		SGD::generateTransMats(T,transMats);
+/*
+		for(int i = 0; i < transMats.size(); ++i)
+		{
+			cout << "i = [" << i << "]" << endl;
+			cout << transMats[i] << endl;
+			cout << "--------------------------" << endl;
+		}
+*/
+	
 
 
     return 0;

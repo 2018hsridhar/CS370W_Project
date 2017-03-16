@@ -14,16 +14,13 @@
 #include <igl/quat_to_mat.h>
 #include <igl/doublearea.h>
 
-// MY LIBS
-#include "glob_defs.h"
-
 // SGD = Stoichastic Gradient Descent
 using namespace Eigen; 
 
 namespace SGD
 {
 	double calculateSurfaceEnergy(Eigen::MatrixXd& V, Eigen::MatrixXi& F);
-//	void generateTransMats(Eigen::Matrix4d& input, std::vector<Eigen::Matrix4d>& transMats);
+	void generateTransMats(Eigen::Matrix4d& input, std::vector<Eigen::Matrix4d>& transMats);
 //	void findOptimalTransMat(std::vector<Eigen::Matrix4d>& transMats, std::vector<double>& energies, Eigen::Matrix4d& opt);
 }
 

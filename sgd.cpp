@@ -3,14 +3,15 @@
 // iteratively improve the alignemnt, via stoichastic gradient descent !  
 // try 100 of these things ... take min. it will most likely converge ! 
 
+#include "glob_defs.h"
 #include "sgd.h"
 
 using namespace Eigen; 
 using namespace std;
 
+const int numTransMats = 5;
 namespace SGD
 {
-/*
 	void generateTransMats(Eigen::Matrix4d& input, std::vector<Eigen::Matrix4d>& transMats)
 	{
 		// SET UP random number generator , for epsilon values
@@ -21,7 +22,8 @@ namespace SGD
 		std::uniform_real_distribution<double>  distr(range_from, range_to);
 
 		// #TODO :: refactor code, to be cleaner ... ehhh, do that later
-		for(int i = 0; i < GLOBAL::numTransMats; i++)
+		//for(int i = 0; i < GLOBAL::numTransMats; i++)
+		for(int i = 0; i < numTransMats; i++)
 		{
 			// generate 3 values for epsilon distances
 			// in {x,y,z} directions
@@ -31,7 +33,7 @@ namespace SGD
 			double e_z = distr(generator);
 			double epsilon_axis[] = { e_x,e_y,e_z};
 			double epsilon_angle = distr(generator); 
-			
+
 			// generate rotation component, via axis-angle and quat conversions
 			Eigen::Vector3d epsilon_axis2 = igl::random_dir(); // this might be a better idea ! and then convert to an arr?? 
 			double qrot[4];
@@ -51,11 +53,10 @@ namespace SGD
 			translatePerturbation(2,3) = e_z;
 		
 			// generate perturbed matrix ( perturbed by rotation and translation )
-			Eigen::Matrix4d perturbedRotAndTransMat =  (Input * rotatePerturbation) + translatePerturbation;
+			Eigen::Matrix4d perturbedRotAndTransMat =  (input * rotatePerturbation) + translatePerturbation;
 			transMats.push_back(perturbedRotAndTransMat);
 		}
 	}
-*/
 
 	// ENERGY is calculated merely off of surface area - can extend further, if need be #TODO
 	// possibly useful libraries ( for later ) ?

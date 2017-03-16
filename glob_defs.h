@@ -45,8 +45,6 @@ namespace GLOBAL
 	extern const unsigned int MCF_STEPS; // for MCF
 	extern const unsigned int MAXITERS;	 // for RigidICP
 	extern const double TOLERANCE;  // for RigidICP
-
-    extern const int numTransMats;
 }
 #endif
 

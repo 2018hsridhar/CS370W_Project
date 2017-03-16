@@ -12,63 +12,72 @@ using namespace Eigen;
 using namespace std;
 using namespace igl;
 
-// of course you will have an isuse here, since glob_defs.h does not get linked to this program, ONLY to the main program!
+struct Mesh
+{
+	Eigen::MatrixXd V; 
+	Eigen::MatrixXi F;
+} scan1,scan2,interp,remeshed;
+
+// testing one iteration of SGD - from 1 matrices ( init @ I ) to 5 matrices ( @ what SGD produes for thee ). I should desend specifically on the one with LOWEST energy!
+
 int main(int argc, char *argv[])
 {
-	// code to test offset surface gen + remeshing
-	// LOAD IN MESHES 
-	std::cout << "Executing (TEST) for offset surface generation." << std::endl;
-	struct Mesh
-	{
-		Eigen::MatrixXd V; 
-		Eigen::MatrixXi F;
-	} scan1,scan2,interp,remeshed;
+	std::cout << "Executing Zero-Overlap Rigid Alignment Pipeline" << std::endl;
 
-	if(!readOFF(GLOBAL::interpSurfGenScan1File,scan1.V,scan1.F)) {
+	if(!readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F)) {
 		std::cout << "Failed to load partial scan one." << std::endl;
 	} 
 
-	if(!readOFF(GLOBAL::interpSurfGenScan2File,scan2.V,scan2.F)) {
+	if(!readOFF(GLOBAL::pipelineScan2File,scan2.V,scan2.F)) {
 		std::cout << "Failed to load partial scan two." << std::endl;
 	}
 
-	INTERP_SURF::generateOffsetSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
-	double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
-	REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
+	std::cout << "Executing pipeline for the following meshes" << endl;
+	std::cout << "Mesh one [" << GLOBAL::pipelineScan1File << "]" << std::endl;
+	std::cout << "Mesh two [" << GLOBAL::pipelineScan2File << "]" << std::endl;
 
-	//  SETUP LibIgl Viewer 
-/*
-	igl::viewer::Viewer viewer;
-	Eigen::MatrixXd V = remeshed.V;
-    Eigen::MatrixXi F = remeshed.F;
-    bool hasBndry = MCF::meshHasBoundary(V,F);
-    if(hasBndry) std::cout << "INPUT Mesh does have a boundary.\n";
-	Eigen::MatrixXd Vc;
-	MCF::computeMeanCurvatureFlow(V,F,0.001, Vc);
-	double energy = SGD::calculateSurfaceEnergy(Vc,F);
-*/
-//	igl::writeOFF(GLOBAL::meanCurvFlowOutputScanFile,Vc,F);
+	// Develop an initial transformation matrix, filled with random data 
+	Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
+	std::vector<Eigen::Matrix4d> transMats;	
+	transMats.push_back(T);
 
-/*
-    igl::viewer::Viewer viewer;
-	viewer.data.set_mesh(Vc,F);
-    viewer.launch();
-*/
-		// Develop an initial transformation matrix, filled with random data 
-		Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
-		std::vector<Eigen::Matrix4d> transMats;	
-		SGD::generateTransMats(T,transMats);
-/*
+	// FOR NOW, RUNNING PIPELINE FOR A FIXED NUMBER OF ITERATIONS
+	for(int k = 0; k < 2; ++k)
+	{
+		std::vector<double> energies;
 		for(int i = 0; i < transMats.size(); ++i)
 		{
 			cout << "i = [" << i << "]" << endl;
+			cout << "Applying pipeline to transition mat" << endl;
 			cout << transMats[i] << endl;
-			cout << "--------------------------" << endl;
+
+			cout << "Generating interpolating surface" << endl;
+			INTERP_SURF::generateOffsetSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
+
+			cout << "Remeshing interpolating surface" << endl;
+			double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
+			REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
+
+			cout << "Flowing the interpolating surface" << endl;
+			Eigen::MatrixXd V = remeshed.V;
+			Eigen::MatrixXi F = remeshed.F;
+			bool hasBndry = MCF::meshHasBoundary(V,F);
+			assert(hasBndry);
+			Eigen::MatrixXd Vc;
+			MCF::computeMeanCurvatureFlow(V,F,0.001, Vc);
+		
+			cout << "Calculating energy value" << endl;
+			double energy = SGD::calculateSurfaceEnergy(Vc,F);
+			energies.push_back(energy);
 		}
-*/
-	
-
-
+		SGD::findOptimalTransMat(transMats,energies,T);
+		transMats.clear();
+		SGD::generateTransMats(T,transMats);
+		cout << "-----------------------------------------------" << endl;
+	}
+	cout << "Pipeline execution finished" << endl;	
+	cout << "Optimal transition matrix is : " << endl;
+	cout << T << endl;
     return 0;
 }
 

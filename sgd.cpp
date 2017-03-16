@@ -22,6 +22,7 @@ namespace SGD
 		std::uniform_real_distribution<double>  distr(range_from, range_to);
 
 		// #TODO :: refactor code, to be cleaner ... ehhh, do that later
+// of course you will have an isuse here, since glob_defs.h does not get linked to this program, ONLY to the main program!
 		//for(int i = 0; i < GLOBAL::numTransMats; i++)
 		for(int i = 0; i < numTransMats; i++)
 		{
@@ -78,28 +79,26 @@ namespace SGD
 		return result;
 	}
 
-/*
 	void findOptimalTransMat(std::vector<Eigen::Matrix4d>& transMats, std::vector<double>& energies, Eigen::Matrix4d& opt)
 	{
 		assert(transMats.size() == energies.size());
 
 		// get index of max energy value
-		int idxMaxNRG = -1;
-		double maxEnergy = -1;
+		int idxMinEnergy = -1;
+		double minEnergy = std::numeric_limits<double>::max();
 		for(int i = 0; i < energies.size(); ++i)
 		{
-			if(energies[i] > maxEnergy)
+			if(energies[i] < minEnergy)
 			{
-				maxEnergy = energies[i];
-				idxMxNRG = i;
+				minEnergy = energies[i];
+				idxMinEnergy = i;
 			}
 		}
-		assert(idxMaxNRG >= 0 && idxMaxNRG < energies.size());
+		assert(idxMinEnergy >= 0 && idxMinEnergy < energies.size());
 
 		// return corresponding permutation matrix
-		opt = transMats[idxMaxNRG];	
+		opt = transMats[idxMinEnergy];	
 	}
-*/
 }
 
 // REFERNCE THIS FOR RANDOMIZER :: 

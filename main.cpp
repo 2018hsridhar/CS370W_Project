@@ -43,8 +43,9 @@ int main(int argc, char *argv[])
 	transMats.push_back(T);
 
 	// FOR NOW, RUNNING PIPELINE FOR A FIXED NUMBER OF ITERATIONS
-	for(int k = 0; k < 2; ++k)
+	for(int k = 0; k < 10; ++k)
 	{
+		cout << "Running SGD for [" << k << "] th iteration" << endl;;
 		std::vector<double> energies;
 		for(int i = 0; i < transMats.size(); ++i)
 		{

@@ -15,8 +15,10 @@ namespace SGD
 	void generateTransMats(Eigen::Matrix4d& input, std::vector<Eigen::Matrix4d>& transMats)
 	{
 		// SET UP random number generator , for epsilon values
-		const double range_from  = -0.001;
-		const double range_to    = 0.001;
+		//const double range_from  = -0.001;
+		//const double range_to    = 0.001;
+		const double range_from  = -0.1;
+		const double range_to    = 0.1;
 		std::random_device rand_dev;
 		std::mt19937 generator(rand_dev());
 		std::uniform_real_distribution<double>  distr(range_from, range_to);

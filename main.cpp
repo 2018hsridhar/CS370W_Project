@@ -16,8 +16,7 @@ using namespace igl;
 
 struct Mesh
 {
-	Eigen::MatrixXd V; 
-	Eigen::MatrixXi F;
+	Eigen::MatrixXd V; Eigen::MatrixXi F;
 } scan1,scan2,interp,remeshed, result;
 
 int runPipeline();

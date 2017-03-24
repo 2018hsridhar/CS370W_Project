@@ -9,7 +9,7 @@
 using namespace Eigen; 
 using namespace std;
 
-const int numTransMats = 10;
+const int numTransMats = 25;
 //const int numTransMats = 4;
 namespace SGD
 {
@@ -18,8 +18,12 @@ namespace SGD
 		// SET UP RNG , for epsilon values {x,y,z,\theta}
 		// - [-0.001, 0.001] too low
 		// - [-1, 1] too high 
-		const double range_from  = -0.1;
-		const double range_to    =  0.1;
+		// - [-0.1,0.1] ... maybe okay? some explosion?
+		// - [-0.01, 0.01] ... to low?
+		//const double range_from  = -0.03;
+		//const double range_to    =  0.03;
+		const double range_from  = -0.05;
+		const double range_to    =  0.05;
 		std::random_device rand_dev;
 		std::mt19937 generator(rand_dev());
 		std::uniform_real_distribution<double>  distr(range_from, range_to);
@@ -45,8 +49,22 @@ namespace SGD
 			Eigen::Vector3d epsilon_axis2 = igl::random_dir(); 
 			double qrot[4];
 			igl::axis_angle_to_quat(epsilon_axis,epsilon_angle,qrot);
+
+			// print out qrot
+/*
+			cout << "qrot coeff vals= " << endl;
+			for(int i = 0; i < 4; ++i)
+				cout << qrot[i] << ',';
+			cout << endl;
+*/
 			double mat[16];
 			igl::quat_to_mat(qrot, mat);
+/*
+			cout << "Rot coeff mats = " << endl;
+			for(int i = 0; i < 16; ++i)
+				cout << mat[i] << ',';
+			cout << endl;
+*/
 
 			Eigen::Matrix4d rotation = Eigen::Matrix4d::Identity();  
 			for ( unsigned i = 0; i < 4; ++i )
@@ -64,11 +82,15 @@ namespace SGD
 			translation(2,3) = e_z;
 
 			// ASSERT that rotation and translations make sense
+/*
 			Eigen::Matrix4d assertOrtho = rotation.transpose() * rotation;
+			std::cout << "rotation matrix = " << std::endl;
+			std::cout << rotation << std::endl;
 			std::cout << "Orthog rotation = " << std::endl;
 			std::cout << assertOrtho << std::endl;
 			std::cout << "translation matrix = " << std::endl;
 			std::cout << translation << std::endl;
+*/
 		
 			// GENERATE perturbed matrix 
 			// - perturbed by rotation and translation
@@ -105,8 +127,19 @@ namespace SGD
 	{
 		assert(transMats.size() == energies.size());
 
+		// print out the transMats and energy values
+/*
+		for(int i = 0; i < energies.size(); ++i)
+		{
+			std::cout << "i = [" << i << "]" << std::endl;
+			std::cout << transMats[i] << std::endl;
+			std::cout << energies[i] << std::endl;
+			std::cout << "---------------------------------" << std::endl;
+		}
+*/
 		// get index of max energy value
-		int idxMinEnergy = -1;
+		int idxMinEnergy = -1; 
+		// ... takea  case where everybody's energy values suck ... and you are indexing into RANDOM MEMORY! SHIT!!!
 		double minEnergy = std::numeric_limits<double>::max();
 		for(int i = 0; i < energies.size(); ++i)
 		{
@@ -116,10 +149,19 @@ namespace SGD
 				idxMinEnergy = i;
 			}
 		}
-		assert(idxMinEnergy >= 0 && idxMinEnergy < energies.size());
 
-		// return corresponding permutation matrix
-		opt = transMats[idxMinEnergy];	
+		// somehow, this assert statement did not get executed?? WHAT????
+		assert(idxMinEnergy >= 0 && idxMinEnergy < energies.size());
+		std::cout << "idxMinEnergy = [" << idxMinEnergy << "]" << std::endl;
+		if(idxMinEnergy == -1)
+		{
+			return; // NOP, keep transformation matrix 'T' as it is
+		}
+		else
+		{
+			// return corresponding permutation matrix
+			opt = transMats[idxMinEnergy];
+		}
 	}
 }
 

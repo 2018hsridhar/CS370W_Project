@@ -20,8 +20,6 @@ struct Mesh
 	Eigen::MatrixXi F;
 } scan1,scan2,interp,remeshed, result;
 
-
-// testing one iteration of SGD - from 1 matrices ( init @ I ) to 5 matrices ( @ what SGD produes for thee ). I should desend specifically on the one with LOWEST energy!
 int runPipeline();
 bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
 
@@ -33,6 +31,9 @@ int k = 0;
 int main(int argc, char *argv[])
 {
 	runPipeline();
+}
+/*
+{
   //igl::readOFF(TUTORIAL_SHARED_PATH "/bunny.off", V, F);
   //igl::readOFF(GLOBAL::viewMesh, result.V, result.F);
 
@@ -41,8 +42,8 @@ int main(int argc, char *argv[])
   //viewer.data.set_mesh(result.V, result.F);
   //viewer.launch();
 }
+*/
 
-// let me modify the method, to view stepping - BUT, don't PRINT out the output file, just yet!
 int runPipeline()
 {
 	igl::viewer::Viewer viewer;
@@ -109,7 +110,11 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 					std::cout << "BAD REMESHING!" << std::endl;
 					std::cout << "Printing out interpolating surface" << std::endl;
 					std::string output_bad_mesh = "badInterpSurf[" + std::to_string(k) + "].off";
+					std::string scan1_bad = "badScan1.off";
+					std::string scan2_bad = "badScan2.off";
 					igl::writeOFF(output_bad_mesh, interp.V, interp.F);
+					igl::writeOFF(scan1_bad, transScan1, scan1.F);
+					igl::writeOFF(scan2_bad, scan2.V, scan2.F);
 					exit(0);
 				}
 
@@ -120,10 +125,9 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				assert(hasBndry);
 				Eigen::MatrixXd Vc;
 				MCF::computeMeanCurvatureFlow(V,F,0.001, Vc);
-			
-				cout << "Calculating energy value" << endl;
 				double energy = SGD::calculateSurfaceEnergy(Vc,F);
 				energies.push_back(energy);
+				cout << "Energy value is [" << energy << "]" << endl;
 			}
 			SGD::findOptimalTransMat(transMats,energies,T);
 			transMats.clear();
@@ -132,7 +136,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			cout << T << endl;
 			cout << "-----------------------------------------------" << endl;
 
-			// create one huge mesh
+			// CREATE one global mesh, contain the two inputs
 			Eigen::MatrixXd transScan1;	
 			HELPER::applyRigidTransformation(scan1.V,T,transScan1);
 			igl::cat(1,transScan1,scan2.V,result.V);
@@ -140,7 +144,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			viewer.data.clear();
 			viewer.data.set_mesh(result.V,result.F);
 
-			// print out the interpolating surface ... something seems off here!
+			// PRINT out the interpolating surface ... something seems off here!
 			std::string output_bad_mesh = "interpSurf[" + std::to_string(k) + "].off";
 			igl::writeOFF(output_bad_mesh, interp.V, interp.F);
 	

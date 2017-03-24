@@ -75,7 +75,7 @@ namespace MCF
 			{
 				diff += (Vc.row(i) - U.row(i)).norm();		
 			}
-			printf("Difference this round is %f.\n", diff);
+		//	printf("Difference this round is %f.\n", diff);
 			Vc = U;
 
 			// RECALCULATE mass matrix
@@ -124,7 +124,7 @@ namespace MCF
 			{
 				diff += (Vc.row(i) - U.row(i)).norm();		
 			}
-			printf("Difference this round is %f.\n", diff);
+			//printf("Difference this round is %f.\n", diff);
 			
 			// UPDATE Vc = (U | Vc ), based on if a vertex is on the boundary
 			for(int i = 0; i < numVertices; i++) 

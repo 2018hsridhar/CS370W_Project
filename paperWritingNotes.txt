@@ -1,5 +1,9 @@
 
 
+// GOOD PRACTICE ... when debugging one component, HIDE some output ... will only confuse you more 
+// IF YOU"RE GOING TO SHOW SOME OUTPUT ... PLEASE SHOW USEFUL DEBUG OUTPUT!
+	- this is such a weakness that I need to work on!
+
 RigidICP does not posses the issue of which boundary is correct or not … it just aligns points, based on a transformation matrix! Really, alignment doesn't seem to be a difficult problem here!
 
 In Qixing huang's approach, the archaeological artifiact pieces Arwe

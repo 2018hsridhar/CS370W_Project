@@ -9,78 +9,88 @@
 using namespace Eigen; 
 using namespace std;
 
-//const int numTransMats = 10;
-const int numTransMats = 4;
+const int numTransMats = 10;
+//const int numTransMats = 4;
 namespace SGD
 {
 	void generateTransMats(Eigen::Matrix4d& input, std::vector<Eigen::Matrix4d>& transMats)
 	{
-		// SET UP random number generator , for epsilon values
-		//const double range_from  = -0.001;
-		//const double range_to    = 0.001;
+		// SET UP RNG , for epsilon values {x,y,z,\theta}
+		// - [-0.001, 0.001] too low
+		// - [-1, 1] too high 
 		const double range_from  = -0.1;
-		const double range_to    = 0.1;
-		//const double range_from  = -1; // TO DAMM HIGIH!
-		//const double range_to    = 1;
+		const double range_to    =  0.1;
 		std::random_device rand_dev;
 		std::mt19937 generator(rand_dev());
 		std::uniform_real_distribution<double>  distr(range_from, range_to);
 
-		// #TODO :: refactor code, to be cleaner ... ehhh, do that later
-// of course you will have an isuse here, since glob_defs.h does not get linked to this program, ONLY to the main program!
-		//for(int i = 0; i < GLOBAL::numTransMats; i++)
-		for(int i = 0; i < numTransMats; i++)
+		for(int k = 0; k < numTransMats; k++)
 		{
-			// generate 3 values for epsilon distances
-			// in {x,y,z} directions
-			// and an epsilon angle too
+			// GENERATE 3 values for epsilon distances
+			// - three values for {x,y,z} (rotation and translation)
+			// - one value for an epsilon angle ( rotation ) 
 			double e_x = distr(generator);
 			double e_y = distr(generator);
 			double e_z = distr(generator);
 			double epsilon_axis[] = { e_x,e_y,e_z};
 			double epsilon_angle = distr(generator); 
 
-			// generate rotation component, via axis-angle and quat conversions
+			// CREATE rotation component, 
+			// [axis-angle] -> [quaternion] -> [homogenous transformation]
+
+			// check for NUMERICAL ISSUES !! ... where are you getting suspicious numbers!
+			// - check rotation matrices are orthogonal!
+			// - to use valgrind on this?? ... hmmm ... 
+ 
 			Eigen::Vector3d epsilon_axis2 = igl::random_dir(); 
-// this might be a better idea ! and then convert to an arr?? 
 			double qrot[4];
 			igl::axis_angle_to_quat(epsilon_axis,epsilon_angle,qrot);
 			double mat[16];
 			igl::quat_to_mat(qrot, mat);
 
-			Eigen::Matrix4d rotatePerturbation = Eigen::Matrix4d::Identity();  // note :: translate vector is zeroed out here! 
+			Eigen::Matrix4d rotation = Eigen::Matrix4d::Identity();  
 			for ( unsigned i = 0; i < 4; ++i )
+			{
 				for ( unsigned j = 0; j < 4; ++j )
-				rotatePerturbation(i,j) = mat[i+4*j]; 
+				{
+					rotation(i,j) = mat[i+(4*j)]; 
+				}
+			}
 
-			// generate translation permutation component
-			Eigen::Matrix4d translatePerturbation = Eigen::Matrix4d::Zero();
-			translatePerturbation(0,3) = e_x;
-			translatePerturbation(1,3) = e_y;
-			translatePerturbation(2,3) = e_z;
+			// MAKE translation component
+			Eigen::Matrix4d translation = Eigen::Matrix4d::Zero();
+			translation(0,3) = e_x;
+			translation(1,3) = e_y;
+			translation(2,3) = e_z;
 
-			// 
-		
-			// generate perturbed matrix ( perturbed by rotation and translation )
-			Eigen::Matrix4d perturbedRotAndTransMat =  (input * rotatePerturbation) + translatePerturbation;
-			Eigen::Matrix4d assertOrtho = rotatePerturbation.transpose() * rotatePerturbation;
+			// ASSERT that rotation and translations make sense
+			Eigen::Matrix4d assertOrtho = rotation.transpose() * rotation;
 			std::cout << "Orthog rotation = " << std::endl;
 			std::cout << assertOrtho << std::endl;
-			transMats.push_back(perturbedRotAndTransMat);
+			std::cout << "translation matrix = " << std::endl;
+			std::cout << translation << std::endl;
+		
+			// GENERATE perturbed matrix 
+			// - perturbed by rotation and translation
+			Eigen::Matrix4d perturbed =  (input * rotation) + translation;
+			transMats.push_back(perturbed);
 		}
 	}
 
-	// ENERGY is calculated merely off of surface area - can extend further, if need be #TODO
-	// possibly useful libraries ( for later ) ?
+	// ENERGY is calculated merely off of surface area 
+	// - can extend further, if need be 
+	// - possibly useful libraries ( for later ) ?
 	// 		- principal_curvature.h
 	// 		- per_corner/edge/face/vertex normals
 	// 		- doublearea.h
 	//		- gaussian_curvature.h
 	double calculateSurfaceEnergy(Eigen::MatrixXd& V, Eigen::MatrixXi& F)
 	{
+		// REFERENCE THEIR KNOWN BUG ( scales V + F, not just F )
 		// solve for surface area of input mesh
 		Eigen::VectorXd dbla;
 		igl::doublearea(V,F,dbla);
+		// note :: does this return an error code !
 		double surfaceArea = 0.5 * dbla.sum();	
 
 		// calculat energy 
@@ -90,6 +100,7 @@ namespace SGD
 		return result;
 	}
 
+	// given 2 vectors ( transformation matrices + energies), discover optimal transformation matrix
 	void findOptimalTransMat(std::vector<Eigen::Matrix4d>& transMats, std::vector<double>& energies, Eigen::Matrix4d& opt)
 	{
 		assert(transMats.size() == energies.size());
@@ -112,8 +123,9 @@ namespace SGD
 	}
 }
 
-// REFERNCE THIS FOR RANDOMIZER :: 
+// REFERNCE FOR RANDOMIZER :: 
 // http://stackoverflow.com/questions/288739/generate-random-numbers-uniformly-over-an-entire-range/20136256#20136256
 // generate N random (3x1) vector of small {e_x,e_y,e_z} values
 // note to self ... iterators suck for vectors WHEN you need to index into the vectors themselves! 
 
+// good tip ... if a function returns some notion of an error ( i.e. could not execute a call ... capture that). JUST notion of not being able to execute the call though!

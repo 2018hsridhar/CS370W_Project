@@ -9,7 +9,8 @@
 using namespace Eigen; 
 using namespace std;
 
-const int numTransMats = 5;
+//const int numTransMats = 10;
+const int numTransMats = 4;
 namespace SGD
 {
 	void generateTransMats(Eigen::Matrix4d& input, std::vector<Eigen::Matrix4d>& transMats)
@@ -19,6 +20,8 @@ namespace SGD
 		//const double range_to    = 0.001;
 		const double range_from  = -0.1;
 		const double range_to    = 0.1;
+		//const double range_from  = -1; // TO DAMM HIGIH!
+		//const double range_to    = 1;
 		std::random_device rand_dev;
 		std::mt19937 generator(rand_dev());
 		std::uniform_real_distribution<double>  distr(range_from, range_to);
@@ -38,7 +41,8 @@ namespace SGD
 			double epsilon_angle = distr(generator); 
 
 			// generate rotation component, via axis-angle and quat conversions
-			Eigen::Vector3d epsilon_axis2 = igl::random_dir(); // this might be a better idea ! and then convert to an arr?? 
+			Eigen::Vector3d epsilon_axis2 = igl::random_dir(); 
+// this might be a better idea ! and then convert to an arr?? 
 			double qrot[4];
 			igl::axis_angle_to_quat(epsilon_axis,epsilon_angle,qrot);
 			double mat[16];
@@ -54,9 +58,14 @@ namespace SGD
 			translatePerturbation(0,3) = e_x;
 			translatePerturbation(1,3) = e_y;
 			translatePerturbation(2,3) = e_z;
+
+			// 
 		
 			// generate perturbed matrix ( perturbed by rotation and translation )
 			Eigen::Matrix4d perturbedRotAndTransMat =  (input * rotatePerturbation) + translatePerturbation;
+			Eigen::Matrix4d assertOrtho = rotatePerturbation.transpose() * rotatePerturbation;
+			std::cout << "Orthog rotation = " << std::endl;
+			std::cout << assertOrtho << std::endl;
 			transMats.push_back(perturbedRotAndTransMat);
 		}
 	}

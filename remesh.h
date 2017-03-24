@@ -27,7 +27,7 @@ using namespace Eigen;
 
 namespace REMESH 
 {
-	void remeshSurface(Eigen::MatrixXd& V, Eigen::MatrixXi& F, 
+	bool remeshSurface(Eigen::MatrixXd& V, Eigen::MatrixXi& F, 
 						Eigen::MatrixXd& Vr, Eigen::MatrixXi& Fr, 
 						double target_edge_length);
 	double avgEdgeLenInputMeshes(Eigen::MatrixXd& V1, Eigen::MatrixXi& F1, Eigen::MatrixXd& V2, Eigen::MatrixXi& F2);

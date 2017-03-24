@@ -100,6 +100,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		seedEdge(1) = j + qOffset;
 		Eigen::Vector2i newEdge;
 
+		std::cout << "[2] Constructed seed Edge Indices" << std::endl;
 		// [2] keep alternating edge solving, using the adj lists
 	// NOTE :: you DO NOT walk in the same direction, for these cases!
 		std::cout << "PROGRESSING over Greedy Zippering Surface Reconstruction Algorithm.\n ";
@@ -171,6 +172,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 
 		// [2] CLEAN UP PHASE - if the new Edge happens to be adjacent to a seed vertex
 		// do not push back 2 repeated triangles --- you have to look in the mesh, to detect this :-P!
+		// DEBUG ... NEED SOME CONCRETE, BROKEN CASES!
 		if(edgesToScan2)
 		{
 			std::cout << "Cleaning up to Scan 2" << '\n';

@@ -81,16 +81,17 @@ namespace REMESH
 { 
 	// note :: you need to take the max target_edge_len, and divide by some val! 
 	// feed in a param here!
-	void remeshSurface(Eigen::MatrixXd& V, Eigen::MatrixXi& F, 
+	bool remeshSurface(Eigen::MatrixXd& V, Eigen::MatrixXi& F, 
 							Eigen::MatrixXd& Vr, Eigen::MatrixXi& Fr,
 							double target_edge_length)
 	{
+		bool badInterp = true;
 		igl::writeOFF(GLOBAL::remeshInputFile,V,F);
 		std::ifstream input(GLOBAL::remeshInputFile);
 		Mesh mesh;
 		if (!input || !(input >> mesh)) {
 			std::cerr << "Not a valid off file." << std::endl;
-			return;
+			return false;
 		}
 		unsigned int nb_iter = 3;
 		std::cout << "Split border...";
@@ -102,6 +103,11 @@ namespace REMESH
 		std::cout << "done." << std::endl;
 		std::cout << "Start remeshing of " << GLOBAL::remeshInputFile 
 			<< " (" << num_faces(mesh) << " faces)..." << std::endl;
+		if(num_faces(mesh) == 0)
+		{
+			std::cout << "REMESHING WILL FAIL HERE" << std::endl;
+			badInterp = false;
+		}
 		PMP::isotropic_remeshing(
 			faces(mesh),
 			target_edge_length,
@@ -114,6 +120,7 @@ namespace REMESH
 		cube_off << mesh;
 		cube_off.close();
 		igl::readOFF(GLOBAL::remeshOutputFile, Vr,Fr);
+		return badInterp;
 	}
 
 	double avgEdgeLenInputMeshes(Eigen::MatrixXd& V1, Eigen::MatrixXi& F1,

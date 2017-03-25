@@ -9,7 +9,8 @@
 using namespace Eigen; 
 using namespace std;
 
-const int numTransMats = 25;
+const int numTransMats = 100;
+//const int numTransMats = 25;
 //const int numTransMats = 4;
 namespace SGD
 {
@@ -22,8 +23,10 @@ namespace SGD
 		// - [-0.01, 0.01] ... to low?
 		//const double range_from  = -0.03;
 		//const double range_to    =  0.03;
-		const double range_from  = -0.05;
-		const double range_to    =  0.05;
+		//const double range_from  = -0.05;
+		//const double range_to    =  0.05;
+		const double range_from  = -0.1;
+		const double range_to    =  0.1;
 		std::random_device rand_dev;
 		std::mt19937 generator(rand_dev());
 		std::uniform_real_distribution<double>  distr(range_from, range_to);
@@ -91,7 +94,6 @@ namespace SGD
 			std::cout << "translation matrix = " << std::endl;
 			std::cout << translation << std::endl;
 */
-		
 			// GENERATE perturbed matrix 
 			// - perturbed by rotation and translation
 			Eigen::Matrix4d perturbed =  (input * rotation) + translation;
@@ -122,8 +124,11 @@ namespace SGD
 		return result;
 	}
 
-	// given 2 vectors ( transformation matrices + energies), discover optimal transformation matrix
-	void findOptimalTransMat(std::vector<Eigen::Matrix4d>& transMats, std::vector<double>& energies, Eigen::Matrix4d& opt)
+	// given 2 vectors ( transformation matrices + energies), 
+	// discover optimal transformation matrix ( and return it's energy val, as a double )
+
+    // BE REALLY CAREFUL CODING THIS UP!!!
+	double findOptimalTransMat(std::vector<Eigen::Matrix4d>& transMats, std::vector<double>& energies, Eigen::Matrix4d& opt)
 	{
 		assert(transMats.size() == energies.size());
 
@@ -138,9 +143,12 @@ namespace SGD
 		}
 */
 		// get index of max energy value
-		int idxMinEnergy = -1; 
+		//int idxMinEnergy = -1; 
+		int idxMinEnergy = 0; 
 		// ... takea  case where everybody's energy values suck ... and you are indexing into RANDOM MEMORY! SHIT!!!
 		double minEnergy = std::numeric_limits<double>::max();
+		//double minEnergy = prevEnergy;
+		// note :: you should really be comparing to your previous iteration's energy value, TBH!
 		for(int i = 0; i < energies.size(); ++i)
 		{
 			if(energies[i] < minEnergy)
@@ -150,18 +158,21 @@ namespace SGD
 			}
 		}
 
-		// somehow, this assert statement did not get executed?? WHAT????
-		assert(idxMinEnergy >= 0 && idxMinEnergy < energies.size());
-		std::cout << "idxMinEnergy = [" << idxMinEnergy << "]" << std::endl;
+		assert(idxMinEnergy >= 0);
+		assert(idxMinEnergy < energies.size());
+/*
 		if(idxMinEnergy == -1)
 		{
-			return; // NOP, keep transformation matrix 'T' as it is
+			//return ; // NOP, keep transformation matrix 'T' as it is
+			// OCCURS ONLY WHEN THERE IS NO BETTER TRANSFORMATION!
 		}
 		else
 		{
-			// return corresponding permutation matrix
+			// return corresponding permuted matrix
 			opt = transMats[idxMinEnergy];
 		}
+*/
+		opt = transMats[idxMinEnergy];
 	}
 }
 

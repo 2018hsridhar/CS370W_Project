@@ -26,6 +26,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
 std::vector<Eigen::Matrix4d> transMats;	
 Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
 int k = 0;
+double prev_energy = std::numeric_limits<double>::max();
 
 int main(int argc, char *argv[])
 {
@@ -128,7 +129,22 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				energies.push_back(energy);
 				cout << "Energy value is [" << energy << "]" << endl;
 			}
-			SGD::findOptimalTransMat(transMats,energies,T);
+
+			// CHECK IF any transformation matrices do better than the existing one
+			// COMPARE their corresponding energy values
+			Eigen::Matrix4d T_local;
+			double local_energy = SGD::findOptimalTransMat(transMats,energies,T_local);
+			if(local_energy < prev_energy)
+			{
+				T = T_local;
+				prev_energy = local_energy;
+			}
+			else
+			{
+				std::cout << "SGD Converged to a solution" << std::endl;
+				break;
+			}
+
 			transMats.clear();
 			SGD::generateTransMats(T,transMats);
 			cout << "OPTIMAL transition matrix is : " << endl;

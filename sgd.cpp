@@ -9,9 +9,9 @@
 using namespace Eigen; 
 using namespace std;
 
-const int numTransMats = 100;
+//const int numTransMats = 100;
 //const int numTransMats = 25;
-//const int numTransMats = 4;
+const int numTransMats = 4;
 namespace SGD
 {
 	void generateTransMats(Eigen::Matrix4d& input, std::vector<Eigen::Matrix4d>& transMats)
@@ -108,6 +108,7 @@ namespace SGD
 	// 		- per_corner/edge/face/vertex normals
 	// 		- doublearea.h
 	//		- gaussian_curvature.h
+	// 		- note :: if you don't return anything ... c++ chooses to return u default val ( here, 0 ) LOL
 	double calculateSurfaceEnergy(Eigen::MatrixXd& V, Eigen::MatrixXi& F)
 	{
 		// REFERENCE THEIR KNOWN BUG ( scales V + F, not just F )
@@ -118,8 +119,7 @@ namespace SGD
 		double surfaceArea = 0.5 * dbla.sum();	
 
 		// calculat energy 
-		double result = -1;
-		result = surfaceArea;
+		double result = surfaceArea;
 		assert(result >= 0);
 		return result;
 	}
@@ -145,10 +145,7 @@ namespace SGD
 		// get index of max energy value
 		//int idxMinEnergy = -1; 
 		int idxMinEnergy = 0; 
-		// ... takea  case where everybody's energy values suck ... and you are indexing into RANDOM MEMORY! SHIT!!!
 		double minEnergy = std::numeric_limits<double>::max();
-		//double minEnergy = prevEnergy;
-		// note :: you should really be comparing to your previous iteration's energy value, TBH!
 		for(int i = 0; i < energies.size(); ++i)
 		{
 			if(energies[i] < minEnergy)
@@ -160,19 +157,9 @@ namespace SGD
 
 		assert(idxMinEnergy >= 0);
 		assert(idxMinEnergy < energies.size());
-/*
-		if(idxMinEnergy == -1)
-		{
-			//return ; // NOP, keep transformation matrix 'T' as it is
-			// OCCURS ONLY WHEN THERE IS NO BETTER TRANSFORMATION!
-		}
-		else
-		{
-			// return corresponding permuted matrix
-			opt = transMats[idxMinEnergy];
-		}
-*/
+
 		opt = transMats[idxMinEnergy];
+		return minEnergy;
 	}
 }
 

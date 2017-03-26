@@ -75,7 +75,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		 * choose a rand point in scan_1, find closest point in scan_2 ///
 		 */
 
-		std::cout << "[1] SOLVE for the seed edge.\n";
+		//std::cout << "[1] SOLVE for the seed edge.\n";
 	
 		Eigen::Vector2i seedEdgeIndices;
 		INTERP_SURF::constructSeedEdgeIndices( bndIndexesScan1, bndVertsScan1, 
@@ -100,10 +100,10 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		seedEdge(1) = j + qOffset;
 		Eigen::Vector2i newEdge;
 
-		std::cout << "[2] Constructed seed Edge Indices" << std::endl;
+		//std::cout << "[2] Constructed seed Edge Indices" << std::endl;
 		// [2] keep alternating edge solving, using the adj lists
 	// NOTE :: you DO NOT walk in the same direction, for these cases!
-		std::cout << "PROGRESSING over Greedy Zippering Surface Reconstruction Algorithm.\n ";
+	//	std::cout << "PROGRESSING over Greedy Zippering Surface Reconstruction Algorithm.\n ";
 		bool edgesToScan1 = false;
 		bool edgesToScan2 = false; 
 		do
@@ -144,7 +144,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				if(p_i_plus_1 == seedEdge(0))
 				{
 					edgesToScan2 = true;
-					std::cout << "Met same p_i seed edge point" << std::endl;
+	//				std::cout << "Met same p_i seed edge point" << std::endl;
 					break;
 				}
 			}
@@ -163,7 +163,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				if (q_j_plus_1 + qOffset == seedEdge(1)) 
 				{
 					edgesToScan1 = true;
-					std::cout << "Met same q_j seed edge point" << std::endl;
+	//				std::cout << "Met same q_j seed edge point" << std::endl;
 					break;
 				}
 			}
@@ -175,7 +175,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		// DEBUG ... NEED SOME CONCRETE, BROKEN CASES!
 		if(edgesToScan2)
 		{
-			std::cout << "Cleaning up to Scan 2" << '\n';
+	//		std::cout << "Cleaning up to Scan 2" << '\n';
 			assert(i == seedEdge(0));
 			int p_i = i;
 
@@ -198,7 +198,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		}
 		if (edgesToScan1)
 		{
-			std::cout << "Cleaning up to Scan 1" << '\n';
+	//		std::cout << "Cleaning up to Scan 1" << '\n';
 			assert(bndIndexesScan2(j) == seedEdge(1));
 			int q_j = j;
 
@@ -223,7 +223,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		//////////////////////////////////////////////////////////////////////////
 		// CONVERT set of ( 3 * faces ) integers, of vertex indices, to a matrix ( for faces data )
 
-		std::cout << "Constructing interpolating surface vertex and face data.\n";
+	//	std::cout << "Constructing interpolating surface vertex and face data.\n";
 		int numOfFaces = newTriangleFaces.size() / 3;
 		Eigen::MatrixXi faces = Eigen::Map<Eigen::MatrixXi,RowMajor> (&newTriangleFaces[0],3,numOfFaces); 
 

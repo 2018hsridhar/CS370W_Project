@@ -65,7 +65,6 @@ int runPipeline()
 	transMats.push_back(T);
 
 	// initial gradient descent!
-
 	igl::cat(1,scan1.V,scan2.V,result.V);
 	igl::cat(1,scan1.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
 	viewer.data.clear();
@@ -92,17 +91,17 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			std::vector<double> energies;
 			for(int i = 0; i < transMats.size(); ++i)
 			{
-				cout << "i = [" << i << "]" << endl;
-				cout << "Applying pipeline, with transition matrix" << endl;
+				cout << "Applying pipeline, to [" << i << "th] transition matrix" << endl;
 				cout << transMats[i] << endl;
 
-				cout << "Apply Rigid Transformation to Scan 1 Mesh" << endl;
+				//cout << "Apply Rigid Transformation to Scan 1 Mesh" << endl;
 				Eigen::MatrixXd transScan1;	
-				HELPER::applyRigidTransformation(scan1.V,T,transScan1);
+				Eigen::Matrix4d curT = transMats[i];
+				HELPER::applyRigidTransformation(scan1.V,curT,transScan1);
 
-				cout << "Generating interpolating surface" << endl;
+				//cout << "Generating interpolating surface" << endl;
 				INTERP_SURF::generateOffsetSurface(transScan1,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
-				cout << "Remeshing interpolating surface" << endl;
+				//cout << "Remeshing interpolating surface" << endl;
 				double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(transScan1,scan1.F,scan2.V,scan2.F);
 				bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
 				if(!remSucc)
@@ -118,7 +117,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 					exit(0);
 				}
 
-				cout << "Flowing the interpolating surface" << endl;
+	//			cout << "Flowing the interpolating surface" << endl;
 				Eigen::MatrixXd V = remeshed.V;
 				Eigen::MatrixXi F = remeshed.F;
 				bool hasBndry = MCF::meshHasBoundary(V,F);
@@ -126,14 +125,30 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				Eigen::MatrixXd Vc;
 				MCF::computeMeanCurvatureFlow(V,F,0.001, Vc);
 				double energy = SGD::calculateSurfaceEnergy(Vc,F);
-				energies.push_back(energy);
 				cout << "Energy value is [" << energy << "]" << endl;
+				energies.push_back(energy);
 			}
 
 			// CHECK IF any transformation matrices do better than the existing one
 			// COMPARE their corresponding energy values
 			Eigen::Matrix4d T_local;
+
+			//for ( auto i : transMats )
+			//	std::cout << i << ' ';
+			//std::cout << std::endl;
+
+
+			// BUG :: energy values are NOT PROPERLY updated for SGD here ... IDK why??
+			for ( auto i : energies)
+				std::cout << i << ' ';
+			std::cout << std::endl;
+
+
 			double local_energy = SGD::findOptimalTransMat(transMats,energies,T_local);
+
+			// this energy calculation seems awfully FISHY!
+			std::cout << "Prev energy = [" << prev_energy << "]" << std::endl;
+			std::cout << "Local energy = [" << local_energy << "]" << std::endl;
 			if(local_energy < prev_energy)
 			{
 				T = T_local;
@@ -150,6 +165,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			cout << "OPTIMAL transition matrix is : " << endl;
 			cout << T << endl;
 			cout << "-----------------------------------------------" << endl;
+			energies.clear();
 
 			// CREATE one global mesh, contain the two inputs
 			Eigen::MatrixXd transScan1;	

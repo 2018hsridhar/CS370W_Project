@@ -199,7 +199,6 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		if (edgesToScan1)
 		{
 			std::cout << "Cleaning up to Scan 1" << '\n';
-	/*
 			assert(bndIndexesScan2(j) == seedEdge(1));
 			int q_j = j;
 
@@ -217,7 +216,6 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				newTriangleFaces.push_back(newFace(2));
 				i = (i + 1) % numBoundaryVerticesScan1;
 			} while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
-	*/
 		}
 
 		//////////////////////////////////////////////////////////////////////////

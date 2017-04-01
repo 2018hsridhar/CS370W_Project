@@ -93,9 +93,6 @@ std::vector<bool> boundaryVerticesStatus_scan1;
         exit(0);
 */
 		
-		//seedEdge(0) = bndIndexesScan1(i);
-		//seedEdge(1) =  bndIndexesScan2(j) + qOffset;
-		//seedEdge(1) =  bndIndexesScan2(j) + V1.rows();
 		seedEdge(0) = i;
 		seedEdge(1) = j + qOffset;
 		Eigen::Vector2i newEdge;
@@ -114,22 +111,22 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			int q_j = j;
 
 			int p_i_plus_1 = ((i + 1) % numBoundaryVerticesScan1);
-			int q_j_plus_1 = (INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
+			int q_j_minus_1 = (INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
 
-			//  assess d(b_p_i, b_p_i_plus_1) <= d(b_q_j, b_q_j_plus_1)
+			//  assess d(b_p_i, b_p_i_plus_1) <= d(b_q_j, b_q_j_minus_1)
 			Eigen::VectorXd b_p_i = bndVertsScan1.row(p_i);
 			Eigen::VectorXd b_q_j = bndVertsScan2.row(q_j);
 
 			Eigen::VectorXd b_p_i_plus_1 = bndVertsScan1.row(p_i_plus_1);
-			Eigen::VectorXd b_q_j_plus_1 = bndVertsScan2.row(q_j_plus_1);
+			Eigen::VectorXd b_q_j_minus_1 = bndVertsScan2.row(q_j_minus_1);
 	
 			// adding the edges, as usual
-			double scan1Distance =  (b_q_j - b_p_i_plus_1).squaredNorm(); // from scan 1
-			double scan2Distance =  (b_p_i - b_q_j_plus_1).squaredNorm(); // scan 2
-			bool isItEdgeInScanOne = (scan1Distance < scan2Distance);
+			double scan1Distance =  (b_q_j - b_p_i_plus_1).squaredNorm(); 
+			double scan2Distance =  (b_p_i - b_q_j_minus_1).squaredNorm(); 
+			bool isItEdgeToScanOne = (scan1Distance < scan2Distance);
 			Eigen::Vector3i newFace; 			
 
-			if (isItEdgeInScanOne) 
+			if (isItEdgeToScanOne) 
 			{
 				newEdge = Eigen::Vector2i(p_i_plus_1, q_j + qOffset);
 				newFace = Eigen::Vector3i(q_j + qOffset, p_i_plus_1,p_i);
@@ -144,14 +141,14 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				if(p_i_plus_1 == seedEdge(0))
 				{
 					edgesToScan2 = true;
-	//				std::cout << "Met same p_i seed edge point" << std::endl;
+					std::cout << "Met same p_i seed edge point" << std::endl;
 					break;
 				}
 			}
 			else 
 			{  
-				newEdge = Eigen::Vector2i(p_i, (q_j_plus_1 + qOffset));
-				newFace = Eigen::Vector3i(p_i,(q_j + qOffset),(q_j_plus_1 + qOffset));
+				newEdge = Eigen::Vector2i(p_i, (q_j_minus_1 + qOffset));
+				newFace = Eigen::Vector3i(p_i,(q_j + qOffset),(q_j_minus_1 + qOffset));
 				j = INTERP_SURF::mod(j - 1, numBoundaryVerticesScan2);
 
 				// push new face, perform next iteration
@@ -159,11 +156,11 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				newTriangleFaces.push_back(newFace(1));
 				newTriangleFaces.push_back(newFace(2));
 
-				//if (q_j_plus_1 + V1.rows() == seedEdge(1)) 
-				if (q_j_plus_1 + qOffset == seedEdge(1)) 
+				//if (q_j_minus_1 + V1.rows() == seedEdge(1)) 
+				if (q_j_minus_1 + qOffset == seedEdge(1)) 
 				{
 					edgesToScan1 = true;
-	//				std::cout << "Met same q_j seed edge point" << std::endl;
+					std::cout << "Met same q_j seed edge point" << std::endl;
 					break;
 				}
 			}
@@ -173,32 +170,36 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		// [2] CLEAN UP PHASE - if the new Edge happens to be adjacent to a seed vertex
 		// do not push back 2 repeated triangles --- you have to look in the mesh, to detect this :-P!
 		// DEBUG ... NEED SOME CONCRETE, BROKEN CASES!
+		// note :: perhaps change this while loop condition ... edgeEquality might not be the best here!
 		if(edgesToScan2)
 		{
-	//		std::cout << "Cleaning up to Scan 2" << '\n';
+			std::cout << "Cleaning up to Scan 2" << '\n';
 			assert(i == seedEdge(0));
 			int p_i = i;
 
 			// #TODO :: check if do-while, mustbe converted to a while loop
 			// I am basically overwriting my first triangle here ... that is the issue!
 			do
+			//while(q_j + qOffset != seedEdge(1))
 			{
 				int q_j = j;
-				int q_j_plus_1 = (INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
+				int q_j_minus_1 = (INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
 
-				newEdge = Eigen::Vector2i(p_i,(q_j_plus_1 + qOffset));
-				Eigen::Vector3i newFace = Eigen::Vector3i(p_i,(q_j + qOffset),(q_j_plus_1 + qOffset));
+				newEdge = Eigen::Vector2i(p_i,(q_j_minus_1 + qOffset));
+				Eigen::Vector3i newFace = Eigen::Vector3i(p_i,(q_j + qOffset),(q_j_minus_1 + qOffset));
 
 				// push new face, perform next iteration
 				newTriangleFaces.push_back(newFace(0));
 				newTriangleFaces.push_back(newFace(1));
 				newTriangleFaces.push_back(newFace(2));
 				j = INTERP_SURF::mod(j - 1, numBoundaryVerticesScan2);
-			} while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
+			} 
+			while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 		}
 		if (edgesToScan1)
 		{
-	//		std::cout << "Cleaning up to Scan 1" << '\n';
+			std::cout << "Cleaning up to Scan 1" << '\n';
+	/*
 			assert(bndIndexesScan2(j) == seedEdge(1));
 			int q_j = j;
 
@@ -216,6 +217,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				newTriangleFaces.push_back(newFace(2));
 				i = (i + 1) % numBoundaryVerticesScan1;
 			} while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
+	*/
 		}
 
 		//////////////////////////////////////////////////////////////////////////
@@ -241,6 +243,97 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				assert(fOff(i,j) < vOff.rows());
 			}	
 		}
+
+
+		// assert that the orientation is consistent, across the interpolating surface
+		for(int i = 0; i < fOff.rows(); ++i)
+		{
+			for(int j = i + 1; j < fOff.rows(); ++j) 
+			{
+				Eigen::MatrixXi faceOne = fOff.row(i);
+				Eigen::MatrixXi faceTwo = fOff.row(j);
+
+				// check for common subset of two indices
+				// a.k.a. you have only sets of size 2, in both cases
+	
+				// then, based on 2nd common set ... check the ordering! if they're equal ... this is bad!
+
+
+				std::set<double> setOne;
+				std::set<double> setTwo;
+				std::set<double>::iterator it;
+				std::set<double>::iterator it_i;
+				std::set<double>::iterator it_j;
+
+				for(int k = 0; k < 3; ++k)
+					setOne.insert(faceOne(k));
+
+				for(int k = 0; k < 3; ++k)
+				{
+					double curVal = faceTwo(k);
+					it = setOne.find(curVal);
+					if(it != setOne.end())
+						setTwo.insert(curVal);
+				}
+
+				if(setTwo.size() == 3)
+				{
+					std::cout << "REPEATED MATRIX ERR" << std::endl;
+					std::cout << faceOne << std::endl;
+					std::cout << faceTwo << std::endl;
+				}
+
+				else if (setTwo.size() == 2)
+				{
+					//std::cout << "COMMON EDGE FOR FACES" << std::endl;
+					std::vector<double> commonOne;
+					std::vector<double> commonTwo;
+
+					for(int k = 0; k < 3; ++k)
+					{
+						int v_i = faceOne(k); 
+						int v_j = faceOne((k+1) % 3);
+
+						it_i = setTwo.find(v_i);
+						it_j = setTwo.find(v_j);
+						if(it_i != setTwo.end() && it_j != setTwo.end())
+						{
+							commonOne.push_back(v_i);
+							commonOne.push_back(v_j);
+						}
+					}
+
+					for(int k = 0; k < 3; ++k)
+					{
+						int v_i = faceTwo(k); 
+						int v_j = faceTwo((k+1) % 3);
+
+						it_i = setTwo.find(v_i);
+						it_j = setTwo.find(v_j);
+						if(it_i != setTwo.end() && it_j != setTwo.end())
+						{
+							commonTwo.push_back(v_i);
+							commonTwo.push_back(v_j);
+						}
+					}
+
+					if(commonOne[0] == commonTwo[0] || commonOne[1] == commonTwo[1])
+					{
+						std::cout << "ERR! Inconsistent orientation amongst faces that share an edge" << std::endl;
+						std::cout << faceOne << std::endl;
+						std::cout << faceTwo << std::endl;
+					}
+
+
+			
+				
+				}
+	
+
+
+			}
+		}
+	
 	}
 
 	/*

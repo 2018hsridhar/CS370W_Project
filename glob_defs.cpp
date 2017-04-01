@@ -6,13 +6,15 @@
 
 namespace GLOBAL
 {
+	const char* interpSurfGenScan1File = TUTORIAL_SHARED_PATH "/badScan1.off";
+    const char* interpSurfGenScan2File = TUTORIAL_SHARED_PATH "/badScan2.off";
 	const char* remeshInputFile = TUTORIAL_SHARED_PATH "/offset.off";
     const char* remeshOutputFile = TUTORIAL_SHARED_PATH "/offsetRemesh.off";
 
-//	const char* interpSurfGenScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
- //   const char* interpSurfGenScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";
-	const char* interpSurfGenScan1File= TUTORIAL_SHARED_PATH "/camelhead.off";
-    const char* interpSurfGenScan2File= TUTORIAL_SHARED_PATH "/camelhead2.off";
+	//const char* interpSurfGenScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
+    //const char* interpSurfGenScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";
+//	const char* remeshInputFile = TUTORIAL_SHARED_PATH "/offset.off";
+ //   const char* remeshOutputFile = TUTORIAL_SHARED_PATH "/offsetRemesh.off";
 
 	const char* rigidIcpInputScanFile = TUTORIAL_SHARED_PATH "/bunny.off";
 	const char* rigidIcpOutputScanFile = TUTORIAL_SHARED_PATH "/bunny90.off";
@@ -22,10 +24,10 @@ namespace GLOBAL
 	// a nice user setting, for my configuration!
 	const char* viewMesh = TUTORIAL_SHARED_PATH "/badInterpSurf.off";
 
-	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
-	const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";
-//	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/camelhead.off";
-//	const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/camelhead2.off";
+//	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
+//	const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";
+	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/camelhead.off";
+	const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/camelhead2.off";
 	const char* pipelineOutputFile = TUTORIAL_SHARED_PATH "/result.off";
 
 }

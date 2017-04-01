@@ -9,9 +9,11 @@
 using namespace Eigen; 
 using namespace std;
 
+//const int numTransMats = 2500;
+//const int numTransMats = 1000;
 //const int numTransMats = 100;
-//const int numTransMats = 25;
-const int numTransMats = 4;
+const int numTransMats = 25;
+//const int numTransMats = 4;
 namespace SGD
 {
 	void generateTransMats(Eigen::Matrix4d& input, std::vector<Eigen::Matrix4d>& transMats)
@@ -49,9 +51,9 @@ namespace SGD
 			// - check rotation matrices are orthogonal!
 			// - to use valgrind on this?? ... hmmm ... 
  
-			Eigen::Vector3d epsilon_axis2 = igl::random_dir(); 
+			//Eigen::Vector3d epsilon_axis2 = igl::random_dir(); 
 			double qrot[4];
-			igl::axis_angle_to_quat(epsilon_axis,epsilon_angle,qrot);
+			igl::axis_angle_to_quat(epsilon_axis,epsilon_angle,qrot); // does libIGl expect a positive angle? 
 
 			// print out qrot
 /*
@@ -97,7 +99,12 @@ namespace SGD
 			// GENERATE perturbed matrix 
 			// - perturbed by rotation and translation
 			Eigen::Matrix4d perturbed =  (input * rotation) + translation;
+ 			Eigen::Matrix4d perturbedByR = input * rotation;
+        	Eigen::Matrix4d perturbedByT = input + translation;
+
 			transMats.push_back(perturbed);
+			transMats.push_back(perturbedByR);
+			transMats.push_back(perturbedByT);
 		}
 	}
 

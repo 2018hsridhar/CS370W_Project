@@ -60,6 +60,9 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		igl::slice(V2,bndIndexesScan2,1,bndVertsScan2);  
 		int numBoundaryVerticesScan2 = bndIndexesScan2.rows();
 
+// trying to walk in wrong way ... orientation is random in boundry cycle, or how output is used
+// they're walking the wrong ways!
+
 		/*
 	     * Algorithm @ a high level
 	     * [1] solve for a seed edge :: choose a rand point in scan_1, find closest point in scan_2
@@ -82,8 +85,14 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		int i = seedEdgeIndices(0); 
 		int j = seedEdgeIndices(1);
 		int qOffset = numBoundaryVerticesScan1;
-		std::cout << "qOffset = [" << qOffset << "]\n";
-
+/*
+		cout << i << endl;
+	    cout << j << endl;
+        cout << bndVertsScan1.rows() << endl;
+        cout << bndVertsScan2.rows() << endl;
+        exit(0);
+*/
+		
 		seedEdge(0) = i;
 		seedEdge(1) = j + qOffset;
 		Eigen::Vector2i newEdge;
@@ -92,17 +101,8 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		// [2] keep alternating edge solving, using the adj lists
 	// NOTE :: you DO NOT walk in the same direction, for these cases!
 	//	std::cout << "PROGRESSING over Greedy Zippering Surface Reconstruction Algorithm.\n ";
-
-		std::cout << "Scan P Vertex of seed edge = [" << seedEdge(0) << "]\n";
-		std::cout << "Scan Q Vertex of seed edge = [" << seedEdge(1) << "]\n";
 		bool edgesToScan1 = false;
 		bool edgesToScan2 = false; 
-
-		// EXISTS a bug in thjis while loop ... or the algo is susceptible to bad orientations?
-		// bug exists when I get back to a seed Edge index ... am I adding in an incorrect face? 
-			// seems like the previous faces should work fine though
-		int pVisit = 0;
-		int qVisit = 0;
 		do
 		{
 			// [1] GATHER INDEX AND VERTEX DATA 
@@ -110,7 +110,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			int p_i = i;
 			int q_j = j;
 
-			int p_i_plus_1  = (INTERP_SURF::mod(i+1,numBoundaryVerticesScan1));
+			int p_i_plus_1 = ((i + 1) % numBoundaryVerticesScan1);
 			int q_j_minus_1 = (INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
 
 			//  assess d(b_p_i, b_p_i_plus_1) <= d(b_q_j, b_q_j_minus_1)
@@ -123,62 +123,54 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			// adding the edges, as usual
 			double scan1Distance =  (b_q_j - b_p_i_plus_1).squaredNorm(); 
 			double scan2Distance =  (b_p_i - b_q_j_minus_1).squaredNorm(); 
-			//bool isItEdgeToScanOne = (scan1Distance <= scan2Distance);
 			bool isItEdgeToScanOne = (scan1Distance < scan2Distance);
 			Eigen::Vector3i newFace; 			
 
-			// the bug occurs whenever I flip the triangle faces that I'm working with!
-			// relative ordering, of how faces are added, then index check is performed, might matter!
 			if (isItEdgeToScanOne) 
 			{
 				newEdge = Eigen::Vector2i(p_i_plus_1, q_j + qOffset);
 				newFace = Eigen::Vector3i(q_j + qOffset, p_i_plus_1,p_i);
+				i = (i + 1) % numBoundaryVerticesScan1;
 
+				// push new face, perform next iteration
+				newTriangleFaces.push_back(newFace(0));
+				newTriangleFaces.push_back(newFace(1));
+				newTriangleFaces.push_back(newFace(2));
+		
 				// check here, if you are back @ seed edge! must be here!
-				if (p_i == seedEdge(0)) pVisit++;
-
-
-			//	if(p_i_plus_1 == seedEdge(0))
-				if (pVisit == 2) 
+				if(p_i_plus_1 == seedEdge(0))
 				{
 					edgesToScan2 = true;
 					std::cout << "Met same p_i seed edge point" << std::endl;
 					break;
 				}
-
-				// push new face, perform next iteration
-				newTriangleFaces.push_back(newFace(0));
-				newTriangleFaces.push_back(newFace(1));
-				newTriangleFaces.push_back(newFace(2));
-				i = INTERP_SURF::mod(i + 1, numBoundaryVerticesScan1);
-
 			}
 			else 
 			{  
 				newEdge = Eigen::Vector2i(p_i, (q_j_minus_1 + qOffset));
 				newFace = Eigen::Vector3i(p_i,(q_j + qOffset),(q_j_minus_1 + qOffset));
-
-				if (q_j + qOffset == seedEdge(1)) qVisit++;
-
-				//if (q_j_minus_1 + qOffset == seedEdge(1)) 
-				if (qVisit == 2) 
-				{
-					edgesToScan1 = true;
-					std::cout << "Met same q_j seed edge point" << std::endl;
-					break;
-				}
+				j = INTERP_SURF::mod(j - 1, numBoundaryVerticesScan2);
 
 				// push new face, perform next iteration
 				newTriangleFaces.push_back(newFace(0));
 				newTriangleFaces.push_back(newFace(1));
 				newTriangleFaces.push_back(newFace(2));
-				j = INTERP_SURF::mod(j - 1, numBoundaryVerticesScan2);
+
+				//if (q_j_minus_1 + V1.rows() == seedEdge(1)) 
+				if (q_j_minus_1 + qOffset == seedEdge(1)) 
+				{
+					edgesToScan1 = true;
+					std::cout << "Met same q_j seed edge point" << std::endl;
+					break;
+				}
 			}
 		} 
 		while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 
 		// [2] CLEAN UP PHASE - if the new Edge happens to be adjacent to a seed vertex
-		// do not push back 2 repeated triangles --- CGAL will complain!
+		// do not push back 2 repeated triangles --- you have to look in the mesh, to detect this :-P!
+		// DEBUG ... NEED SOME CONCRETE, BROKEN CASES!
+		// note :: perhaps change this while loop condition ... edgeEquality might not be the best here!
 		if(edgesToScan2)
 		{
 			std::cout << "Cleaning up to Scan 2" << '\n';
@@ -188,6 +180,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			// #TODO :: check if do-while, mustbe converted to a while loop
 			// I am basically overwriting my first triangle here ... that is the issue!
 			do
+			//while(q_j + qOffset != seedEdge(1))
 			{
 				int q_j = j;
 				int q_j_minus_1 = (INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
@@ -212,7 +205,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			do
 			{
 				int p_i = i;
-				int p_i_plus_1 = (INTERP_SURF::mod((i+1),numBoundaryVerticesScan1));
+				int p_i_plus_1 = ((i+1) % numBoundaryVerticesScan1);
 
 				newEdge = Eigen::Vector2i(p_i_plus_1, (q_j + qOffset));
 				Eigen::Vector3i newFace = Eigen::Vector3i(q_j + qOffset,  p_i_plus_1,p_i);
@@ -221,7 +214,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				newTriangleFaces.push_back(newFace(0));
 				newTriangleFaces.push_back(newFace(1));
 				newTriangleFaces.push_back(newFace(2));
-				i = INTERP_SURF::mod(i + 1, numBoundaryVerticesScan1);
+				i = (i + 1) % numBoundaryVerticesScan1;
 			} while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 		}
 
@@ -249,6 +242,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			}	
 		}
 
+
 		// assert that the orientation is consistent, across the interpolating surface
 		for(int i = 0; i < fOff.rows(); ++i)
 		{
@@ -261,6 +255,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				// a.k.a. you have only sets of size 2, in both cases
 	
 				// then, based on 2nd common set ... check the ordering! if they're equal ... this is bad!
+
 
 				std::set<double> setOne;
 				std::set<double> setTwo;
@@ -326,7 +321,14 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 						std::cout << faceOne << std::endl;
 						std::cout << faceTwo << std::endl;
 					}
+
+
+			
+				
 				}
+	
+
+
 			}
 		}
 	

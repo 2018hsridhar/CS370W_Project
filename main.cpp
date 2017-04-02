@@ -180,7 +180,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				std::cout << "SGD Converged to a solution" << std::endl;
 				std::cout << "Printing optimal transformation matrix" << std::endl;	
 				std::cout << T << std::endl;
-				exit(0);
+			//	exit(0);
 			}
 
 			transMats.clear();

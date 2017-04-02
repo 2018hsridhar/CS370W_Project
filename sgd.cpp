@@ -5,15 +5,16 @@
 
 #include "glob_defs.h"
 #include "sgd.h"
+#include <Eigen/Geometry>
 
 using namespace Eigen; 
 using namespace std;
 
 //const int numTransMats = 2500;
 //const int numTransMats = 1000;
-//const int numTransMats = 100;
+const int numTransMats = 100;
 //const int numTransMats = 25;
-const int numTransMats = 4;
+//const int numTransMats = 4;
 namespace SGD
 {
 	void generateTransMats(Eigen::Matrix4d& input, std::vector<Eigen::Matrix4d>& transMats)
@@ -41,8 +42,9 @@ namespace SGD
 			double e_x = distr(generator);
 			double e_y = distr(generator);
 			double e_z = distr(generator);
-			double epsilon_axis[] = { e_x,e_y,e_z};
-			double epsilon_angle = distr(generator); 
+			//double epsilon_axis[] = { e_x,e_y,e_z};
+			//Eigen::Vector3d e_vec(e_x,e_y,e_z);
+			double e_theta = distr(generator); 
 
 			// CREATE rotation component, 
 			// [axis-angle] -> [quaternion] -> [homogenous transformation]
@@ -52,19 +54,17 @@ namespace SGD
 			// - to use valgrind on this?? ... hmmm ... 
  
 			//Eigen::Vector3d epsilon_axis2 = igl::random_dir(); 
+/*
 			double qrot[4];
 			igl::axis_angle_to_quat(epsilon_axis,epsilon_angle,qrot); // does libIGl expect a positive angle? 
 
 			// print out qrot
-/*
 			cout << "qrot coeff vals= " << endl;
 			for(int i = 0; i < 4; ++i)
 				cout << qrot[i] << ',';
 			cout << endl;
-*/
 			double mat[16];
 			igl::quat_to_mat(qrot, mat);
-/*
 			cout << "Rot coeff mats = " << endl;
 			for(int i = 0; i < 16; ++i)
 				cout << mat[i] << ',';
@@ -72,6 +72,7 @@ namespace SGD
 */
 
 			Eigen::Matrix4d rotation = Eigen::Matrix4d::Identity();  
+/*
 			for ( unsigned i = 0; i < 4; ++i )
 			{
 				for ( unsigned j = 0; j < 4; ++j )
@@ -79,6 +80,23 @@ namespace SGD
 					rotation(i,j) = mat[i+(4*j)]; 
 				}
 			}
+*/
+
+			// try a diff way of generation this ... use Eigen's AngleAxis formulae
+			Eigen::Matrix3d m;
+			Eigen::Vector3d sA(e_x,e_y,e_z);
+			sA.normalize();
+			m = Eigen::AngleAxisd(e_theta * igl::PI, sA).toRotationMatrix();
+
+			for ( unsigned i = 0; i < 3; ++i )
+			{
+				for ( unsigned j = 0; j < 3; ++j )
+				{
+					rotation(i,j) = m(i,j);
+				}
+			}
+
+	
 
 			// MAKE translation component
 			Eigen::Matrix4d translation = Eigen::Matrix4d::Zero();

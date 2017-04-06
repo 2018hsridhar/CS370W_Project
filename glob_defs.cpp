@@ -30,6 +30,8 @@ namespace GLOBAL
 //	const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/camelhead2.off";
 	const char* pipelineOutputFile = TUTORIAL_SHARED_PATH "/result.off";
 
+	// DEBUG VARS
+	const char* pipelineDebugFile = TUTORIAL_SHARED_PATH "/debug.txt";
 }
 #endif
 

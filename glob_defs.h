@@ -49,6 +49,8 @@ namespace GLOBAL
 	extern const char* pipelineScan1File;
 	extern const char* pipelineScan2File;
 	extern const char* pipelineOutputFile;
+
+	extern const char* pipelineDebugFile;
 }
 #endif
 

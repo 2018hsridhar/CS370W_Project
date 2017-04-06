@@ -30,10 +30,8 @@ namespace SGD
 		// - [-0.01, 0.01] ... to low?
 		//const double range_from  = -0.03;
 		//const double range_to    =  0.03;
-		//const double range_from  = -0.05;
-		//const double range_to    =  0.05;
-		const double range_from  = -0.1;
-		const double range_to    =  0.1;
+		const double range_from  = -0.05;
+		const double range_to    =  0.05;
 		std::random_device rand_dev;
 		std::mt19937 generator(rand_dev());
 		std::uniform_real_distribution<double>  distr(range_from, range_to);
@@ -105,8 +103,8 @@ namespace SGD
 			// MAKE translation component
 			Eigen::Matrix4d translation = Eigen::Matrix4d::Zero();
 			translation(0,3) = e_x;
-			translation(1,3) = e_y;
-			translation(2,3) = e_z;
+			//translation(1,3) = e_y;
+			//translation(2,3) = e_z;
 
 			// ASSERT that rotation and translations make sense
 /*
@@ -120,12 +118,13 @@ namespace SGD
 */
 			// GENERATE perturbed matrix 
 			// - perturbed by rotation and translation
-			Eigen::Matrix4d perturbed =  (input * rotation) + translation;
- 			Eigen::Matrix4d perturbedByR = input * rotation;
+			//Eigen::Matrix4d perturbed =  (input * rotation) + translation;
+ 			//Eigen::Matrix4d perturbedByR = input * rotation;
         	Eigen::Matrix4d perturbedByT = input + translation;
+//			cout << perturbedByT << endl;
 
-			transMats.push_back(perturbed);
-			transMats.push_back(perturbedByR);
+			//transMats.push_back(perturbed);
+			//transMats.push_back(perturbedByR);
 			transMats.push_back(perturbedByT);
 		}
 	}
@@ -144,7 +143,6 @@ namespace SGD
 		// solve for surface area of input mesh
 		Eigen::VectorXd dbla;
 		igl::doublearea(V,F,dbla);
-		// note :: does this return an error code !
 		double surfaceArea = 0.5 * dbla.sum();	
 
 		// calculat energy 

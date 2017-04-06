@@ -1,4 +1,8 @@
-﻿// MY LIBRARIES  
+﻿// C++ includes
+#include <iostream>
+#include <fstream>
+
+// MY LIBRARIES  
 #include "glob_defs.h"
 #include "meanCurvatureFlow.h"
 #include "interpSurface.h"
@@ -25,21 +29,14 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
 // Develop an initial transformation matrix, filled with random data 
 std::vector<Eigen::Matrix4d> transMats;	
 
-
-/*
- MatrixXd m(2,2);
-  m(0,0) = 3;
-  m(1,0) = 2.5;
-  m(0,1) = -1;
-  m(1,1) = m(1,0) + m(0,1);
-*/
-
-
-Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
-//Eigen::Matrix4d T;
+// identity matrix should ensure correctness of the translational components, right?
+// refer to :: http://www.euclideanspace.com/maths/geometry/affine/matrix4x4/
+//Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
+Eigen::Matrix4d T;
 
 int k = 0;
 double prev_energy = std::numeric_limits<double>::max();
+ofstream debugFile;
 
 int main(int argc, char *argv[])
 {
@@ -51,7 +48,11 @@ T << 0.905716, 0.0236395, 0.423226,  0.100115,
 	-0.420225, -0.0808702, 0.903809, -0.0150992,
 	0		,0			,0			,1;
 */
-
+T = Eigen::Matrix4d::Identity();
+T(0,3) = 0.3;
+cout << T << endl;
+//T(1,3) = 1;
+//T(2,3) = -1; // no movement ... is something wrong with my data of interest??
 	runPipeline();
 
 
@@ -82,9 +83,12 @@ int runPipeline()
 		std::cout << "Failed to load partial scan two." << std::endl;
 	}
 
-	std::cout << "Executing pipeline for the following meshes" << endl;
+	std::cout << "Executing pipeline for the following meshes" << std::endl;
 	std::cout << "Mesh one [" << GLOBAL::pipelineScan1File << "]" << std::endl;
 	std::cout << "Mesh two [" << GLOBAL::pipelineScan2File << "]" << std::endl;
+
+	std::cout << "Opening debug file" << std::endl;
+	debugFile.open(GLOBAL::pipelineDebugFile);
 
 	// Develop an initial transformation matrix, filled with random data 
 	transMats.push_back(T);
@@ -112,7 +116,8 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			break;
 		case ' ':
 		{
-			cout << "Running SGD for [" << k << "] th iteration" << endl;;
+			std::cout << "Running SGD for [" << k << "] th iteration" << std::endl;;
+			debugFile << "Running SGD for [" << k << "] th iteration.\n";
 			std::vector<double> energies;
 			for(int i = 0; i < transMats.size(); ++i)
 			{
@@ -122,7 +127,8 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				//cout << "Apply Rigid Transformation to Scan 1 Mesh" << endl;
 				Eigen::MatrixXd transScan1;	
 				Eigen::Matrix4d curT = transMats[i];
-				HELPER::applyRigidTransformation(scan1.V,curT,transScan1);
+				HELPER::applyRigidTransformation(scan1.V,curT,transScan1); 
+				cout << "Applied Transformation" << endl;
 
 				//cout << "Generating interpolating surface" << endl;
 				INTERP_SURF::generateOffsetSurface(transScan1,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
@@ -143,13 +149,10 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				}
 
 	//			cout << "Flowing the interpolating surface" << endl;
-				Eigen::MatrixXd V = remeshed.V;
-				Eigen::MatrixXi F = remeshed.F;
-				bool hasBndry = MCF::meshHasBoundary(V,F);
-				assert(hasBndry);
 				Eigen::MatrixXd Vc;
-				MCF::computeMeanCurvatureFlow(V,F,0.001, Vc);
-				double energy = SGD::calculateSurfaceEnergy(Vc,F);
+				assert(MCF::meshHasBoundary(remeshed.V,remeshed.F));
+				MCF::computeMeanCurvatureFlow(remeshed.V,remeshed.F,0.001, Vc);
+				double energy = SGD::calculateSurfaceEnergy(Vc,remeshed.F);
 				//cout << "Energy value is [" << energy << "]" << endl;
 				energies.push_back(energy);
 			}
@@ -158,21 +161,23 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			// COMPARE their corresponding energy values
 			Eigen::Matrix4d T_local;
 
-			//for ( auto i : transMats )
-			//	std::cout << i << ' ';
-			//std::cout << std::endl;
+			for ( auto i : transMats )
+				std::cout << i << '\n';
+			std::cout << std::endl;
 
 
-			/*for ( auto i : energies)
+			for ( auto i : energies)
 				std::cout << i << ' ';
 			std::cout << std::endl;
-*/
+
 
 			double local_energy = SGD::findOptimalTransMat(transMats,energies,T_local);
 
 			// this energy calculation seems awfully FISHY!
 			std::cout << "Prev energy = [" << prev_energy << "]" << std::endl;
 			std::cout << "Local energy = [" << local_energy << "]" << std::endl;
+			debugFile << "Prev energy = [" << prev_energy << "].\n"; 
+			debugFile << "Local energy = [" << local_energy << "].\n"; 
 			if(local_energy < prev_energy)
 			{
 				T = T_local;
@@ -183,6 +188,14 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				std::cout << "SGD Converged to a solution" << std::endl;
 				std::cout << "Printing optimal transformation matrix" << std::endl;	
 				std::cout << T << std::endl;
+				debugFile << "SGD Converged to a solution.\n";
+				debugFile << "Printing optimal transformation matrix.\n";
+				debugFile << T << std::endl;
+				std::cout << "Closing debug file, exiting program execution.\n";
+				// close file
+				debugFile.close();	
+				// exit program
+				//exit(0);
 			}
 
 			transMats.clear();

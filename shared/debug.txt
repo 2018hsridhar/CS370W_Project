@@ -1,0 +1,3 @@
+Running SGD for [0] th iteration.
+Prev energy = [1.79769e+308].
+Local energy = [4.85648].

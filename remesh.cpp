@@ -95,15 +95,15 @@ namespace REMESH
 			return false;
 		}
 		unsigned int nb_iter = 3;
-		std::cout << "Split border...";
+		//std::cout << "Split border...";
 		std::vector<edge_descriptor> border;
 		PMP::border_halfedges(faces(mesh),
 			mesh,
 			boost::make_function_output_iterator(halfedge2edge(mesh, border)));
 		PMP::split_long_edges(border, target_edge_length, mesh);
-		std::cout << "done." << std::endl;
-		std::cout << "Start remeshing of " << GLOBAL::remeshInputFile 
-			<< " (" << num_faces(mesh) << " faces)..." << std::endl;
+		//std::cout << "done." << std::endl;
+		//std::cout << "Start remeshing of " << GLOBAL::remeshInputFile 
+		//	<< " (" << num_faces(mesh) << " faces)..." << std::endl;
 		if(num_faces(mesh) == 0)
 		{
 			std::cout << "REMESHING WILL FAIL HERE" << std::endl;
@@ -116,7 +116,7 @@ namespace REMESH
 			PMP::parameters::number_of_iterations(nb_iter)
 			.protect_constraints(true)//i.e. protect border, here
 			);
-		std::cout << "Remeshing done." << std::endl;
+		//std::cout << "Remeshing done." << std::endl;
 		std::ofstream cube_off(GLOBAL::remeshOutputFile);
 		cube_off << mesh;
 		cube_off.close();

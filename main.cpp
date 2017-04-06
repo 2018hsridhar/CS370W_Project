@@ -116,7 +116,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			std::vector<double> energies;
 			for(int i = 0; i < transMats.size(); ++i)
 			{
-				cout << "Applying pipeline, to [" << i << "th] transition matrix" << endl;
+				//cout << "Applying pipeline, to [" << i << "th] transition matrix" << endl;
 //				cout << transMats[i] << endl;
 
 				//cout << "Apply Rigid Transformation to Scan 1 Mesh" << endl;
@@ -128,7 +128,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				INTERP_SURF::generateOffsetSurface(transScan1,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
 				double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(transScan1,scan1.F,scan2.V,scan2.F);
 				bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
-				cout << "Remeshed interpolating surface" << endl;
+				//cout << "Remeshed interpolating surface" << endl;
 				if(!remSucc)
 				{
 					std::cout << "BAD REMESHING!" << std::endl;

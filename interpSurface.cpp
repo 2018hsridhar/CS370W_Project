@@ -169,7 +169,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				if (pVisit == 2) 
 				{
 					edgesToScan2 = true;
-					std::cout << "Met same p_i seed edge point" << std::endl;
+					//std::cout << "Met same p_i seed edge point" << std::endl;
 					break;
 				}
 
@@ -190,7 +190,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				if (qVisit == 2) 
 				{
 					edgesToScan1 = true;
-					std::cout << "Met same q_j seed edge point" << std::endl;
+					//std::cout << "Met same q_j seed edge point" << std::endl;
 					break;
 				}
 
@@ -311,7 +311,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 
 				if(setTwo.size() == 3)
 				{
-					std::cout << "REPEATED MATRIX ERR" << std::endl;
+					std::cout << "REPEATED FACE ERR" << std::endl;
 					std::cout << faceOne << std::endl;
 					std::cout << faceTwo << std::endl;
 				}

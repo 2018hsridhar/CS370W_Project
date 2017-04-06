@@ -12,9 +12,10 @@ using namespace std;
 
 //const int numTransMats = 2500;
 //const int numTransMats = 1000;
-const int numTransMats = 100;
+//const int numTransMats = 100;
 //const int numTransMats = 25;
 //const int numTransMats = 4;
+const int numTransMats = 6;
 namespace SGD
 {
 	void generateTransMats(Eigen::Matrix4d& input, std::vector<Eigen::Matrix4d>& transMats)

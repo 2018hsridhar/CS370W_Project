@@ -53,6 +53,9 @@ T << 0.905716, 0.0236395, 0.423226,  0.100115,
 */
 
 	runPipeline();
+
+
+
 }
 /*
 {
@@ -113,7 +116,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			std::vector<double> energies;
 			for(int i = 0; i < transMats.size(); ++i)
 			{
-//				cout << "Applying pipeline, to [" << i << "th] transition matrix" << endl;
+				cout << "Applying pipeline, to [" << i << "th] transition matrix" << endl;
 //				cout << transMats[i] << endl;
 
 				//cout << "Apply Rigid Transformation to Scan 1 Mesh" << endl;
@@ -180,14 +183,13 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				std::cout << "SGD Converged to a solution" << std::endl;
 				std::cout << "Printing optimal transformation matrix" << std::endl;	
 				std::cout << T << std::endl;
-			//	exit(0);
 			}
 
 			transMats.clear();
 			SGD::generateTransMats(T,transMats);
-			cout << "OPTIMAL transition matrix is : " << endl;
-			cout << T << endl;
-			cout << "-----------------------------------------------" << endl;
+			//cout << "OPTIMAL transition matrix is : " << endl;
+			//cout << T << endl;
+			//cout << "-----------------------------------------------" << endl;
 			energies.clear();
 
 			// CREATE one global mesh, contain the two inputs
@@ -199,16 +201,16 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			viewer.data.set_mesh(result.V,result.F);
 
 			// PRINT out the interpolating surface ... something seems off here!
-			std::string output_bad_mesh = "interpSurf[" + std::to_string(k) + "].off";
+			//std::string output_bad_mesh = "interpSurf[" + std::to_string(k) + "].off";
+/*	
 			igl::writeOFF(output_bad_mesh, interp.V, interp.F);
-	
 			if(k % 10 == 0)
 			{	
 				std::string output_of_mesh = "pipelineOutput[" + std::to_string(k) + "].off";
 				std::cout << "WRITING PIPELINE data for iteration [" << std::to_string(k) << " ].\n"; 
 				igl::writeOFF(output_of_mesh, result.V, result.F);	
 			}
-
+*/
 			++k;
 			break;
 		}

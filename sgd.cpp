@@ -12,8 +12,9 @@ using namespace std;
 
 //const int numTransMats = 2500;
 //const int numTransMats = 1000;
-const int numTransMats = 100;
+//const int numTransMats = 100;
 //const int numTransMats = 25;
+const int numTransMats = 15;
 //const int numTransMats = 4;
 //const int numTransMats = 6;
 
@@ -74,6 +75,7 @@ namespace SGD
 */
 
 			Eigen::Matrix4d rotation = Eigen::Matrix4d::Identity();  
+			// #TODO :: use segment here!
 /*
 			for ( unsigned i = 0; i < 4; ++i )
 			{
@@ -103,8 +105,8 @@ namespace SGD
 			// MAKE translation component
 			Eigen::Matrix4d translation = Eigen::Matrix4d::Zero();
 			translation(0,3) = e_x;
-			//translation(1,3) = e_y;
-			//translation(2,3) = e_z;
+			translation(1,3) = e_y;
+			translation(2,3) = e_z;
 
 			// ASSERT that rotation and translations make sense
 /*
@@ -118,13 +120,13 @@ namespace SGD
 */
 			// GENERATE perturbed matrix 
 			// - perturbed by rotation and translation
-			//Eigen::Matrix4d perturbed =  (input * rotation) + translation;
- 			//Eigen::Matrix4d perturbedByR = input * rotation;
+			Eigen::Matrix4d perturbed =  (input * rotation) + translation;
+ 			Eigen::Matrix4d perturbedByR = input * rotation;
         	Eigen::Matrix4d perturbedByT = input + translation;
 //			cout << perturbedByT << endl;
 
-			//transMats.push_back(perturbed);
-			//transMats.push_back(perturbedByR);
+			transMats.push_back(perturbed);
+			transMats.push_back(perturbedByR);
 			transMats.push_back(perturbedByT);
 		}
 	}

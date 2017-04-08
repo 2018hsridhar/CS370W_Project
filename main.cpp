@@ -49,14 +49,11 @@ T << 0.905716, 0.0236395, 0.423226,  0.100115,
 	0		,0			,0			,1;
 */
 T = Eigen::Matrix4d::Identity();
-T(0,3) = 0.3;
-cout << T << endl;
+//T(0,3) = 1;
+//cout << T << endl;
 //T(1,3) = 1;
 //T(2,3) = -1; // no movement ... is something wrong with my data of interest??
 	runPipeline();
-
-
-
 }
 /*
 {
@@ -128,13 +125,12 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				Eigen::MatrixXd transScan1;	
 				Eigen::Matrix4d curT = transMats[i];
 				HELPER::applyRigidTransformation(scan1.V,curT,transScan1); 
-				cout << "Applied Transformation" << endl;
+				//cout << "Applied Transformation" << endl;
 
 				//cout << "Generating interpolating surface" << endl;
 				INTERP_SURF::generateOffsetSurface(transScan1,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
 				double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(transScan1,scan1.F,scan2.V,scan2.F);
 				bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
-				//cout << "Remeshed interpolating surface" << endl;
 				if(!remSucc)
 				{
 					std::cout << "BAD REMESHING!" << std::endl;
@@ -153,14 +149,14 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				assert(MCF::meshHasBoundary(remeshed.V,remeshed.F));
 				MCF::computeMeanCurvatureFlow(remeshed.V,remeshed.F,0.001, Vc);
 				double energy = SGD::calculateSurfaceEnergy(Vc,remeshed.F);
-				//cout << "Energy value is [" << energy << "]" << endl;
+				cout << "Energy value, iter [" << i << "] is [" << energy << "]" << endl;
 				energies.push_back(energy);
 			}
 
 			// CHECK IF any transformation matrices do better than the existing one
 			// COMPARE their corresponding energy values
 			Eigen::Matrix4d T_local;
-
+/*
 			for ( auto i : transMats )
 				std::cout << i << '\n';
 			std::cout << std::endl;
@@ -169,8 +165,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			for ( auto i : energies)
 				std::cout << i << ' ';
 			std::cout << std::endl;
-
-
+*/
 			double local_energy = SGD::findOptimalTransMat(transMats,energies,T_local);
 
 			// this energy calculation seems awfully FISHY!

@@ -22,7 +22,13 @@ namespace HELPER
 	{
 		Eigen::VectorXd zeroTranslate = Eigen::Vector4d (0,0,0,0);
 		Eigen::MatrixXd p_i = HELPER::convertToHomogenousForm(V);
-		Eigen::MatrixXd transV = (p_i * T).rowwise() + zeroTranslate.transpose();
+		//std::cout << "converted to homogenous form is" << std::endl;
+		//std::cout << p_i << std::endl;
+		//Eigen::MatrixXd transV = (T * p_i).rowwise() + zeroTranslate.transpose(); // THIS IS WRONG!
+		Eigen::MatrixXd transV = (T * p_i.transpose()).transpose(); // THIS IS RIGHT!!
+		//Eigen::MatrixXd transV = p_i;
 		vOut = HELPER::normalizeHomogenousMatrix(transV);
+	//	std::cout << "converted to regular form is " << std::endl;
+	//	std::cout << vOut << std::endl;
 	}
 }

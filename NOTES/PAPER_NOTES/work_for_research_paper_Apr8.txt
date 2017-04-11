@@ -1,0 +1,70 @@
+-------------------------------
+------ Improvements needed ---
+-------------------------------
+1. Introdution needs to be rewritten as the following
+	- Failed to define what alignment/registration fo two images is ... understand thy audience again!
+	- Rewrite explanation of RigidICP algorithm
+	- GO OVER YOUR GOAL ::: 1. it's possible anda 2. it's better than SOTA! 
+	- Introduction requires more substance
+	- Your references ... CAN YOU WRITE THE SPECIFIC QUOTE YOU USED! REFER TO NEWPORTS QUOTE DATABASE!
+2. Write a section for remeshing. Look up some papers on this, IF need be
+3. Print out all the papers you used, and stick them in a big binder! Seriously!
+
+-----------------
+--- Questions ---
+-----------------
+1. Do I need to go in an in-depth explanation of the remeshing algorithm, OR can I just say that we used standard existing isotropic remeshing techniques? I think we'll be doing the later, given that this REALLY does not seem too critical for the paper!	
+	- tbh I think not, given that hey, there's probably a set of well-established techniques [ i.e. Poisson surface reconstruction ... nobody goes explaining this! ]
+	- nonetheless, one could argue against me .... for why I make specific choices with the remeshing approach too! ... 
+2. How the heck do I even-produce some useful figures? What figures would I want to set up?
+	- [a] a figure demonstrating how MCF evolves
+	- [b] a figure for interpolating surface consturction
+	- [c] a figure for isotropic remeshing?
+	- [c] a figure for ICP - this should be easy to find
+	- [d] Standard model, 
+
+-------------------------------
+--- Work I need to do again ---
+-------------------------------
+1. Update MCF code
+2. Succesfully cut some standard models, from Stanford Repo 
+	[1] Possessing simple boundaries
+	[1] Possessing multiple boundaries - Torus seems like a good example, right?
+
+---------------------------------------
+--- Types of experiments to test on ---
+---------------------------------------
+GOAL :: collect an optimal set of depth scan data, and run a series of effective experiments.
+
+[1] Depth scans of a human taken from the front and back. This serves as a realistic application of these methods. 
+[2] Two parallel circles or squares - the simplest case. so image shooting a photo of a cylinder from the top and bottom
+[3] An input possessing jagged boundaries ( i.e. two parallel gears ) 
+[4] The bunny mesh, with two views ( one from a 0-degrees rotated axis, and one axially rotated by 90 deg). RigidIcp sucks here, so its a good comparison
+[5] Two meshes that do possess an overlap. 
+	- one with a minimal overlap
+	- one with a large overlap
+	- approach should still work well on such cases ( it'd be shocking if it didn't )
+[6] An input with multiple boundaries ... cut a torus/donught into two pieces
+	- see if the stitching algorithm works correctly in this case!
+	- see if alignment works correctly
+	- see if MCF works correctly, and whether it has to be extended to multiple inputs ( i.e. 2 DISJOINT sets of {V,F} ) data. 
+		- more ever ... how to even find these 2 disjoint sets, from a huge set of {V,F} data from stitching? That's also a doozy! 
+		- libIgl routine for that?
+	- how does ICP work in this case too?
+
+---------------------------------
+--- Popular Mesh/3D databases ---
+---------------------------------
+1. Google 3D Warehouse
+2. Stanford 3D Repo
+3. Princeton 3D Repo
+
+--------------------
+--- A good idea? ---
+--------------------
+1. Restructure pipeline, with keyboard code, to do the following
+	(a) restore original image data
+	(b) apply MCF
+	(c) apply rigidICp
+	(d) test out the pipeline
+	(e) generate and output useful statistics

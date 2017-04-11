@@ -53,7 +53,3 @@
 15. I think the "public-private" thing , for methods, only applies in c++ classes, and NOT namespaces!
 	- and what about interfaces? does that exist anywhere, or do I have to make a class :-( 
 16. Need the cmake (directory), albeit one usually only needs cMakeList.txt, since cmake/FindLIBIGL.cmake code, is used to establish LibIGL + other critical libraries !
-
-
-
-

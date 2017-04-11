@@ -1,3 +1,6 @@
+----------------------
+--- Things Learned ---
+----------------------
 1. Whenever you start using a new library ... always ... read the ReadMe.Md, and understand structure, before starting out on codebase
 2. EITHER find, or try to set up, the most basic example ( HelloWorld ) using a lib feature. Know the min set of things you need
 3. Note ... these are the example include cgals != including every single CGAL library header file ! 
@@ -7,14 +10,11 @@
 6. READ THE @#()$*#@ CMAKE output! seriously! yes, it's time, but it can save you more time later!
 7. really understand ... do you want to install teh lib? configure it? build it? run/configure the examples! PLEASE BE SPECIFIC AS POSSIBLE!
 
-
-
 -------------------
 --- To look up ---
 -------------------
 1. The CGAL/scripts files ... I think one of these creates a CMakeLists.txt for you! 
-2. note ... CGAL's tutoirlas ... kinda suck .... use that other pdf
-
+2. note ... CGAL's tutorials ... kinda suck .... use that other pdf
 
 -----------------------
 --- Useful links ----

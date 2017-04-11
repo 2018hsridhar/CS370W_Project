@@ -105,8 +105,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		// NOTE :: you DO NOT walk in the same direction, for these cases!
 		//	std::cout << "PROGRESSING over Greedy Zippering Surface Reconstruction Algorithm.\n ";
 
-		//std::cout << "Scan P Vertex of seed edge = [" << seedEdge(0) << "]\n";
-		//std::cout << "Scan Q Vertex of seed edge = [" << seedEdge(1) << "]\n";
+		std::cout << "E : " << seedEdge(0) << " " << seedEdge(1) << std::endl;
 		bool edgesToScan1 = false;
 		bool edgesToScan2 = false; 
 
@@ -147,20 +146,24 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				if(edgeToScanOne == myEdge)
 				{
 					isItEdgeToScanOne = false;
+					std::cout << "Using edge to scan one , repeated case" << std::endl;
 					break;
 				}
 				if(edgeToScanTwo == myEdge)
 				{
 					isItEdgeToScanOne = true;
+					std::cout << "Using edge to scan two , repeated case" << std::endl;
 					break;
 				}
 			}
 
 			// the bug occurs whenever I flip the triangle faces that I'm working with!
 			// relative ordering, of how faces are added, then index check is performed, might matter!
+			// #TODO :: why does this NOT execute!!
 			if (isItEdgeToScanOne) 
 			{
 				// newEdge = edgeToScanOne;
+				std::cout << "Adding edge to Scan 1" << std::endl;
 				newEdge = Eigen::Vector2i(p_i_plus_1, q_j + qOffset);
 				newFace = Eigen::Vector3i(q_j + qOffset, p_i_plus_1,p_i);
 
@@ -169,7 +172,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				if (pVisit == 2) 
 				{
 					edgesToScan2 = true;
-					//std::cout << "Met same p_i seed edge point" << std::endl;
+					std::cout << "Met same p_i seed edge point" << std::endl;
 					break;
 				}
 
@@ -183,14 +186,16 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			else 
 			{  
 				// newEdge = edgeToScanTwo;
+				std::cout << "Adding edge to Scan 2" << std::endl;
 				newEdge = Eigen::Vector2i(p_i, (q_j_minus_1 + qOffset));
 				newFace = Eigen::Vector3i(p_i,(q_j + qOffset),(q_j_minus_1 + qOffset));
 
+				std::cout << "q_j = [" << q_j + qOffset << "]\n";
 				if (q_j + qOffset == seedEdge(1)) qVisit++;
 				if (qVisit == 2) 
 				{
 					edgesToScan1 = true;
-					//std::cout << "Met same q_j seed edge point" << std::endl;
+					std::cout << "Met same q_j seed edge point" << std::endl;
 					break;
 				}
 
@@ -200,16 +205,22 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				newTriangleFaces.push_back(newFace(2));
 				j = INTERP_SURF::mod(j - 1, numBoundaryVerticesScan2);
 			}
-			//std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
+			std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
 			visited.push_back(newEdge);
 		} 
 		while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
+
+		std::cout << "pVist = [" << pVisit << "]\n.";
+		std::cout << "qVist = [" << qVisit << "]\n.";
+
+		// HACK to dumb corner case ( where you traverse one mesh fully ... b4 the other )
+				
 
 		// [2] CLEAN UP PHASE - if the new Edge happens to be adjacent to a seed vertex
 		// do not push back 2 repeated triangles --- CGAL will complain!
 		if(edgesToScan2)
 		{
-			//std::cout << "Cleaning up to Scan 2" << '\n';
+			std::cout << "Cleaning up to Scan 2" << '\n';
 			assert(i == seedEdge(0));
 			int p_i = i;
 
@@ -221,7 +232,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				int q_j_minus_1 = (INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
 
 				newEdge = Eigen::Vector2i(p_i,(q_j_minus_1 + qOffset));
-			//	std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
+				std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
 				newFace = Eigen::Vector3i(p_i,(q_j + qOffset),(q_j_minus_1 + qOffset));
 
 				// push new face, perform next iteration
@@ -234,7 +245,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		}
 		if (edgesToScan1)
 		{
-			//std::cout << "Cleaning up to Scan 1" << '\n';
+			std::cout << "Cleaning up to Scan 1" << '\n';
 			assert(bndIndexesScan2(j) == seedEdge(1));
 			int q_j = j;
 
@@ -244,7 +255,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				int p_i_plus_1 = (INTERP_SURF::mod((i+1),numBoundaryVerticesScan1));
 
 				newEdge = Eigen::Vector2i(p_i_plus_1, (q_j + qOffset));
-			//	std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
+				std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
 				newFace = Eigen::Vector3i(q_j + qOffset,  p_i_plus_1,p_i);
 
 				// push new face, perform next iteration

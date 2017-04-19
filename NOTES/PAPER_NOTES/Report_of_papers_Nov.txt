@@ -1,0 +1,21 @@
+--------------------------------------
+--- Summarization of Huang's Paper ---
+--------------------------------------
+
+	In this paper, Huang et. Al device a novel approach to the construction of fractured, broken 3D solids, by accounting for not only local, pairwise information between two arbitrary pieces, but also by accounting for global registration information across all images. 
+ The primary contributions of these paper include new techniques in differential processing, including integral invariants for multi-scale surface matching, registration via forward search techniques, and a non-penetrating version of Chen and Medioni's Rigid ICP algorithm wait … is RIGID ICP akin to ICP? The research conducted here can be classified as a shape-matching problem, 
+
+	I especially thought that Huang et. Al demonstrated significant creativity in their pairwise global and local registration segment of the algorithm. Here, they first made sure to search all possible fragments for pairs of matching fracture surfaces, thus, effectively reducing their state space. 
+
+---------------------------------------------
+--- Depth Report of Papers Read this week ---
+---------------------------------------------
+Huant et. Al, Reassembling Fractured Objects by Geometric Matching. Although I think that paper is really well-developed, and unique its its approach, the research developed fails to align properly with my problem domain of interest. The key points that I took away from here include the fact that one of the main steps of his algorithm includes robust pairwise matching using surface features/surface analysis, which is used for detecting fractured versus original boundaries. The statement that it must be possible to DERIVE GEOMETRIC INFO form the input data is something that I will definitely be considering. Extensions that I can consider include scaling my method to multistep information OR accounting for information from multiple alignments ! This paper helped me clear up the distinction between surface of an object, versus boundaries of a manifold mesh of two partial scans.
+
+Tao Ju et Al, Topology-Constrained Surface Reconstruction From Cross Sections:: Although I found the approach here interesting, it does not match up to my problem domain, since the focus here is on reconstructing a common, interpolating surface based on a set of parallel/non-parallel cross section data. I can't image being able to solve for cross-section data, especially given that the partial scans are non-overlapping. However, the ideas of the interpolating surface being geometrically and topologically correct are aspects I should consider, given that MCF can be applied only on nonZero-genus surfaces , to my belief 
+
+Bajaj, Higher-Order Level-Set Method with Applications to Smooth Surface Constructions :: 
+Like Tao Ju et Al, the limitation of surface reconstruction based on just one piece of point-cloud data precludes it from matching the problem domain. The techniques developed here though, do seem rather intresting.
+
+Jacobson et. Al, Mixed finite elements for variational surface modelling. The research here can also be extended BUT NOT adapted to my problem domain, as his focus is on trying to map a set of discretization for existing , common geometric PDES ( biharmonic, triharmonic ) to a common, mixed discretization. Nonetheless, I found that he presented a set of good ideas that could prove useful too me, such as as ensuring that the smooth surface, modelled by an arbitrary geometric PDE,  is twice differentiable surfaces respecting boundary conditions based on { vertices, tangents, curvatures }. 
+

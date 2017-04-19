@@ -1,4 +1,5 @@
-﻿// PURPOSE :: a greedy interpolating surface construction algorithm, from 2 range images, based of sticthing the best edge in a 4-point processing method. #TODO :: write up with a better description!
+﻿// #TODO :: actually enable asserts ... I think you need to do this
+// PURPOSE :: a greedy interpolating surface construction algorithm, from 2 range images, based of sticthing the best edge in a 4-point processing method. #TODO :: write up with a better description!
 
 #include "interpSurface.h"
 #include "remesh.h"
@@ -27,7 +28,6 @@ namespace INTERP_SURF
 								Eigen::MatrixXd& vOff, Eigen::MatrixXi& fOff)
 	{
 		///////// PREALLOCATION ///////////////////
-		// #TODO :: check if this is used later :-P 
 		struct Mesh
 		{
 			Eigen::MatrixXd V; 
@@ -36,7 +36,7 @@ namespace INTERP_SURF
 
 		std::vector<std::vector<int>> Adjacency_Scan1;
 		std::vector<std::vector<int>> Adjacency_Scan2;
-std::vector<bool> boundaryVerticesStatus_scan1;
+		std::vector<bool> boundaryVerticesStatus_scan1;
 		std::vector<bool> boundaryVerticesStatus_scan2;
 
 		Eigen::MatrixXd boundaryVertices_scan1;
@@ -89,28 +89,33 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 							bndIndexesScan2, bndVertsScan2, seedEdgeIndices); 
 
 		Eigen:Vector2i seedEdge;
-		visited.push_back(seedEdge);
+		//std::cout << "PRE PUSHBACK: " << seedEdge(0) << " " << seedEdge(1) << std::endl;
+		//visited.push_back(seedEdge);
 		int i = seedEdgeIndices(0); 
 		int j = seedEdgeIndices(1);
 		int qOffset = numBoundaryVerticesScan1;
 		//std::cout << "qOffset = [" << qOffset << "]\n";
 
+		// GOD.FUCKING.DAMMIT.
+		// visited.push_back(seedEdge);
 		seedEdge(0) = i;
 		seedEdge(1) = j + qOffset;
+		visited.push_back(seedEdge);
+		//std::cout << "POST OFFSET  : " << seedEdge(0) << " " << seedEdge(1) << std::endl;
 		Eigen::Vector2i newEdge;
 		Eigen::Vector3i newFace; 			
 
-		//std::cout << "[2] Constructed seed Edge Indices" << std::endl;
+		// std::cout << "[2] Constructed seed Edge Indices" << std::endl;
 		// [2] keep alternating edge solving, using the adj lists
 		// NOTE :: you DO NOT walk in the same direction, for these cases!
 		//	std::cout << "PROGRESSING over Greedy Zippering Surface Reconstruction Algorithm.\n ";
 
-		std::cout << "E : " << seedEdge(0) << " " << seedEdge(1) << std::endl;
+		// std::cout << "E : " << seedEdge(0) << " " << seedEdge(1) << std::endl;
 		bool edgesToScan1 = false;
 		bool edgesToScan2 = false; 
 
-		// #TODO :: fix common edge in two faces bug 
-		// ... contributes to an xWing case, unable to determine orientation
+		// Handle common/seed edge case with two faces
+		// ---> contributes to an xWing case, unable to determine orientation
 		int pVisit = 0;
 		int qVisit = 0;
 		do
@@ -146,13 +151,13 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				if(edgeToScanOne == myEdge)
 				{
 					isItEdgeToScanOne = false;
-					std::cout << "Using edge to scan one , repeated case" << std::endl;
+					//std::cout << "Using edge to scan one , repeated case" << std::endl;
 					break;
 				}
 				if(edgeToScanTwo == myEdge)
 				{
 					isItEdgeToScanOne = true;
-					std::cout << "Using edge to scan two , repeated case" << std::endl;
+					//std::cout << "Using edge to scan two , repeated case" << std::endl;
 					break;
 				}
 			}
@@ -163,7 +168,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			if (isItEdgeToScanOne) 
 			{
 				// newEdge = edgeToScanOne;
-				std::cout << "Adding edge to Scan 1" << std::endl;
+			//	std::cout << "Adding edge to Scan 1" << std::endl;
 				newEdge = Eigen::Vector2i(p_i_plus_1, q_j + qOffset);
 				newFace = Eigen::Vector3i(q_j + qOffset, p_i_plus_1,p_i);
 
@@ -172,7 +177,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				if (pVisit == 2) 
 				{
 					edgesToScan2 = true;
-					std::cout << "Met same p_i seed edge point" << std::endl;
+					//std::cout << "Met same p_i seed edge point" << std::endl;
 					break;
 				}
 
@@ -186,16 +191,16 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 			else 
 			{  
 				// newEdge = edgeToScanTwo;
-				std::cout << "Adding edge to Scan 2" << std::endl;
+				// std::cout << "Adding edge to Scan 2" << std::endl;
 				newEdge = Eigen::Vector2i(p_i, (q_j_minus_1 + qOffset));
 				newFace = Eigen::Vector3i(p_i,(q_j + qOffset),(q_j_minus_1 + qOffset));
 
-				std::cout << "q_j = [" << q_j + qOffset << "]\n";
+				//std::cout << "q_j = [" << q_j + qOffset << "]\n";
 				if (q_j + qOffset == seedEdge(1)) qVisit++;
 				if (qVisit == 2) 
 				{
 					edgesToScan1 = true;
-					std::cout << "Met same q_j seed edge point" << std::endl;
+					//std::cout << "Met same q_j seed edge point" << std::endl;
 					break;
 				}
 
@@ -205,13 +210,13 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				newTriangleFaces.push_back(newFace(2));
 				j = INTERP_SURF::mod(j - 1, numBoundaryVerticesScan2);
 			}
-			std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
+			//std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
 			visited.push_back(newEdge);
 		} 
 		while(!INTERP_SURF::edgesAreEqual(newEdge,seedEdge));
 
-		std::cout << "pVist = [" << pVisit << "]\n.";
-		std::cout << "qVist = [" << qVisit << "]\n.";
+		//std::cout << "pVist = [" << pVisit << "]\n.";
+		//std::cout << "qVist = [" << qVisit << "]\n.";
 
 		// HACK to dumb corner case ( where you traverse one mesh fully ... b4 the other )
 				
@@ -220,7 +225,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		// do not push back 2 repeated triangles --- CGAL will complain!
 		if(edgesToScan2)
 		{
-			std::cout << "Cleaning up to Scan 2" << '\n';
+		//	std::cout << "Cleaning up to Scan 2" << '\n';
 			assert(i == seedEdge(0));
 			int p_i = i;
 
@@ -232,7 +237,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				int q_j_minus_1 = (INTERP_SURF::mod(j-1,numBoundaryVerticesScan2));
 
 				newEdge = Eigen::Vector2i(p_i,(q_j_minus_1 + qOffset));
-				std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
+			//	std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
 				newFace = Eigen::Vector3i(p_i,(q_j + qOffset),(q_j_minus_1 + qOffset));
 
 				// push new face, perform next iteration
@@ -245,7 +250,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 		}
 		if (edgesToScan1)
 		{
-			std::cout << "Cleaning up to Scan 1" << '\n';
+		//	std::cout << "Cleaning up to Scan 1" << '\n';
 			assert(bndIndexesScan2(j) == seedEdge(1));
 			int q_j = j;
 
@@ -255,7 +260,7 @@ std::vector<bool> boundaryVerticesStatus_scan1;
 				int p_i_plus_1 = (INTERP_SURF::mod((i+1),numBoundaryVerticesScan1));
 
 				newEdge = Eigen::Vector2i(p_i_plus_1, (q_j + qOffset));
-				std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
+			//	std::cout << "E : " << newEdge(0) << " " << newEdge(1) << std::endl;
 				newFace = Eigen::Vector3i(q_j + qOffset,  p_i_plus_1,p_i);
 
 				// push new face, perform next iteration

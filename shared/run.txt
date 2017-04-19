@@ -1,0 +1,51 @@
+Running SGD for [0] th iteration.
+Prev energy = [1.79769e+308].
+Local energy = [0.27923].
+Running SGD for [1] th iteration.
+Prev energy = [0.27923].
+Local energy = [0.217937].
+Running SGD for [2] th iteration.
+Prev energy = [0.217937].
+Local energy = [0.211872].
+Running SGD for [3] th iteration.
+Prev energy = [0.211872].
+Local energy = [0.204284].
+Running SGD for [4] th iteration.
+Prev energy = [0.204284].
+Local energy = [0.199551].
+Running SGD for [5] th iteration.
+Prev energy = [0.199551].
+Local energy = [0.195642].
+Running SGD for [6] th iteration.
+Prev energy = [0.195642].
+Local energy = [0.18858].
+Running SGD for [7] th iteration.
+Prev energy = [0.18858].
+Local energy = [0.162112].
+Running SGD for [8] th iteration.
+Prev energy = [0.162112].
+Local energy = [0.133424].
+Running SGD for [9] th iteration.
+Prev energy = [0.133424].
+Local energy = [0.124238].
+Running SGD for [10] th iteration.
+Prev energy = [0.124238].
+Local energy = [0.0978734].
+Running SGD for [11] th iteration.
+Prev energy = [0.0978734].
+Local energy = [0.0878773].
+Running SGD for [12] th iteration.
+Prev energy = [0.0878773].
+Local energy = [0.0809084].
+Running SGD for [13] th iteration.
+Prev energy = [0.0809084].
+Local energy = [0.0746507].
+Running SGD for [14] th iteration.
+Prev energy = [0.0746507].
+Local energy = [0.0765319].
+SGD Converged to a solution.
+Printing optimal transformation matrix.
+   0.66012   0.479606  -0.578117 0.00889676
+ -0.078669   0.809541   0.581768  -0.288007
+  0.747029  -0.338557   0.572124   0.233778
+         0          0          0          1

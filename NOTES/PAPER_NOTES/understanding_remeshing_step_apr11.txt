@@ -1,0 +1,24 @@
+-----------------------------------------------------------
+--- Isotropic Remeshing of 2-Manifold Triangular Meshes ---
+-----------------------------------------------------------
+- Is Remeshing a topoloogy-preseving operation?
+	- I'd say yes, it still attempts to keep the initial vertex and face connectivity, 
+	to some extent
+- Remeshing sure is not geometry preserving. The result is a new, 2D-triangle mesh, whoe vertices and faces can differ from your input vertices and faces.
+-
+-
+-
+-
+-
+-
+-
+-
+
+---------------------------------------------
+--- Alterations we perform, for Remeshing ---
+---------------------------------------------
+1. To solve for the remeshing edge length, we take an average edge length over the two inputs
+2. We protect the input boundaries, by enforcing border protection constriants. This is required to not only ensure a rigid transformatino, but also to perform mean curvature flow on that surface, that respects the boundary/Dirichlet conditions.
+3. We split long borders, meaning that we can introduce new vertices into the interpolating stitched surface.
+4. We apply MCF on all vertices outputed by remeshing, not just original markers
+

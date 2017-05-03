@@ -8,6 +8,7 @@
 #include "meanCurvatureFlow.h"
 #include "interpSurface.h"
 #include "remesh.h"
+#include "sgd.h" // get rid of later
 #include "j_align.h"
 #include "helpers.h"
 
@@ -38,10 +39,11 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
 // METHOD BODY
 int main(int argc, char *argv[])
 {
+	// template and body isntance should be set up here
 	runPipeline();
 }
 
-int runPipeline()
+int runPipeline() 
 {
 	igl::viewer::Viewer viewer;
 	std::cout << "Executing Zero-Overlap, Impuslse-Driven, rigid Alignment Pipeline" << std::endl;
@@ -79,23 +81,24 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 		case 'R':
 			k = 0;
 			T = Eigen::Matrix4d::Identity();
+			// restore initial configuration
 			break;
 		case ' ':
 		{
 			std::cout << "Running J_Align for [" << k << "] th iteration" << std::endl;;
 			debugFile << "Running J_ALIGN for [" << k << "] th iteration.\n";
 
-			cout << "Applying pipeline, to transition matrix" << endl;
+			cout << "Applying pipeline, to configuration matrix" << endl;
 			cout << T << endl;
 
-			//cout << "Apply Rigid Transformation to Scan 1 Mesh" << endl;
-			Eigen::MatrixXd transScan1;	
-			HELPER::applyRigidTransformation(scan1.V,curT,transScan1); 
+			// cout << "Apply Rigid Transformation to Scan 1 Mesh" << endl;
+			// Eigen::MatrixXd transScan1;	
+			// HELPER::applyRigidTransformation(scan1.V,curT,transScan1); 
 			//cout << "Applied Transformation" << endl;
 
 			//cout << "Generating interpolating surface" << endl;
-			INTERP_SURF::generateOffsetSurface(transScan1,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
-			double rEL = REMESH::avgEdgeLenInputMeshes(transScan1,scan1.F,scan2.V,scan2.F);
+			INTERP_SURF::generateOffsetSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
+			double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
 			bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
 			if(!remSucc)
 			{
@@ -105,8 +108,8 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				std::string scan1_bad = "badScan1.off";
 				std::string scan2_bad = "badScan2.off";
 				igl::writeOFF(output_bad_mesh, interp.V, interp.F);
-				igl::writeOFF(scan1_bad, transScan1, scan1.F);
-				igl::writeOFF(scan2_bad, scan2.V, scan2.F);
+				//igl::writeOFF(scan1_bad, transScan1, scan1.F);
+				//igl::writeOFF(scan2_bad, scan2.V, scan2.F);
 				exit(0);
 			}
 
@@ -117,7 +120,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 
 			// CHECK IF any transformation matrices do better than the existing one
 			// COMPARE their corresponding energy values
-			double local_energy = SGD::calculateSurfaceEnergy(Vc,remeshed.F);
+			 double local_energy = SGD::calculateSurfaceEnergy(Vc,remeshed.F);
 
 			// this energy calculation seems awfully FISHY!
 			std::cout << "Prev energy = [" << prev_energy << "]" << std::endl;
@@ -143,7 +146,6 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			}
 			else
 			{
-				T = T_local;
 				prev_energy = local_energy;
 			}
 			

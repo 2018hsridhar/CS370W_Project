@@ -7,54 +7,25 @@
 #include <functional>   //hash
 
 class SignedDistanceField;
+// I also have the feeling that class SignedDistanceField, is basically pointless here? ... or perhaps not ( need distance to vertices, right? Any constraints for the Rigid Bodies needed too? )  
 
-class SortedFace
-{
-public:
-    Eigen::Vector3d f;
-    //int tIndex;
-    int fIndex; //0 to 3; represents the first ijkl that was used in the set of 3
+// set of SORTED faces, for the rigid body ( only given vertex-tet data?? huh?? ) well, i have both vertex and face data ... so a lot of this stuff, does NOT seem useful at all, for the template's set up? To focus on just using LibIgl calls in-place of this instead? Probably!
 
-    //SortedFace(const Eigen::Vector3d& face, int tIndex, int fIndex);
-    bool operator== (const SortedFace& other) const;
-};
 
-namespace std
-{
-    template <>
-    struct hash<SortedFace>
-    {
-        //For our hash function
-        size_t operator()(const SortedFace& sf) const
-        {
-            size_t seed = 0;
-            for(int i = 0; i < 3; ++i)
-            {
-                double element = sf.f(i);
-                seed ^= hash<double>()(element) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            }
-            return seed;
-        }
-    };
-}
 
 class RigidBodyTemplate
 {
 public:
     Eigen::Vector3d oldCoM;
 
- //   RigidBodyTemplate(const std::string &meshFilename, double scale);
-    //RigidBodyTemplate(const Eigen::MatrixX3d &verts, const Eigen::MatrixX4i &tets);
-    RigidBodyTemplate(const Eigen::MatrixX3d &verts);
-
+    RigidBodyTemplate(const Eigen::MatrixX3d &verts, const Eigen::MatrixX3i &faces);
     ~RigidBodyTemplate();
 
-    double getVolume() const {return volume_;}
+    double getArea() const {return area_;}
     const Eigen::Matrix3d getInertiaTensor() const {return inertiaTensor_;}    
 
-    double getBoundingRadius() const {return radius_;}
+//    double getBoundingRadius() const {return radius_;}
     const Eigen::MatrixX3d &getVerts() const {return V;}
-//    const Eigen::MatrixX4i &getTets() const {return T;}
     const Eigen::MatrixX3i &getFaces() const {return F;}
 
 private:
@@ -66,13 +37,13 @@ private:
     void computeInertiaTensor();
 
     Eigen::MatrixX3d V;
-    //Eigen::MatrixX4i T;
     Eigen::MatrixX3i F;
 
-    double volume_;
+    double area_;
+
    // double radius_;
 	// calculate inertia tensor ... requires only face data! 
-	// radius makes no sense, in our set up! And neitehr does volume ( why does this matter ... for masses of the system? ) 
+	// radius makes no sense, in our set up ( to set up a bounding circle? WHY ? )
 	// wait ... do I need the inertia tensor? FOCUS on the matrices needed for F_ext to F_config! 
     Eigen::Matrix3d inertiaTensor_;
 };

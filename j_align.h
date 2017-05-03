@@ -34,18 +34,31 @@ using namespace Eigen;
  * It should also be noted, that my "energy" value, is only for one trans mat @ each timestep!
  * there is no need to descend on the energy values here! ... but you do WANT to assert that the energy is decreasing over time ( if not ... that is a bug! ) 
 * --- cutoff @ a low enough energy ( for now, do < 0.1)
-* --- the set up for this algorithm REMAINS HIGHLY CRITICAL!!! BE CAREFUL HERE!!! ... need to update thy configuration vector, over time!
+* --- the set up for this algorithm REMAINS HIGHLY CRITICAL!!! BE CAREFUL HERE!!! ... need to update thy configuration vector, over time! trans matrix ... is constructed from the config ( so you don't need to "store" this, TBH. you can ... it is up to you though! ) 
+* --- for debugging purposes ( and readability ) ... modularize the code! Define thy expected inputs and outputs, and then fill in the details as you go! ---
+* --- how to assert the correctness of template initialization? unsure of, at the moment! 
+* --- calculate energy ... deserves to bea  function of a different class now !
  */
 
 namespace J_ALIGN 
 {
+	// void takeSimulationStep();
+	
+	void initializeSystemTemplates();
+	void initializeSystemBodyInstances();
+
+// aseembly and disassembly ... was used in "WorldOfGoo", to update particle data ( from config vector ) ... but we might not need that here though! we might just need {assembly, update} steps! ... or maybe need it ( bodyInstances must be updated, right? ) 
+
+	void assembleConfiguration();
+	void updateConfiguration();
+//	void dissassembleConfiguration();	
+
+	void constructTransformationFromConfiguration();
+
 	void calculateExternalForces();
 	void calculateConfigForce();
+
 	void applyRigidMotion();	
-	void convertConfigToTransformationMatrix();
-	void updateConfiguration();
-	void assembleConfiguration();
-	void dissassembleConfiguration();	
 }
 
 #endif

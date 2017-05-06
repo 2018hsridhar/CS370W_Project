@@ -4,7 +4,6 @@
 #include "tutorial_shared_path.h"
 #include <set>
 #include <time.h> 
-
 // LIBIGL includes
 
 
@@ -38,19 +37,21 @@ using namespace Eigen;
 * --- for debugging purposes ( and readability ) ... modularize the code! Define thy expected inputs and outputs, and then fill in the details as you go! ---
 * --- how to assert the correctness of template initialization? unsure of, at the moment! 
 * --- calculate energy ... deserves to bea  function of a different class now !
+* --- the normals ... they apply on edge centers ( need weighted avg of vertex normals ) ... treat this point as a pseudo-vertex, and then apply thy conversion step here!
  */
 
 namespace J_ALIGN 
 {
 	// void takeSimulationStep();
 	
-	void initializeSystemTemplates();
-	void initializeSystemBodyInstances();
+//	void initializeSystemTemplates();
+//	void initializeSystemBodyInstances();
 
 // aseembly and disassembly ... was used in "WorldOfGoo", to update particle data ( from config vector ) ... but we might not need that here though! we might just need {assembly, update} steps! ... or maybe need it ( bodyInstances must be updated, right? ) 
 
-	void assembleConfiguration();
+//	void assembleConfiguration();
 	void updateConfiguration();
+
 //	void dissassembleConfiguration();	
 
 	void constructTransformationFromConfiguration();

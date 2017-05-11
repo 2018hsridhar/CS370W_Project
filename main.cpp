@@ -194,7 +194,9 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 
 //////////////////////////////////////////////////////////////////////////////////////////////	
 
-			if(local_energy < 0.1) // #TODO :: find a better approach here??
+			// something tells me that I need to be careufl with this local energy value
+			// and need to double check magnitudes of F_ext being used here!
+			if(local_energy < 0.4) // #TODO :: find a better approach here??
 			{
 				std::cout << "Impulse based alignment Converged to a solution" << std::endl;
 				std::cout << "Printing optimal transformation matrices" << std::endl;	
@@ -237,13 +239,13 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			scan2.numBV = scan2.bV.rows();
 
 			// we can just assume \rho Vol = 1 ( unit mass, really )
-			// #TODO :: check whether this needs to be modified or not
-			std::cout << "size of boundary loop, scan 1 = [" << scan1.numBV << "]\n";
-			std::cout << "size of boundary loop, scan 2 = [" << scan2.numBV << "]\n";
+			// std::cout << "size of boundary loop, scan 1 = [" << scan1.numBV << "]\n";
+			// std::cout << "size of boundary loop, scan 2 = [" << scan2.numBV << "]\n";
 
 			// SOLVE for delta_cVel, delta_omega, for both scans
 			Eigen::Vector3d delta_cVel_1 = Eigen::Vector3d(0,0,0);
 			Eigen::Vector3d delta_omega_1 = Eigen::Vector3d(0,0,0);
+
 			Eigen::Vector3d delta_cVel_2 = Eigen::Vector3d(0,0,0);
 			Eigen::Vector3d delta_omega_2 = Eigen::Vector3d(0,0,0);
 
@@ -257,14 +259,10 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			// for both partial scan boundaries
 
 			Eigen::Matrix4d T1 = Eigen::Matrix4d::Identity();
-			solveTransformation(ScanOneBody, T1);
-			std::cout << "Transformation matrix, for scan one [t1] is:\n";
-			std::cout << T1 << "\n";
-
 			Eigen::Matrix4d T2 = Eigen::Matrix4d::Identity();
-			//solveTransformation(ScanTwoBody, T2);
-			std::cout << "Transformation matrix, for scan one [t2] is:\n";
-			std::cout << T2 << "\n";
+
+			solveTransformation(ScanOneBody, T1);
+			solveTransformation(ScanTwoBody, T2);
 
 			/*******************************************************
 			 *** HOW TO I GET THIS TRANSFORMATION MATRIX THOUGH? ***

@@ -49,7 +49,8 @@ struct Mesh
 } scan1,scan2,scan1_orig,scan2_orig,interp,remeshed, result;
 
 ofstream debugFile;
-Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
+Eigen::Matrix4d T1 = Eigen::Matrix4d::Identity();
+Eigen::Matrix4d T2 = Eigen::Matrix4d::Identity();
 double prev_energy = std::numeric_limits<double>::max();
 int iters = 0;
 const Vector3d scanOneCenter(0,0,0);
@@ -157,9 +158,6 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			std::cout << "Running J_Align for [" << iters << "] th iteration" << std::endl;;
 			debugFile << "Running J_ALIGN for [" << iters << "] th iteration.\n";
 
-			cout << "Applying pipeline, to configuration matrix" << endl;
-			cout << T << endl;
-
 			// GENERATE INTERPOLATING SURFACE
 			//cout << "Generating interpolating surface" << endl;
 			INTERP_SURF::generateOffsetSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
@@ -198,11 +196,17 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			if(local_energy < 0.1) // #TODO :: find a better approach here??
 			{
 				std::cout << "Impulse based alignment Converged to a solution" << std::endl;
-				std::cout << "Printing optimal transformation matrix" << std::endl;	
-				std::cout << T << std::endl;
+				std::cout << "Printing optimal transformation matrices" << std::endl;	
+				std::cout << "Transformation matrix, for scan one [t1] is:\n";
+				std::cout << T1 << "\n";
+				std::cout << "Transformation matrix, for scan one [t2] is:\n";
+				std::cout << T2 << "\n";
 				debugFile << "SGD Converged to a solution.\n";
 				debugFile << "Printing optimal transformation matrix.\n";
-				debugFile << T << std::endl;
+				debugFile << "Transformation matrix, for scan one [t1] is:\n";
+				debugFile << T1 << "\n";
+				debugFile << "Transformation matrix, for scan one [t2] is:\n";
+				debugFile << T2 << "\n";
 				std::cout << "Closing debug file, exiting program execution.\n";
 				// close file
 				debugFile.close();	
@@ -293,12 +297,20 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 
 
 			// generate transformation ( rotation + translation ) components
-			Eigen:Vector3d t_comp = ScanOneBody->c - ScanOneBody->c_0;
-			Eigen::Matrix3d r_comp = Eigen::Matrix3d::Identity(); // #TODO :: get actual rotational part! 
-			T.block<3,1>(0,3) = t_comp; // yes, thsi block operation works as expected
-			T.block<3,3>(0,0) = r_comp;
-			std::cout << "Transformation matrix is:\n";
-			std::cout << T << "\n";
+			// for both partial scan boundaries
+			Eigen:Vector3d t1_comp = ScanOneBody->c - ScanOneBody->c_0;
+			Eigen::Matrix3d r1_comp = Eigen::Matrix3d::Identity(); // #TODO :: get actual rotational part! 
+			T1.block<3,1>(0,3) = t1_comp; // yes, thsi block operation works as expected
+			T1.block<3,3>(0,0) = r1_comp;
+			std::cout << "Transformation matrix, for scan one [t1] is:\n";
+			std::cout << T1 << "\n";
+
+			Eigen::Vector3d t2_comp = Eigen::Vector3d(0,0,0);
+			Eigen::Matrix3d r2_comp = Eigen::Matrix3d::Identity();
+			T2.block<3,1>(0,3) = t2_comp;
+			T2.block<3,3>(0,0) = r2_comp;
+
+			// note :: since normals update with scan1.v data ... must update scan1.v @ each timestep, with respect to scan1_orig.v, too!
 
 			/*******************************************************
 			 *** HOW TO I GET THIS TRANSFORMATION MATRIX THOUGH? ***
@@ -310,10 +322,10 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			// wait ... isn't it the previous configuratino, to store here? 
 			// well, it depends! Are you creating an animated, or non-animated version? For now, let us focus on the animated version! ... actually, as long as you use the initial mesh ONLY ( the template coordinates ) ... this shouldn't be that bad!
 	
-			// CREATE one global mesh, contain the two inputs
-			Eigen::MatrixXd transScan1;	
-			HELPER::applyRigidTransformation(scan1.V,T,transScan1);
-			igl::cat(1,transScan1,scan2.V,result.V);
+			// CREATE global mesh, contain the two inputs aligned based on impulses
+			HELPER::applyRigidTransformation(scan1_orig.V,T1,scan1.V);
+			HELPER::applyRigidTransformation(scan2_orig.V,T2,scan2.V);
+			igl::cat(1,scan1.V,scan2.V,result.V);
 			igl::cat(1,scan1.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
 			viewer.data.clear();
 			viewer.data.set_mesh(result.V,result.F);
@@ -327,4 +339,4 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 	return true;
 }
 
-
+// well, the output in the impulse based alignment scheme is two independent transformation matrices

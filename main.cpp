@@ -196,7 +196,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 
 			// something tells me that I need to be careufl with this local energy value
 			// and need to double check magnitudes of F_ext being used here!
-			if(local_energy < 0.4) // #TODO :: find a better approach here??
+			if(local_energy < 0.1) // #TODO :: find a better approach here??
 			{
 				std::cout << "Impulse based alignment Converged to a solution" << std::endl;
 				std::cout << "Printing optimal transformation matrices" << std::endl;	
@@ -312,7 +312,7 @@ void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_ome
 		// Rescale F_k_ext, by edge length, and solve for J_k_ext
 		n_avg.normalize();
 		double edge_len = (v_j - v_i).norm();
-		Eigen::Vector3d n_avg_rescaled = edge_len * n_avg;
+		Eigen::Vector3d n_avg_rescaled = edge_len * n_avg * (1.0/10.0);
 
 		Eigen::Vector3d F_k_ext = n_avg_rescaled; 
 		Eigen::Vector3d J_k_ext = h * F_k_ext;

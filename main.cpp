@@ -76,6 +76,7 @@ int runPipeline();
 bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
 void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_omega ,struct Mesh m);
 void updateConfiguration(RigidBodyInstance* ScanBody, const Eigen::Vector3d& delta_cVel,const Eigen::Vector3d& delta_omega);
+void solveTransformation(const RigidBodyInstance* ScanBody, Eigen::Matrix4d& T);
 
 // METHOD BODY
 int main(int argc, char *argv[])
@@ -104,7 +105,6 @@ int runPipeline()
 	}
 	readOFF(GLOBAL::pipelineScan2File,scan2_orig.V,scan2_orig.F);
 
-
 	std::cout << "Executing pipeline for the following meshes" << std::endl;
 	std::cout << "Mesh one [" << GLOBAL::pipelineScan1File << "]" << std::endl;
 	std::cout << "Mesh two [" << GLOBAL::pipelineScan2File << "]" << std::endl;
@@ -119,7 +119,6 @@ int runPipeline()
 	viewer.callback_key_down = key_down;
 	std::cout<<"Press [space] to smooth."<<std::endl;
 	std::cout<<"Press [r] to reset."<<std::endl;
-
 
 	// SHIT ... I still need the initial configuratino ( to capture changes; gaaah! ) 
 	// SETUP templates and body instances
@@ -222,17 +221,13 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 
 			/*******************************
 			 *** IMPULSE BASED ALIGNMENT ***
-			 *** #TODO :: modularize     ***
 			 *******************************/
-			// UPDATE the configuration
-			// REWRITE information to scan1.V,scan2.V
-
 			// compute vertex normals for both scans
 			igl::PerVertexNormalsWeightingType weighting = PER_VERTEX_NORMALS_WEIGHTING_TYPE_UNIFORM; 
 			igl::per_vertex_normals(scan1.V,scan1.F,weighting,scan1.N);
 			igl::per_vertex_normals(scan2.V,scan2.F,weighting,scan2.N);
 
-			// CALCULATE boundary vertices
+			// CALCULATE boundary vertices for both scans
 			igl::boundary_loop(scan1.F,scan1.bI);
 			igl::slice(scan1.V,scan1.bI,1,scan1.bV);
 			scan1.numBV = scan1.bV.rows();
@@ -241,14 +236,10 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			igl::slice(scan2.V,scan2.bI,1,scan2.bV);
 			scan2.numBV = scan2.bV.rows();
 
-			// we can just assume \rho Vol = 1 ( unit mass, really ) ... or modify this to our wish
-
+			// we can just assume \rho Vol = 1 ( unit mass, really )
+			// #TODO :: check whether this needs to be modified or not
 			std::cout << "size of boundary loop, scan 1 = [" << scan1.numBV << "]\n";
 			std::cout << "size of boundary loop, scan 2 = [" << scan2.numBV << "]\n";
-
-			// ITERATE over boundary verts; calculate interpolating bnd {norm, vert}
-			// you also already possess edge lengths ... difference in vertex position data ( take the norm here ) 
-			// you also have the bndry indices ... bemember, this covers all vertices, right? 
 
 			// SOLVE for delta_cVel, delta_omega, for both scans
 			Eigen::Vector3d delta_cVel_1 = Eigen::Vector3d(0,0,0);
@@ -264,19 +255,16 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 
 			// GENERATE transformation ( rotation + translation ) components
 			// for both partial scan boundaries
-			Eigen:Vector3d t1_comp = ScanOneBody->c - ScanOneBody->c_0;
-			Eigen::Matrix3d r1_comp = Eigen::Matrix3d::Identity(); // #TODO :: get actual rotational part! 
-			T1.block<3,1>(0,3) = t1_comp; // yes, thsi block operation works as expected
-			T1.block<3,3>(0,0) = r1_comp;
+
+			Eigen::Matrix4d T1 = Eigen::Matrix4d::Identity();
+			solveTransformation(ScanOneBody, T1);
 			std::cout << "Transformation matrix, for scan one [t1] is:\n";
 			std::cout << T1 << "\n";
 
-			Eigen::Vector3d t2_comp = Eigen::Vector3d(0,0,0);
-			Eigen::Matrix3d r2_comp = Eigen::Matrix3d::Identity();
-			T2.block<3,1>(0,3) = t2_comp;
-			T2.block<3,3>(0,0) = r2_comp;
-
-			// note :: since normals update with scan1.v data ... must update scan1.v @ each timestep, with respect to scan1_orig.v, too!
+			Eigen::Matrix4d T2 = Eigen::Matrix4d::Identity();
+			//solveTransformation(ScanTwoBody, T2);
+			std::cout << "Transformation matrix, for scan one [t2] is:\n";
+			std::cout << T2 << "\n";
 
 			/*******************************************************
 			 *** HOW TO I GET THIS TRANSFORMATION MATRIX THOUGH? ***
@@ -307,7 +295,8 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 
 void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_omega ,struct Mesh m)
 {
-	for(int k = 0; k < m.numBV; ++k) // iterate through SIZE of bV
+	// ITERATE over boundary verts; calculate interpolating bnd {norm, vert}
+	for(int k = 0; k < m.numBV; ++k) 
 	{
 		// get idx of 2 bndry verts of interest	
 		int i = k % m.numBV;
@@ -319,8 +308,8 @@ void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_ome
 		Eigen::Vector3d n_i = m.N.row(i);
 		Eigen::Vector3d n_j = m.N.row(j);
 
-		// average two normals
-		Eigen::Vector3d n_avg = 0.5 * (n_i + n_j);
+		// eval NEGATED average two normals
+		Eigen::Vector3d n_avg = -0.5 * (n_i + n_j);
 	
 		// Rescale F_k_ext, by edge length, and solve for J_k_ext
 		n_avg.normalize();
@@ -349,6 +338,15 @@ void updateConfiguration(RigidBodyInstance* ScanBody, const Eigen::Vector3d& del
 	// vanish out the velocities ( 'molasses' set up ) 
 	ScanBody->cvel.setZero();
 	ScanBody->w.setZero();
+}
+
+void solveTransformation(const RigidBodyInstance* ScanBody, Eigen::Matrix4d& T)
+{
+	Eigen:Vector3d t_comp = ScanBody->c - ScanBody->c_0;
+	// #TODO :: get actual rotational part! 
+	Eigen::Matrix3d r_comp = Eigen::Matrix3d::Identity(); 
+	T.block<3,1>(0,3) = t_comp; 
+	T.block<3,3>(0,0) = r_comp;
 }
 
 

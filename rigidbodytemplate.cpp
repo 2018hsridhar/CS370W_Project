@@ -17,7 +17,6 @@ using namespace Eigen;
 // RigidBodyTemplate Constructor
 RigidBodyTemplate::RigidBodyTemplate(const MatrixX3d &verts, const MatrixX3i &faces) : V(verts), F(faces), area_(0)
 {
-    inertiaTensor_.setZero();
     initialize();
 }
 

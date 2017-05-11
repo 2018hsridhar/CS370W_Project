@@ -25,7 +25,8 @@
 #include <igl/boundary_loop.h>
 #include <igl/slice.h>
 
-
+// remember to set each rigid body instance's {c,theta} and {cvel,w} to 0 
+	// ... nvm, {c,theta} zeroed out @ constructor time!
 // #TODO :: for debug output, use print_vector
 // Namespace includes 
 using namespace Eigen;  
@@ -117,6 +118,7 @@ int runPipeline()
 	std::cout<<"Press [r] to reset."<<std::endl;
 
 
+	// SHIT ... I still need the initial configuratino ( to capture changes; gaaah! ) 
 	// SETUP templates and body instances
 	// Initial Configuration vector values also set up here too!
 	std::cout << "Setting up template and body instances.\n"; 
@@ -244,7 +246,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 
 			// for now, LET us just focus on the COMS of the system 
 
-			// copy over the same code, for the second scan too!
+			// COPY OVER THE SAME CODE, FOR THE SECOND SCAN TOO!
 			Eigen::Vector3d delta_cVel = Eigen::Vector3d(0,0,0);
 			Eigen::Vector3d delta_omega = Eigen::Vector3d(0,0,0);
 			for(int k = 0; k < scan1.numBV; ++k) // iterate through SIZE of bV
@@ -278,16 +280,43 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				Eigen::Vector3d delta_omega_k = Eigen::Vector3d(0,0,0);
 				delta_omega += delta_omega_k;
 			}
-			
+			ScanOneBody->cvel += delta_cVel;
+			ScanOneBody->w += delta_omega; // #TODO :: fix this calculation!
+
+			// update {c,theta} of the rigid body 
+			ScanOneBody->c += ScanOneBody->cvel * h; 
+			ScanOneBody->theta += ScanOneBody->w * h;
+
+			// reset velocities to zeroes ( 'molasses' set up ) 
+			ScanOneBody->cvel.setZero();
+			ScanOneBody->w.setZero();
+
+
+			// generate transformation ( rotation + translation ) components
+			Eigen:Vector3d t_comp = ScanOneBody->c - ScanOneBody->c_0;
+			Eigen::Matrix3d r_comp = Eigen::Matrix3d::Identity(); // #TODO :: get actual rotational part! 
+			T.block<3,1>(0,3) = t_comp; // yes, thsi block operation works as expected
+			T.block<3,3>(0,0) = r_comp;
+			std::cout << "Transformation matrix is:\n";
+			std::cout << T << "\n";
+
+			/*******************************************************
+			 *** HOW TO I GET THIS TRANSFORMATION MATRIX THOUGH? ***
+			 ******************************************************/
+			// well, it's easy to determine the translation  :: c - c_0
+			// For the rotational piece :: set [theta - theta_0] to axis-angle formula
+			// 		and generate your 3d rotation matrix ( refer to Vouga's code ) 
+			// CREATE one global mesh, containing the two inputs, perturbed by (c - c_0)
+			// wait ... isn't it the previous configuratino, to store here? 
+			// well, it depends! Are you creating an animated, or non-animated version? For now, let us focus on the animated version! ... actually, as long as you use the initial mesh ONLY ( the template coordinates ) ... this shouldn't be that bad!
+	
 			// CREATE one global mesh, contain the two inputs
-			/*
 			Eigen::MatrixXd transScan1;	
 			HELPER::applyRigidTransformation(scan1.V,T,transScan1);
 			igl::cat(1,transScan1,scan2.V,result.V);
 			igl::cat(1,scan1.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
 			viewer.data.clear();
 			viewer.data.set_mesh(result.V,result.F);
-			*/
 
 			++iters;
 			break;

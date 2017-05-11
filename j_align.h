@@ -40,6 +40,23 @@ using namespace Eigen;
 * --- the normals ... they apply on edge centers ( need weighted avg of vertex normals ) ... treat this point as a pseudo-vertex, and then apply thy conversion step here!
  */
 
+
+// tbh, this stuff is useful, only after you get most of the boilerplate set up
+// never REFACTOR ahead of time ... GAAAHHH ...
+
+// PREALLOCATION
+/*
+struct Mesh
+{
+	Eigen::MatrixXd V; 
+	Eigen::MatrixXd bV;  // boundary vertices
+	Eigen::MatrixXi F;
+	Eigen::VectorXi bI; // boundary indices; just indxs to specific faces ( not a 1,0 boolean thing ) 
+	Eigen::MatrixXd N;
+	int numBV; 			// number of boundary vertices
+} scan1,scan2,scan1_orig,scan2_orig,interp,remeshed, result;
+*/
+
 namespace J_ALIGN 
 {
 	// void takeSimulationStep();

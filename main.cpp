@@ -74,6 +74,8 @@ RigidBodyTemplate *ScanTwoTemplate;
 // METHOD HEADERS
 int runPipeline();
 bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
+void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_omega ,struct Mesh m);
+void updateConfiguration(RigidBodyInstance* ScanBody, const Eigen::Vector3d& delta_cVel,const Eigen::Vector3d& delta_omega);
 
 // METHOD BODY
 int main(int argc, char *argv[])
@@ -218,10 +220,10 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				prev_energy = local_energy;
 			}
 
-			/********************************************************
-			 ********************************************************
-			 *******************************************************/
-			// AT THIS STEP ... perform the impulse-based alignment!
+			/*******************************
+			 *** IMPULSE BASED ALIGNMENT ***
+			 *** #TODO :: modularize     ***
+			 *******************************/
 			// UPDATE the configuration
 			// REWRITE information to scan1.V,scan2.V
 
@@ -248,55 +250,19 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			// you also already possess edge lengths ... difference in vertex position data ( take the norm here ) 
 			// you also have the bndry indices ... bemember, this covers all vertices, right? 
 
-			// for now, LET us just focus on the COMS of the system 
+			// SOLVE for delta_cVel, delta_omega, for both scans
+			Eigen::Vector3d delta_cVel_1 = Eigen::Vector3d(0,0,0);
+			Eigen::Vector3d delta_omega_1 = Eigen::Vector3d(0,0,0);
+			Eigen::Vector3d delta_cVel_2 = Eigen::Vector3d(0,0,0);
+			Eigen::Vector3d delta_omega_2 = Eigen::Vector3d(0,0,0);
 
-			// COPY OVER THE SAME CODE, FOR THE SECOND SCAN TOO!
-			Eigen::Vector3d delta_cVel = Eigen::Vector3d(0,0,0);
-			Eigen::Vector3d delta_omega = Eigen::Vector3d(0,0,0);
-			for(int k = 0; k < scan1.numBV; ++k) // iterate through SIZE of bV
-			{
-				// get idx of 2 bndry verts of interest	
-				int i = k % scan1.numBV;
-				int j = (k + 1) % scan1.numBV;
+			solve_config_deltas(delta_cVel_1,delta_omega_1,scan1);
+			solve_config_deltas(delta_cVel_2,delta_omega_2,scan2);
 
-				Eigen::Vector3d v_i = scan1.bV.row(i);
-				Eigen::Vector3d v_j = scan1.bV.row(j);
+			updateConfiguration(ScanOneBody,delta_cVel_1,delta_omega_1);
+			updateConfiguration(ScanTwoBody,delta_cVel_2,delta_omega_2);
 
-				Eigen::Vector3d n_i = scan1.N.row(i);
-				Eigen::Vector3d n_j = scan1.N.row(j);
-
-				// average two normals
-				Eigen::Vector3d n_avg = 0.5 * (n_i + n_j);
-			
-				// Rescale F_k_ext, by edge length, and solve for J_k_ext
-				n_avg.normalize();
-				double edge_len = (v_j - v_i).norm();
-				Eigen::Vector3d n_avg_rescaled = edge_len * n_avg;
-		
-				Eigen::Vector3d F_k_ext = n_avg_rescaled; 
-				Eigen::Vector3d J_k_ext = h * F_k_ext;
-
-				// add up contributions to delta_cVel
-				Eigen::Vector3d delta_cVel_k = J_k_ext;
-				delta_cVel += delta_cVel_k;
-
-				// add up contributions to delta_omega
-				Eigen::Vector3d delta_omega_k = Eigen::Vector3d(0,0,0);
-				delta_omega += delta_omega_k;
-			}
-			ScanOneBody->cvel += delta_cVel;
-			ScanOneBody->w += delta_omega; // #TODO :: fix this calculation!
-
-			// update {c,theta} of the rigid body 
-			ScanOneBody->c += ScanOneBody->cvel * h; 
-			ScanOneBody->theta += ScanOneBody->w * h;
-
-			// reset velocities to zeroes ( 'molasses' set up ) 
-			ScanOneBody->cvel.setZero();
-			ScanOneBody->w.setZero();
-
-
-			// generate transformation ( rotation + translation ) components
+			// GENERATE transformation ( rotation + translation ) components
 			// for both partial scan boundaries
 			Eigen:Vector3d t1_comp = ScanOneBody->c - ScanOneBody->c_0;
 			Eigen::Matrix3d r1_comp = Eigen::Matrix3d::Identity(); // #TODO :: get actual rotational part! 
@@ -339,4 +305,52 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 	return true;
 }
 
+void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_omega ,struct Mesh m)
+{
+	for(int k = 0; k < m.numBV; ++k) // iterate through SIZE of bV
+	{
+		// get idx of 2 bndry verts of interest	
+		int i = k % m.numBV;
+		int j = (k + 1) % m.numBV;
+
+		Eigen::Vector3d v_i = m.bV.row(i);
+		Eigen::Vector3d v_j = m.bV.row(j);
+
+		Eigen::Vector3d n_i = m.N.row(i);
+		Eigen::Vector3d n_j = m.N.row(j);
+
+		// average two normals
+		Eigen::Vector3d n_avg = 0.5 * (n_i + n_j);
+	
+		// Rescale F_k_ext, by edge length, and solve for J_k_ext
+		n_avg.normalize();
+		double edge_len = (v_j - v_i).norm();
+		Eigen::Vector3d n_avg_rescaled = edge_len * n_avg;
+
+		Eigen::Vector3d F_k_ext = n_avg_rescaled; 
+		Eigen::Vector3d J_k_ext = h * F_k_ext;
+
+		// add up contributions to delta_cVel
+		Eigen::Vector3d delta_cVel_k = J_k_ext;
+		delta_cvel += delta_cVel_k;
+
+		// add up contributions to delta_omega
+		Eigen::Vector3d delta_omega_k = Eigen::Vector3d(0,0,0);
+		delta_omega += delta_omega_k;
+	}
+}
+
+void updateConfiguration(RigidBodyInstance* ScanBody, const Eigen::Vector3d& delta_cVel,const Eigen::Vector3d& delta_omega)
+{
+	ScanBody->cvel += delta_cVel;
+	ScanBody->w += delta_omega; // #TODO :: fix this calculation!
+	ScanBody->c += (ScanBody->cvel) * h; 
+	ScanBody->theta += (ScanBody->w) * h;
+	// vanish out the velocities ( 'molasses' set up ) 
+	ScanBody->cvel.setZero();
+	ScanBody->w.setZero();
+}
+
+
 // well, the output in the impulse based alignment scheme is two independent transformation matrices
+// #TODO :: seperate out the impulse based alignment methods + code, from the pipeline code, itself! 

@@ -42,7 +42,7 @@ struct Mesh
 	Eigen::MatrixXd V; 
 	Eigen::MatrixXd bV;  // boundary vertices
 	Eigen::MatrixXi F;
-	Eigen::VectorXi bI; // boundary indices
+	Eigen::VectorXi bI; // boundary indices; just indxs to specific faces ( not a 1,0 boolean thing ) 
 	Eigen::MatrixXd N;
 	int numBV; 			// number of boundary vertices
 } scan1,scan2,scan1_orig,scan2_orig,interp,remeshed, result;
@@ -50,11 +50,13 @@ struct Mesh
 ofstream debugFile;
 Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
 double prev_energy = std::numeric_limits<double>::max();
-int k = 0;
+int iters = 0;
 const Vector3d scanOneCenter(0,0,0);
 const Vector3d scanOneOrient(0,0,0);
 const Vector3d scanTwoCenter(0,0,0);
 const Vector3d scanTwoOrient(0,0,0);
+const double rho = 1;
+const double h = 0.1;
 
 // FOR impulse based alignment scheme
 RigidBodyInstance *ScanOneBody;
@@ -126,7 +128,6 @@ int runPipeline()
 
 	// any debug output here btw?
 	std::cout << "Finished setting up template and body instances.\n"; 
-	return 0;
 
 	return viewer.launch();
 }
@@ -137,7 +138,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 	{
 		case 'r':
 		case 'R':
-			k = 0;
+			iters = 0;
 			// restore mesh data
 			scan1.V = scan1_orig.V;
 			scan1.F = scan1_orig.F;
@@ -151,8 +152,8 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			break;
 		case ' ':
 		{
-			std::cout << "Running J_Align for [" << k << "] th iteration" << std::endl;;
-			debugFile << "Running J_ALIGN for [" << k << "] th iteration.\n";
+			std::cout << "Running J_Align for [" << iters << "] th iteration" << std::endl;;
+			debugFile << "Running J_ALIGN for [" << iters << "] th iteration.\n";
 
 			cout << "Applying pipeline, to configuration matrix" << endl;
 			cout << T << endl;
@@ -166,7 +167,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			{
 				std::cout << "BAD REMESHING!" << std::endl;
 				std::cout << "Printing out interpolating surface" << std::endl;
-				std::string output_bad_mesh = "badInterpSurf[" + std::to_string(k) + "].off";
+				std::string output_bad_mesh = "badInterpSurf[" + std::to_string(iters) + "].off";
 				std::string scan1_bad = "badScan1.off";
 				std::string scan2_bad = "badScan2.off";
 				igl::writeOFF(output_bad_mesh, interp.V, interp.F);
@@ -230,29 +231,65 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				
 			igl::boundary_loop(scan2.F,scan2.bI);
 			igl::slice(scan2.V,scan2.bI,1,scan2.bV);
-			scan1.numBV = scan2.bV.rows();
+			scan2.numBV = scan2.bV.rows();
+
+			// we can just assume \rho Vol = 1 ( unit mass, really ) ... or modify this to our wish
+
+			std::cout << "size of boundary loop, scan 1 = [" << scan1.numBV << "]\n";
+			std::cout << "size of boundary loop, scan 2 = [" << scan2.numBV << "]\n";
 
 			// ITERATE over boundary verts; calculate interpolating bnd {norm, vert}
-			for(int i = 0; i < scan1.numBV; ++i)
+			// you also already possess edge lengths ... difference in vertex position data ( take the norm here ) 
+			// you also have the bndry indices ... bemember, this covers all vertices, right? 
+
+			// for now, LET us just focus on the COMS of the system 
+
+			// copy over the same code, for the second scan too!
+			Eigen::Vector3d delta_cVel = Eigen::Vector3d(0,0,0);
+			Eigen::Vector3d delta_omega = Eigen::Vector3d(0,0,0);
+			for(int k = 0; k < scan1.numBV; ++k) // iterate through SIZE of bV
 			{
 				// get idx of 2 bndry verts of interest	
-				
-				
-				
-			} 
+				int i = k % scan1.numBV;
+				int j = (k + 1) % scan1.numBV;
+
+				Eigen::Vector3d v_i = scan1.bV.row(i);
+				Eigen::Vector3d v_j = scan1.bV.row(j);
+
+				Eigen::Vector3d n_i = scan1.N.row(i);
+				Eigen::Vector3d n_j = scan1.N.row(j);
+
+				// average two normals
+				Eigen::Vector3d n_avg = 0.5 * (n_i + n_j);
 			
+				// Rescale F_k_ext, by edge length, and solve for J_k_ext
+				n_avg.normalize();
+				double edge_len = (v_j - v_i).norm();
+				Eigen::Vector3d n_avg_rescaled = edge_len * n_avg;
+		
+				Eigen::Vector3d F_k_ext = n_avg_rescaled; 
+				Eigen::Vector3d J_k_ext = h * F_k_ext;
 
+				// add up contributions to delta_cVel
+				Eigen::Vector3d delta_cVel_k = J_k_ext;
+				delta_cVel += delta_cVel_k;
 
-
+				// add up contributions to delta_omega
+				Eigen::Vector3d delta_omega_k = Eigen::Vector3d(0,0,0);
+				delta_omega += delta_omega_k;
+			}
+			
 			// CREATE one global mesh, contain the two inputs
+			/*
 			Eigen::MatrixXd transScan1;	
 			HELPER::applyRigidTransformation(scan1.V,T,transScan1);
 			igl::cat(1,transScan1,scan2.V,result.V);
 			igl::cat(1,scan1.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
 			viewer.data.clear();
 			viewer.data.set_mesh(result.V,result.F);
+			*/
 
-			++k;
+			++iters;
 			break;
 		}
 		default:

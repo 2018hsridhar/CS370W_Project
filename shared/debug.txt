@@ -1,0 +1,3 @@
+Running J_ALIGN for [0] th iteration.
+Prev energy = [1.79769e+308].
+Local energy = [0.27923].

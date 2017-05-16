@@ -1,4 +1,9 @@
-﻿// MY LIBRARIES  
+﻿// C++ includes
+#include <iostream>
+#include <fstream>
+#include <time.h>
+
+// MY LIBRARIES  
 #include "glob_defs.h"
 #include "meanCurvatureFlow.h"
 #include "interpSurface.h"
@@ -21,51 +26,13 @@ struct Mesh
 	Eigen::MatrixXi F;
 } scan1,scan2,interp,remeshed, result;
 
-// testing one iteration of SGD - from 1 matrices ( init @ I ) to 5 matrices ( @ what SGD produes for thee ). I should desend specifically on the one with LOWEST energy!
 void runPipeline();
-//bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int modifier);
 
 int main(int argc, char *argv[])
 {
 	runPipeline();
-/*
-	
-	Eigen::MatrixXd V;
-	Eigen::MatrixXi F;	
-	igl::readOFF(GLOBAL::pipelineOutputFile, V, F);
-	igl::viewer::Viewer viewer;
-	viewer.data.set_mesh(V,F);
-	viewer.launch();
-*/
 }
 
-/*
-
-// in a couple of wyas, setting up this visualizer seems like a dumb idea
-// it is low-hanging fruit, but  ... IT IS ALSO NOT THAT CRUCIAL!!
-
-bool key_down( igl::viewer::Viewer& viewer, unsigned char key, int modifier)
-{
-	std::cout << "Key : " << key << (unsigned int) key << std::endl;
-	if ( key == 'r' || key == 'R' ) 
-	{
-		viewer.data.clear();
-	}
-	else if ( key == ' ' )
-	{
-		viewer.data.clear();
-		applyOneTimeStepOfPipeline();
-		viewer.data.set_mesh(V_mcf,F_one);
-		viewer.core.align_camera_center(V_mcf,F_one);
-		std::string output_of_mesh = "meanCurvaureFlowOutput[" + std::to_string(k) + "].stl";
-		std::cout << "WRITING MCF data for iteration [" << std::to_string(k) << " ].\n"; 
-		igl::writeOFF(output_of_mesh, V_mcf, F_one);
-	} 
-	return false;
-}
-*/
-	
-// let me modify the method, to view stepping - BUT, don't PRINT out the output file, just yet!
 void runPipeline()
 {
 	std::cout << "Executing Zero-Overlap Rigid Alignment Pipeline" << std::endl;
@@ -87,8 +54,7 @@ void runPipeline()
 	std::vector<Eigen::Matrix4d> transMats;	
 	transMats.push_back(T);
 
-	// k = 10, 15 ... get reasonable output
-	// k = 20 = GAAH
+	// change animated pipeline to break, based on whether local energy is a minimum!
 	// REMESHING seems to be SUCH bottleneck here!
 	for(int k = 0; k < 100; ++k)
 	{
@@ -126,24 +92,24 @@ void runPipeline()
 		SGD::findOptimalTransMat(transMats,energies,T);
 		transMats.clear();
 		SGD::generateTransMats(T,transMats);
-		cout << "OPTIMAL transition matrix is : " << endl;
-		cout << T << endl;
-		cout << "-----------------------------------------------" << endl;
+	//	cout << "OPTIMAL transition matrix is : " << endl;
+	//	cout << T << endl;
+	//	cout << "-----------------------------------------------" << endl;
 	}
 	cout << "Pipeline execution finished" << endl;	
 	cout << "END RESULT transition matrix is : " << endl;
 	cout << T << endl;
 
+	/*
 	// write data to output file  - create one huge mesh
 	// result.V, result.F
-
 	Eigen::MatrixXd transScan1;	
 	HELPER::applyRigidTransformation(scan1.V,T,transScan1);
 	igl::cat(1,transScan1,scan2.V,result.V);
 	igl::cat(1,scan1.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
 	igl::writeOFF(GLOBAL::pipelineOutputFile, result.V, result.F);
-
 	cout << "Wrote off file for aligned meshes" << endl;
+	*/
 }
 
 // change to help animate!

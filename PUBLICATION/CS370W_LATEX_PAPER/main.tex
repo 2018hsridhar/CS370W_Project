@@ -1,0 +1,372 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%2345678901234567890123456789012345678901234567890123456789012345678901234567890
+%        1         2         3         4         5         6         7         8
+
+% note use of IEEE style paper here ( thus, choice of {ieeeconf} )!
+\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out
+                                                          % if you need a4paper
+%\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4
+                                                          % paper
+                                                          
+\usepackage{amsmath}% \usepackage{amsfonts}% \usepackage{amssymb} \usepackage{geometry} \usepackage[all,cmtip]{xy} \geometry{margin= 0.8in}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
+\algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+\usepackage{arydshln}
+\usepackage[english]{babel}
+
+%\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc} %WTF why do I need this?
+%\usepackage{lmodern} 
+% NOT sure what the 3 packages above stand in for
+% \autocite{}vs \cite{}
+\usepackage[autostyle]{csquotes} % some other dumb package to include ... when using english/babel
+\usepackage[
+backend=biber,
+style=ieee,
+%citestyle=authoryear % to pass or not to pass? ... I prefer this, TBH! ... need et.Al's here 
+]{biblatex}
+\addbibresource{project.bib}
+
+\IEEEoverridecommandlockouts                              % This command is only
+                                                          % needed if you want to
+                                                          % use the \thanks command
+\overrideIEEEmargins
+% See the \addtolength command later in the file to balance the column lengths
+% on the last page of the document
+
+% The following packages can be found on http:\\www.ctan.org
+%\usepackage{graphics} % for pdf, bitmapped graphics files
+%\usepackage{epsfig} % for postscript graphics files
+%\usepackage{mathptmx} % assumes new font selection scheme installed
+%\usepackage{times} % assumes new font selection scheme installed
+%\usepackage{amsmath} % assumes amsmath package installed
+%\usepackage{amssymb}  % assumes amsmath package installed
+
+\title{\LARGE \bf
+Rigidly Aligning Non Overlapping Meshes using Minimal Surfaces
+}
+
+\author{Hari Sridhar \\ \indent Supervised by Etienne Vouga}
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+
+%This electronic document is a ÒliveÓ template. The various components of your paper [title, text, heads, etc.] are already defined on the style sheet, as illustrated by the portions given in this document.
+In this paper, we study the problem of solving for an optimal alignment betwen two partial, non-overlapping range scans of a three-dimensional surface. Although existing alignment schemes, such as RigidICP or 4PCS, can solve for a pairwise rigid registration that yields an almost perfect alignment of two meshes, the need for corresponding points in an overlapping region limits their use in cases of minimal or zero overlap. Our approach overcomes this limitation by using an interpolating surface, instead of correspondences, to determining an optimal transformation matrix. We evaluate alignments by solving for an initial interpolating surface between the partial scans, via a greedy closest points zippering scheme, evolve this surface via mean curvature flow, and evaluate an energy function based on the area of said surface. Finding the optimal alignment reduces down to performing stochastic gradient descent on the transformation matrix, using the minimally interpolating surface as an energy metric. %We provide details on the progression of the algorithm, and establish an empirical analysis over a wide variety of various partial scan data. 
+\end{abstract}
+\textbf{Keywords} : computational geometry, rigid registration, mesh alignment, mean curvature flow, minimal surface
+
+% note :: try to make thisi more of a story ... Imagine trying to overlap two non-overlapping jigsaw puzzle pieces. The current intro, sounds really boring as hell!
+\section{Introduction}
+		The goal of rigid registration is to discover an optimal rigid-body transformation, that minimizes the distance between two input range scans. Rigid registration continues to remain a fundamental problem of computational geometry and computer vision, having been well-studied and documented across various papers and surveys. Use cases of registration include protein modeling \autocite{4407841}, biomedical image analysis \autocite{Zou:2015:TSR:2809654.2766976}, and field archeology \autocite{Huang:2006:RFO:1179352.1141925}. The Rigid Iterative Closest Points (RigidICP) algorithm, based solely on geometric information, remains the state-of-the-art for discovering rigid alignments between two three-dimensional models. RigidICP. The algorithm commences with two meshes and an initial guess for the transformation matrix, and solves for alignment as a minimization problem. This transformation matrix is iteratively refined by solving for pairs of corresponding points on the meshes, and minimizes an energy metric based on pairwise distances of these points \autocite{Chen:1992:OMR:138628.138633}. \\
+	\indent Despite its usefulness, the need to establish a set of corresponding points between the two input meshes, and the need for a good initial alignment, limits the applicability of RigidICP. Good corresponding points exist only when the two meshes share a large overlapping region. Additionally, although one could solve for an optimal initial alignment via a plethora of methods; tracking scanner positions, "spin-images", or computing principal axes, such steps beget additional preprocessing and computational resources \autocite{Rusinkiewicz:2001:EVO}. Consequently, RigidICP fails in situations where either the initial alignment proves dismal, or when the two scans possess very little to zero overlap \autocite{Chen:1992:OMR:138628.138633}. \\
+	\indent Our work circumnavigates these limitations by determining and refining alignments based on a minimal interpolating surface, instead of corresponding points. A minimal surface, by definition, is a surface that locally minimizes its area, equivalent to a surface of zero mean curvature. It can be likened to "gluing" the partial scans, using the least amount of glue. It is constructed from the scan boundaries, and is evolved over time using mean curvature flow. Using stochastic gradient descent, defined on an energy metric over this surface, the alignment is iteratively improved over time, such that we eventually reach an alignment that corresponds to a minimal surface that can no longer be minimized. This paper attempts to show that not only can an optimal alignment be discovered in cases of non-overlapping partial scans, but also that it performs better than the state-of-the-art	.
+    
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Outline of work}
+% The remainder of this paper is structured as follows. In sections Three, we introduce the problem statement and related works, respectively. We then provide a broad level overview of our algorithm in section In section Two, we present a high-level overview of our algorithm, our main contributions, and an analysis of previous works in the problem domain.  Later in section \textbf{$\beta$}, we enter a discussion on preliminary knowledge needed to understand the set of main algorithms and techniques used here, which include Mean-Curvature Flow, Iterative Closest Points, and Heat Flow based Surface Reconstructions, and gradient Descent of the alignment. 
+
+\section{Related Work}   
+	\indent As established earlier, ICP and its variants, such as stable sampling, robust norm, and point-plane distance  (refer to \autocite{Rusinkiewicz:2001:EVO} for more in-depth knowledge ) will fail in cases of little to zero overlap, due to a lack of corresponding points. More ever, such methods may also yield penetrating rigid alignments. Nonetheless, we note that the state of the art, in the field of optimizing alignments, has been thoroughly documented with a multitude of approaches. Here, we summarize a set of different methodologies, and discuss their limitations to our problem domain. \\
+	\indent A large class of alignment schemes, such as those based on geometric matching information \autocite{Huang:2006:RFO:1179352.1141925} [Huang], or congruent sets \autocite{Aiger:2008:CSR:1399504.1360684}, require a set of corresponding points from their inputs. While [Huang et. Al]'s robust pairwise matching algorithm scales to multiple fragments and uses surface features to optimizing the fitting of fractured pieces, it is limited by the need to discover corresponding points from its inputs \autocite{Huang:2006:RFO:1179352.1141925}. Additionally, the 4-Points Congruent Sets algorithm, which extracts coplanar 4-points sets from the input surfaces to establish congruences among the surfaces, is limited by the need to for these 4-points sets to exist in regions of sufficient overlap. It too, proves unsuitable for cases of minimal or zero overlap \autocite{Aiger:2008:CSR:1399504.1360684}.\\ 
+	\indent Similar to the spirit of this paper, in \autocite{7294872}, \textit{Brandao et Al.} present a novel algorithm for joint alignment and stitching of two non-overlapping meshes, abbreviated JASNOM. This is achieved by optimizing an assignment matrix that corresponds to edges connecting the two mesh boundary, and then uses standard non-linear optimization algorithms to discover a rigid transformation that minimizes an associated cost function. Like our approach, they utilize an interpolating, stitched surface and non-linear optimization algorithms, to find an optimal alignment that minimizes a specific cost function. Nonetheless, it should be noted that applications of their approach are limited to only scans that possess complementary boundaries over the input mesh. More ever, their alignment remains highly sensitive to large gaps between boundaries. Another related paper, by Willis and Cooper, proposes a rigid alignment scheme for non-overlapping meshes, but restricted to cases of axially symmetric 3D datasets. Their approach too, mandates \textit{a priori} knowledge of shared boundaries among broken pot pieces \autocite{1333714}.
+    
+% \section{Algorithm}
+% % need to include the part that these meshes are noisy depth scans, obtained from a Microsoft Kinnect
+% % #TODO : note the limitations of obtaining data from this laser scanning device (i.e. noise, discretization of depth values), and how we account for that
+% 	Our algorithm takes in two manifold meshes in three dimensional space, that correspond to non-overlapping, partial scans of a three dimensional surface. We assume that the corresponding surfaces are constructed from the user based on range image data, either through Poisson Surface Reconstruction or other methodologies. The main steps of our approach can be broken down into the following:
+% \begin{enumerate}
+% 	\item Discover for each partial scan boundary, which can be done by looping over each edge, and marking edges with just one corresponding face. 
+%     \item Set our initial alignment, represented as a (4x4) homogeneous transformation matrix , to the identity alignment
+%     \item Solve for an interpolating surface via a greedy zippering strategy, and triangulating this surface, denoting the initial vertexes as original, and the set of new vertexes from the triangulation as "deformable".
+%     %\item DISCOVER an initial, interpolating surface that respects that two boundaries, by applying heat flow to the deformable vertices for a finite number of time steps
+% 	\item Apply mean curvature flow to this initial surface, until we reach a minimal surface. 
+% 	\item Compute an energy ( real-value scalar), based off of surface area, to capture the notion of the alignment's optimality. 
+% 	\item Update the alignment, via stochastic gradient descent on the transformation matrices, until we reach a minima.
+%     \item Output the minima, a transformation matrix, representing the optimal alignment of the two scans.
+% \end{enumerate}
+
+% %%%%%%%%%%%%%%%%% ICP section %%%%%%%%%%%%%%%%%%%%%%%
+% \section{Review of Rigid Iterative Closest Points}
+% In this section, we briefly review the Rigid Iterative Closest Points (RigidICP) algorithm. We proceed by starting with a basic understanding of the problem we wish to solve, and then describe the naive implementation of the algorithm, based on just point-to-point intersection tests. Although this is not a unqiue derivation ( refer to \textbf{\cite{Chen}} for a more in-depth mathematical derivation), we present an understanding here, as this is required to understand the motivation behind our methodology, and why RigidICP was used to serve as a control to our experiments. 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection{What is Range Image Registration}
+% 	Let $P,Q$ be point-clouds of two views, of the same image. That is, $P,Q$ are two range images. \\ 
+% \indent We then formalize the notion that $P,Q$ are images that are "in-registration" with each other, if there exists a rigid transformation $T$, such that for any pair of points $(p_i,q_j)$ from the two images, that represent the same surface point, 
+%     \begin{equation} \label{eq:1}
+%     	\forall p_i \in P, \exists q_j \in Q \mid \| Tp_i - q_j \| = 0
+%     \end{equation}
+% or in other words
+%     \begin{equation} \label{eq:2}
+%    	D(P,Q) = \iint_{\Omega} \|Tp(uv) - q(f(u,v),g(u,v) \|^2 du dv = 0
+%   \end{equation}
+% \noindent where $Tp_i$ denotes the result of multiplying $T$ to $p_i$, $p(u,v) \in P, q(u,v) \in Q$, $(u,v) \in \Re \times \Re $ is the parameter space for $P$ and $Q$, $f,g$ are correspondence mapping functions ( that is, $p(u,v)$ and $q(f(u,v),g(u,v))$ represent the same surface point). 
+% Here, $T$ is a (4x4) matrix, which in homogeneous coordinates, is expressed as : 
+% \begin{equation} \label{eq:3}
+%   \begin{aligned}
+% 	T = T(\alpha,\beta,\gamma, t_x,t_y,t_z) = \\
+%      \begin{bmatrix}
+%         c\alpha c\beta       & c\alpha s\beta s\gamma - s\alpha c\gamma & c\alpha s\beta c\gamma + s\alpha s\gamma & t_x \\
+%         s\alpha c\beta       & s\alpha s\beta s\gamma + c\alpha c\gamma & s\alpha s\beta c\gamma - c\alpha s\gamma & t_y \\
+%         -s\beta       & c\beta s\gamma & c\beta c\gamma & t_z \\
+%         0 & 0 & 0 & 1 \\
+%     \end{bmatrix} 
+%     \end{aligned}
+% \end{equation}
+% where $sx,cx$ stand for $sinx$ and $cosx$ respectively. 
+% We then note that solving for an optimal rigid transformation $T_{OPT}$ is equivalent to solving the system of equations 
+% \begin{equation} \label{eq:4}
+% 	\frac{\partial D}{\partial \alpha} = 0, \frac{\partial D}{\partial \beta} = 0, \frac{\partial D}{\partial \gamma} = 0, \frac{\partial D}{\partial t_x} = 0, \frac{\partial D}{\partial t_y} = 0, \frac{\partial D}{\partial t_z} = 0 
+% \end{equation}
+% Since we do not always know the equations $f$ and $g$ or $D(P,Q)$ may not prove convex, we instead formulate solving for \ref{eq:4} as an iterative procedure, assuming that the two views are in close registration with one another. That is, we set the initial initial approximation transformation $T_0$, to be equal to the identity matrix $I_n$. 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection{Formalizing an Evaluation Function for RigidICP}
+% 	Assuming that we possess a set of $N$ pairs of corresponding points ( which we call control points ), in the two views, $p_i \in P$, $q_i \in Q$, $i = 1 \cdots N$, we can find the transformation by minimizing 
+%     \begin{equation} \label{eq:5}
+%     	e = \sum\limits_{i=1}^N \|Tp_i - q_i \|^2
+%     \end{equation}
+%     however, this correspondence information is generally too difficult to obtain in most use cases. 
+%     We then reformulate the problem, to minimize distances from points on one fixed surface, to the other surface. Thus, we minimize the following equation
+%     \begin{equation} \label{eq:6}
+%     	e = \sum\limits_{i=1}^N \|Tp_i - q_i \|^2 , q_j = q\mid \min_{q \in Q} \|Tpi-q\|    
+%     \end{equation}
+% Provided that $\min_{q \in Q} \|Tpi-q \| = 0, \forall i \in \{1 \cdots N\}$, then \ref{eq:6} will be zero. But this too, also remains difficult to solve, as solving for $q_i$ itself is an optimization problem. Thus, we reformulate this equation again as an iterative scheme that solves for an approximation of this metric, and assume that $P,Q$ are in near registration with one another. In this scheme, we use $T^{k-1}$ to solve for $q_{j}^k$, which is then used respectively, to solve for $T^{k}$. \\
+% 	\begin{equation} \label{eq:7}
+% 		e^k = \sum\limits_{i=1}^N \|T^kp_i - q_j^k \|^2 , q_j^k = q\mid \min_{q \in Q} \|T^{k-1}pi-q\|  
+% 	\end{equation}
+% \indent Using this form then, we then naively assessed how optimally a point-to-point intersection based RigidICP scheme worked, given two partial scans that are in near-registration with one another. Preliminary empirical results, based on rotating a bunny mesh by an $\epsilon$ angle over the y-axis,  suggest that the algorithm converges correctly. Likewise, in the case where the bunny mesh was rotated by $90^{\circ}$, the algorithm fails to converges to an optimal solution, which suggests that it also exhibits the expected behavior of not converging here. On the other hand though, this is not the most optimal version of RigidICP, as Chen-Medioni developed a line-to-surface intersection scheme that possesses a stronger degree of correctness and is more efficient that the point-to-point scheme of \ref{eq:7}. 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Mean Curvature Flow}
+% \subsection{An Introduction to Mean-Curvature Flow}
+% 	Mean Curvature Flow (MCF) is a type of basic geometric flow that can be thought of as a flow that evolves the surface of a manifold, by shifting each vertex to the average of its neighbors. In a sense, it is a flow that smoothens out an image by reducing the gradient of the surface embedding, and also thought of as a flow that yields minimal surfaces, as it reduces surface area in the opposite direction of the surface normal. As our problem domain requires finding an interpolating surface between two boundaries, and then minimizing this surface, in hopes of finding an optimal alignment between the two partial scans, MCF serves as a rather crucial role \textbf{cite{Kazhdan}}.  
+% 	We utilize \textit{Kazhdan et. Al's} \cite{Kazhdan} modified MCF algorithm, since it eliminates the division by zero numerical instability and in general, does not result in mappings that develop neck pinches. More ever, in the case of water-tight, genus-zero surfaces, Kazhdan's algorithm strongly suggests that genus-zero, watertight surfaces converge to a conformal paramterization of the surface onto the sphere. Thus, Kazhdan's approach is more robust and computationally efficient the traditional mean curvature flow. 
+% \subsection{The continuous formulation of mean curvature flow }
+% Let $M$ be a two dimension manfiold,  let $\Phi_t: M \rightarrow \Re^3$ be a smooth family of immersions, and let $g_t(.,.)$ be the metric induced by the immersion at time $t$. Then we assert that $\Phi_t$ is a solution to the \textit{mean-curvature flow} IFF
+% \begin{equation} \label{eq:8}
+% 	\frac{\partial \Phi_t}{\partial t} = \Delta_t \Phi_t
+% \end{equation}
+% where $\Delta_t$ represents the Laplace-Beltrami operator, defined with respect to the metric $g_t$. 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection{Understanding the Finite Elements Discretization of MCF}
+% In order to model the flow to work for discretized surface meshes, we first apply a discretization to the partial differential equations developed in \ref{eq:8}. Following Finite Element Discretization methods, we choose the hat basis $\{B_1,\cdots,b_n\}:M \rightarrow \Re$ as the function basis, in order to transform the continuous system of equations to a finite-dimensional system. Via this basis then, we represent the map at time $T$ by the coefficient vector $\vec{x}(t) = \{x_1(t), \cdots, x_N(t)\} \subset \Re^3$
+% \indent Since we cannot solve for \ref{eq:8} exactly, as the solution is not guaranteed to be within the span of $\{B_i\}$, we instead use the Galerkin (weak) formulation, to solve the systems, from a least-squares perspective:
+% \begin{equation}
+% 	\int_M(\frac{\partial \Phi_t}{\partial t} \dot B_i) d\mu_t = \int_M (\Delta_t \Phi_t \cdot B_i) d \mu_t, 1 \leq i \leq N
+% \end{equation}
+% where $du_t$ is the volume form induced by the given metric $g_t$. \\
+% Consequently, we can set $D^t$ and $L^t$ as the mass and stiffness matrices, of the embedding, at time $t$
+% \begin{equation} \label{eq:9}
+%     D_{ij}^t = \int_M(B_i \cdot B_j) d\mu_t
+% \end{equation}
+% \begin{equation} \label{eq:10}
+% 	L_{ij}^t = -\int_M g_t(\nabla_t B_i, \nabla_t B_j) d\mu_t
+% \end{equation}
+% With this in hand, we can then construct a linear system, relating coefficeints at time $t + \delta$ to coefficeints at time $t$, for the semi-implicit time discretization, via the following relation: 
+% \begin{equation}\label{eq:11}
+% 	(D^t - \delta L^t)\vec{x}(t+\delta) = D^t\vec{x}(t)
+% \end{equation}
+% where $\nabla_t$ denotes the gradient operator, with respect tot he metric $g_t$. %%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection{Numerical Instabilities and Changes made}
+% Following the spirit of Kazhdan's algorithm, we modify the mass and stiffness matrices, to account for how the geometry stretches over time, which is described by both stretch directions $v_1,v_2$ and stretch factors $\lambda_1,\lambda_2$. Using the chain rule, the $(i,j)$-th coefficients of the mass matrix are :
+% \begin{equation} \label{eq:12}
+%     D_{ij}^t = \int_M B_i \dot B_j \dot ( \mid g_{0}^{-1} g_t \mid )^{\frac{1}{2}} d\mu_t
+% \end{equation}
+% where $( \mid g_{0}^{-1} g_t \mid )^{\frac{1}{2}}$ describes the ratio of area elements. 
+% Additionally, we are able to express the coefficients of the stiffness matrix as : 
+% \begin{equation} \label{eq:13}
+%     L_{ij}^t = -\int_M \sum_{k=1}^2 \frac{\partial B_i}{\partial v_k} \frac{\partial b_k}{\partial v_k} \frac{1}{g_0(v_k,v_k)} \frac{\lambda_1 \lambda_2}{\lambda_k \lambda_k} d\mu_0
+% \end{equation}
+%     And by conformalizing the metric $g_t$, by the closest metric conformal to $g_0$
+%     \begin{equation} \label{eq:14}
+%     	\tilde{g_t} = \sqrt{\mid g_0^{-1}g_t \mid g_0}
+%     \end{equation}
+% we can then show that $\forall t$, $\tilde{L_{ij}^t} = L_{ij}^0$, via the relationship:
+%     \begin{equation} \label{eq:14}
+%       \begin{aligned}
+%     	 L_{ij}^t = -\int_M \sum_{k=1}^2 \frac{\partial B_i}{\partial v_k} \frac{\partial B_k}{\partial v_k} \frac{1}{g_0(v_k,v_k)} \frac{\tilde{\lambda_1} \tilde{\lambda_2}}{\tilde{\lambda_k} \tilde{\lambda_k}} d\mu_0 \\
+%          = -\int_M \sum_{k=1}^2 \frac{\partial B_i}{\partial v_k} \frac{\partial B_k}{\partial v_l} g_0^{k,l} d\mu_0 =  L_{ij}^0
+%          \end{aligned}
+%     \end{equation}
+% Thus, we compute the stiffness matrix ( also known as the cotangent-laplacian matrix ) , just once, and update only the mass matrix $D^t$ and the coefficient vector $\vec{x}(t)$, for each $\delta$ timestep. 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection{Implementation Details}
+% Following \textit{Kazhdan et. Al's} approach, we define the mass and stiffness matrices using the hat-basis, as evinced in the formulation
+% \[
+%     D_{ij} = 
+%     	\begin{cases}
+%     	    \frac{\mid T_{ij}^1\mid + \mid T_{ij}^2 \mid }{12} & j \in N(i) \\
+%             \sum_{k \in N(i)} D_{ik} & j = i
+%     	\end{cases}
+% \]
+% \[
+% 	L_{ij} = 
+%     	\begin{cases}
+%     		\frac{cot \beta_{ij}^1 + cot \beta_{ij}^2}{2} & j \in N(i) \\
+%             \sum_{k \in N(i)} L_{ik} & j = i
+%     	\end{cases}
+% \]
+% where $N(i)$ represent indices of vertices adjacent to vertex $v_i$, $T_{ij}^1$ and $T_{ij}^2$ are two triangles sharing edge $(i,j)$, and $\beta_{ij}^1$ and $\beta_{ij}^2$ are two angles opposite of edge $(i,j)$. We also uniformly scale the map after each step to obtain a surface of unit area.
+
+% \indent One critical aspect of Kazhdan's algorithm, that should be noted, is the handling of boundary vertices when the supplied mesh is not a water tight surface. In this case, we do not rescale the evolved map after each time step to a surface of unit area, since we must account for the surface's initial boundary conditions. We also note that we cannot apply MCF directly, as boundary vertexes, would move ( this will cause MCF to blow up, or at least not respect the initial boundary conditions), and ignoring the given boundary vertexes does not solve the problem. Thus, we identify the set of vertexes, for the provided mesh, that are boundary vertexes, and continuously replace the coefficients corresponding to the boundary vertexes, in $\vec{x}(t+\delta)$ with those in $\vec{x}(t)$. This step ensures that the evolution of the mapping, under MCF, respects the given surface boundary conditions. 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Stitching of Mesh Boundaries}
+% 	\indent To assess the optimality of a rigid alignment, a watertight surface that best interpolates the two partial scans and respects the two boundaries of the partial scans must be constructed. Albeit the usefulness of existing surface reconstruction methods, such as \textit{Tao Ju et Al.}'s cross-section approach \textbf{\cite{Tao Ju}}, and \textit{Bajaj}'s Level Set Methods \textbf{\cite{Bajaj}}. they fail to match the problem domain here, due to the requirement of needing to interpolate the boundary curves \textbf{\cite{Jacobson}}. ALthough heat-flow level-set reconstruction methods were considered,the current state of the art is difficult to adapt, since heat-flow level-set reconstruction methods require the boundary surfaces to be parallel to one another. \\
+% %%%%%%%%%%%%%%%%%%
+% 	\indent Consequently, the approach developed here, inspired by \textit{Turk et. Al} \cite{Turk}, is to use a greedy, closest points zippering scheme to construct a watertight surface.This scheme works by starting at a seed edge, and adding new edges at each iteration, gluing together a new triangle at each iteration, until we hit the seed edge again \cite{David} . The inputs are two triangle meshes which correspond to the partial scan data, and the  data points are identified as the set of boundary vertexes of the two scans. The expected output is a stitched triangular mesh, composed of facets whose orientations are consistent with those of the boundary meshes. It should be noted that we are not concerned if the output possess self-intersections. 
+% % In order to construct this new mesh, we iterate over the sets of boundary vertexes, selecting a set of four points of the range image $(p,q,p_a,q_a)$, $p,p_a \in P$, $q,q_a \in Q$, such that $(p,q)$ are the two closest points to one another, and $p_a,q_a$ are corresponding adjacent vertexes to $p,q$. Given this set of 4 points, we then identify zero, one, or two triangles to create. In the case of two triangles, we identify the most optimal triplet of points to form the new triangle, having hypotenuse $(p,q)$, based on which edge, $(p,p_a)$ or $(q,q_a)$ is smaller. This differs from \textit{Turk et. Al's} approach, though, as they adopt a distance threshold based metric for determining the most optimal edge, and identify the shortest of the two diagonals among the four points. After these edges are calculated, we then generate a set of new vertices and faces in the surface, $V_{new}$, using a Delaunay Triangulator generator \cite{Triangle} \\
+% % Delaunay Triangulation ... is a very seperate topic! We are NOT doing that! That ... is for generating triangles on meshes, but from cloud point data, more so. 
+% %%%%%%%%%%%%%%%%%%%%
+% \begin{algorithm}
+%     \caption{Greedy Zippering Surface Reconstruction}
+%     	\label{alg:packed-dna-hamming} % look up what this does
+% 	\begin{algorithmic}
+% 		\State B1 $\gets$ boundary vertexes of Scan 1
+%         \State B2 $\gets$ boundary vertexes of Scan 2
+%         \State Order B1 into cycle $\{b_{p,0},b_{p,1},\cdots,b_{p,m}\}$
+%         \State Order B2 into cycle $\{b_{q,0},b_{q,1},\cdots,b_{q,n}\}$
+%         \State Choose $p_{i} = b_{p,0}$ as a starter vertex % \textit{note, $i = 0$ \textsc{here}}. 
+%         \State Solve for $p_{i}$'s closest point in Scan 2, $q_{j}=b_{q,j}$, $j \in \{ 0,1,\cdots,n \}$
+%         \State Construct seedEdge $e_{0} = (p_{i},q_{j})$
+%         \State Faces $\gets \emptyset $
+%         \Do
+%         	%\\ \textbf{Need I accomadte modulus in indexing, in conditionals!} ... make this implicit I guess
+%             %\\ \textbf{Use Right hand rule to check $\triangle$ normal dir!} ...  no, you can just assume that mesh is oriented ( what is the word for this ) ?
+%             %\If { $d(p_i,p_{i+1}) \leq d(q_j,q_{j+1})$ } 
+%             \If { $d(p_i,q_{j+1}) \leq d(p_{i+1}, q_j)$ } 
+%             	\State newEdge $\gets (p_i,q_{j+1})$
+%                 \State $\triangle \gets (p_i,q_j,q_{j+1})$
+%                 \State $j \gets (j + 1)$ mod $n$. 
+%             \Else {}
+%             	\State newEdge $\gets (p_i,q_{j+1})$
+%                 \State $\triangle \gets (p_i,q_j,q_{j+1})$
+%                 \State $j \gets (j + 1)$ mod $n$. 
+%             \EndIf
+%             \State Faces.addLast($\triangle$)
+% 		\doWhile{newEdge $\neq$ seedEdge}
+% 	\end{algorithmic}
+% \end{algorithm} \\
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Remeshing of the interpolating surface}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Stochastic Gradient Descent on the Alignment}
+% In order to improve the alignment over time, we consider a set of Gradient Descent methods applied on the alignment, in hopes of reaching a minima. This is equivalent to reaching an alignment of the partial scans that minimizes the area of the interpolated surface. Consequently then, our cost function, for steepest descent is just a matter of computing the area of the interpolating surface. We denotes this as $E(S)$, $E : S \rightarrow \Re$, where $S \in \Re^3$ represents for the interpolating surface. 
+% \indent We did not use standard gradient-descent methods, due to the limitation that we cannot calculate any derivatives of the cost function that relate to the parameters of the alignment. This arises from the fact that while alignments are represented as a transformation matrix , over six variables $\{ \alpha,\beta,\gamma,t_x,t_y,t_z \}$, as evinced in \eqref{eq:3}, the cost function remains a surface area calculation independent of these six parameters. \\
+% \indent Consequently, then, we use stochastic gradient descent, to overcome this inherent limitation. Our methodology consists of generation an $\epsilon$ vector, $V_\epsilon$. and epsilon angle, $\theta_\epsilon$, using a random number generator of values in range $[-0.001,0.001]$
+% %%%%%%
+% \begin{equation} \label{eq:15}
+% 	\begin{aligned}
+% 		V_\epsilon = 
+% 			\begin{bmatrix}
+% 				\epsilon_x \\
+% 				\epsilon_y \\
+% 				\epsilon_z  \\
+% 			\end{bmatrix} 
+% 	\end{aligned}
+% \end{equation}
+% %%%%%%
+% Since alignments are represented as a $(4x4)$ Homogeneous transformation matrix, we also have the equivalent form for $A$, the alignment, as 
+% \begin{equation} \label{eq:16}
+% 	\begin{aligned}
+% 		A =
+%     		\left[
+% 				\begin{array}{c;{2pt/2pt}c}
+% 					R & T \\ \hdashline[2pt/2pt]
+% 					0 & 1 \\
+% 				\end{array} 
+% 			\right]
+% 	\end{aligned}
+% \end{equation}
+% We perturb the transformation matrix , $T$, by $T + V_\epsilon$, yielding $T' = T + V_\epsilon$. As for the rotation matrix $R$, using axis-angle formulas, we convert $V_\epsilon, \theta_\epsilon$ to an equivalent rotation matrix $V_R$, and product $R$ by $V_R$, to generate a new, perturbed Rotation Matrix $R' = R \cdot V_R$. Applying this method for an independent number of $n=100$ iterations, for each iteration, we generate a new transformation matrix, $M_i$, $i \in \{ 0,\cdots,n-1 \}$ of form
+% \begin{equation} \label{eq:17}
+% 	\begin{aligned}
+% 		M =
+%     		\left[
+% 				\begin{array}{c;{2pt/2pt}c}
+% 					R_i' & T_i' \\ \hdashline[2pt/2pt]
+% 					0 & 1 \\
+% 				\end{array} 
+% 			\right]
+% 	\end{aligned}
+% \end{equation}
+% we then evaluate the surface area again, using each $M_i$ matrix as a transformation of the two partial scans. This process is iteratively done until we reach a global or local minima, in which $\forall M_i$, the energy $E$ is not improved significant above a certain threshold. In addition, it is determined to stop using a certain transformation matrix if the energy $E_n$ is worse than that of the previous energy, $E_{n+1}$. That is, $E_n < E_{n+1}$. 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Results}
+% 	\indent As of now, preliminary results demonstrate that Mean Curvature Flow follows the behavior expected in \textit{Kazhdan et. Al's} implementation. When dealing with watertight surfaces, such as the cow, over a period of time, we noticed that MCF does converge to a spherical shape. In addition, when testing surfaces with boundaries, such as the camel or the beetle car, we noticed out implementation converging to a shape that closely approximates, but is not, the initial surface boundary. \\
+% 	\indent Empirical testing has also demonstrated that out implementation of RigidICP has proven successful, as evinced in the bunny figures. For surfaces that have been perturbed only slightly, the algorithm finds a near optimal transformation beneath the threshold. On the other hand, for highly perturbed surfaces, it fails to converge to any good solution. 
+% 	\indent Nonetheless, more work needs to be performed on the surface reconstruction section, as the current analysis shows that the zippering algorithm does not follow expected behavior. Once this is fully-developed, it, as well as the other components, will then be integrated into a pipeline modelling the overall algorithm described above in section 2. This will then be used to assess extent to which mean curvature flow can discover an optimal alignment between two partial scans, as it evolves over time, in comparison to RigidICP. 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Conclusion}
+% In this work, we have considered the question of whether one can solve for an optimal alignment, over time, between two partial,non-overlapping scans using differential geometry processing techniques inspired from the study of Mean Curvature Flow, and compare it to the performance of RigidICP. We currently do not have strong proof of the effectiveness of our approach, and still need to incorporate an analysis of the actual success of these ideas. More ever, given that we are currently using a simple version of RigidICP, surface reconstruction, and stochastic gradient descent, future work on this problem will definitely entail optimizing the correctness and performance of these three algorithms.
+
+% \indent Additionally, we also need to perform an analysis on real-world sample data, as the current data set  is composed only of computer-generated partial scan images. We note that some useful applications of research include field archaeology reconstruction of artifacts or aligning medical/x-ray images, and that some other extensions to this work include extending the problem from two, to multiple partial-scan images, and perhaps accounting for more information such as tangents or curvatures of the minimal interpolating surface. \\
+
+% \indent Other future work that can be done includes assessing a biharmonic-based flow metric. Additionally, other potential areas of research include testing the alignment on meshes which possess multiple boundary curves ( i.e. a donut split in half) and improving the topological correctness of the interpolating surface by accounting for other factors intrinsic to the inputs. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% APPENDIX %%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section*{APPENDIX}
+%TODO :: put details of derivations of Mean-Curvature-Flow, and Rigid ICP ?? Doesn't seem particularly useful?? 
+% \section*{Acknowledgment}
+% I would like to acknowledge assistance from Brady Zhou, Nathan Clemenets, and Chandrijit Bajaj, for helping clarify issues and developing ideas. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% BIBLIOGRAPHY %%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Advice :: use BibLaTex from now on, and snarf ACM, IEEE, or other websites for biblatex [record-entries]
+%\medskip
+
+% this only shows up ... if you actually cite something!
+\printbibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% MANUALLY GENERATE CITATIONS FOR THESE PAPERS %%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   \bibitem{Triangle}
+%       www.cs.jhu.edu/~quake/triangle.html
+%   \bibitem{Stoich Grad Descent} http://leon.bottou.org/publications/pdf/compstat-2010.pdf % I specifically references pages 2 and 3
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
+                                  % on the last page of the document manually. It shortens
+                                  % the textheight of the last page by a suitable amount.
+                                  % This command does not take effect until the next page
+                                  % so it should come on the page before the last. Make
+                                  % sure that you do not shorten the textheight too much.
+
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%% my own notes, on gradient descent methodologies %%%%%%%%%%%%%%%%%%%%%%%%
+% \section{My current problem with gradient and gradient free optimization methods}
+% At the moment, I've noticed that the major issue with trying any gradient-descent based methods, is the fact that the 6 variables that I need to update for the trasnformation matrix ( $\alpha$, $\beta$, $\gamma$, $t_x$, $t_y$, $t_z$ ), cannot really be updated, as my cost function is dependent only on metrics such as {surface area, curvature, tangents}. \\
+% Additionally, I have no idea how too solve for $\alpha$, $\beta$, and $\gamma$. I would think that I could just increase/decrease a single matrix element, try all 24 different matrices, but I can't as portions of the rotation matrix are dependent on $\alpha$, $\beta$, $\gamma$. Hence, I would think that these need to be computed ... but IDK how too do that! \\
+% One idea that is currently in my mind is too develop a system of three equations, and just approximate a solution for these variables. REMEMBER to mod by $2*\pi$! \\
+% I would think a \textbf{Heuristic Search} has too be done \\
+% More ever, I don't even know if my search space ( of 4x4 transformation matrices ) is convex, or is at least guaranteed to posses a global minimal? \\
+% In the derivative-free methods, do I need to establish a bound of my 6 variables ( sure, $\alpha$, $\beta$, $\gamma$, are just $[0,2*\pi]$, but $t_x, t_y, t_z$?? Not sure \\
+% I have a $6$-dimensional space too possibly search. \\
+% And the fact that [1] these methods are decently complicated and [2] I don't have an energy functional dependent on those 6 variables, further makes this problem difficult ! \\
+
+% #TODO :: is RigidICP limited to nonZero-genus objects? I know MCF is, but this doesnt sound right. I feel like its just any two meshes, T
+% #TODO :: reference why specifically RigidICP is limited to only images that have an overlap ( where was this drawback ever mentioned ) ?
+% #TODO :: what is the difference between "Local" versus "Global" alignment problems/algorithms? I would think they are the same!
+% #TODO :: Go over a set of 4-5 initial surface approximation/registration ( registration does not feel like the proper word ... that is used in the vision domain ) algorithms. 
+% #TODO :: what limitations do we solve for, in our approach, and what are the limitations of our approach. LIMITATIONS are likely to be very dependent on the methods being used ( i.e. MCF cannot account for nonZero-genus objects ). Else, IDK
+% #TODO :: The form for references. Do they all have to be journal papers, even for simple aspects such as derivations of the Procrustes method?
+% #TODO :: Do I need an appendix for describing any critical derivations, mathematical operators, etc., 
+

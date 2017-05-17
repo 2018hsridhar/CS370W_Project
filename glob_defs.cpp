@@ -25,10 +25,10 @@ namespace GLOBAL
 	const char* viewMesh = TUTORIAL_SHARED_PATH "/badInterpSurf.off";
 
 //	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/2triangles.off";
-	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
-	const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";
-	//const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/camelhead.off";
-	//const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/camelhead2.off";
+//	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
+//	const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";
+	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/camelhead.off";
+	const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/camelhead2.off";
 	const char* pipelineOutputFile = TUTORIAL_SHARED_PATH "/result.off";
 
 	// DEBUG VARS

@@ -71,11 +71,14 @@ void runPipeline()
 			HELPER::applyRigidTransformation(scan1.V,transMats[i],transScan1);
 			INTERP_SURF::generateOffsetSurface(transScan1,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
 			double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(transScan1,scan1.F,scan2.V,scan2.F);
+			printf("Going to remesh [%d] trans Mat.\n",i);
 			REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
+			printf("Remeshed [%d] trans Mat.\n",i);
 
 			// let's just assume we already have a boundary in these cases ! 
 			Eigen::MatrixXd Vc;
 			MCF::computeMeanCurvatureFlow(remeshed.V,remeshed.F,0.001, Vc);
+			printf("Finished MCF on [%d] trans Mat.\n",i);
 		
 			double energy = SGD::calculateSurfaceEnergy(Vc,remeshed.F);
 			energies.push_back(energy);
@@ -96,6 +99,8 @@ void runPipeline()
 		SGD::generateTransMats(T,transMats);
 		energies.clear();
 		++k;
+		printf("Iteration %d\n",k);
+		printf("Local energy = [%f]\n",local_energy);
 	}
 	final=clock()-init;
 	double totalExecTime = (double)final / ((double)CLOCKS_PER_SEC);
@@ -105,4 +110,5 @@ void runPipeline()
 	std::cout << T << std::endl;
 	printf("Total Number Iterations = [%d]\n",k);
 	printf("Total Execution time = [%f] seconds.\n", totalExecTime);
+	printf("Final Energy = [%f]\n",prev_energy);
 }

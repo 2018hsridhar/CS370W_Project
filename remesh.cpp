@@ -76,11 +76,8 @@ int main(int argc, char* argv[])
 }
 */
 
-// NOTE :: you configure the file, outside of your code!
 namespace REMESH
 { 
-	// note :: you need to take the max target_edge_len, and divide by some val! 
-	// feed in a param here!
 	bool remeshSurface(Eigen::MatrixXd& V, Eigen::MatrixXi& F, 
 							Eigen::MatrixXd& Vr, Eigen::MatrixXi& Fr,
 							double target_edge_length)
@@ -118,7 +115,7 @@ namespace REMESH
 			PMP::parameters::number_of_iterations(nb_iter)
 			.protect_constraints(true)//i.e. protect border, here
 			);
-		//std::cout << "Remeshing done." << std::endl;
+	//	std::cout << "Remeshing done." << std::endl;
 		std::ofstream cube_off(GLOBAL::remeshOutputFile);
 		cube_off << mesh;
 		cube_off.close();

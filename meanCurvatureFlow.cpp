@@ -5,6 +5,7 @@
 #include <igl/cotmatrix.h>
 #include <igl/doublearea.h>
 #include <igl/massmatrix.h> 
+#include <igl/writeOFF.h>
 
 using namespace Eigen; 
 using namespace std;
@@ -26,6 +27,7 @@ namespace MCF
 		return ( boundCount > 0);
 	}
 
+	// #TODO :: fix stopping condition here too. Fortunately, your cases possess a boundary!
 	void computeMeanCurvatureFlowWaterTight(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, double timestep, Eigen::MatrixXd &Vc)
 	{
 		// PREALLOCATION
@@ -41,6 +43,7 @@ namespace MCF
 		igl::massmatrix(V,F, mcfType, M);  
 
 		// ITERATE till reach convergence criteria
+		// output surfaces during non-terminating iterations!
 		do
 		{
 			diff = 0;
@@ -75,11 +78,12 @@ namespace MCF
 			{
 				diff += (Vc.row(i) - U.row(i)).norm();		
 			}
-		//	printf("Difference this round is %f.\n", diff);
+			//printf("Difference this round is %f.\n", diff);
 			Vc = U;
 
 			// RECALCULATE mass matrix
-			igl::massmatrix(Vc,F, mcfType, M);  
+			// igl::massmatrix(Vc,F, mcfType, M);  
+			// igl::printOFF(Vc,F,"iteration i = " << i );
 		} while ( diff > mcfStoppingVal);
 
 	}
@@ -92,14 +96,14 @@ namespace MCF
 		Vc = V;
 		double diff;
 		constexpr double mcfStoppingVal = 10;  
-		//constexpr double mcfStoppingVal = 10;  
-		// #TODO :: fix difference of norm calculation ... it becomes constant, @ some point of time ... this is not good !
+		// #TODO :: fix difference of norm calculation ... it becomes constant, @ some point of time ... this is not good ! ... you should have made this fix a long long time ago!!!!
 
 		//CALCUALTE the initial mass and stiffness matrices
 		igl::cotmatrix(V,F,L);  
 		igl::massmatrix(V,F, mcfType, M);  
 
 		// ITERATE till reach convergence criteria
+		int iter = 0;
 		do
 		{
 			diff = 0;
@@ -124,7 +128,10 @@ namespace MCF
 			{
 				diff += (Vc.row(i) - U.row(i)).norm();		
 			}
-			//printf("Difference this round is %f.\n", diff);
+
+			std::string output_of_mesh = "round[" + std::to_string(iter) + "].off";
+			igl::writeOFF(output_of_mesh,Vc,F);
+
 			
 			// UPDATE Vc = (U | Vc ), based on if a vertex is on the boundary
 			for(int i = 0; i < numVertices; i++) 
@@ -137,6 +144,7 @@ namespace MCF
 
 			// RECALCULATE mass matrix
 			igl::massmatrix(Vc,F, mcfType, M);  
+			iter++;
 		} while ( diff > mcfStoppingVal);
 	}
 

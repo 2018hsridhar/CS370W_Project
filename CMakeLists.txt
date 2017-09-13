@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(CS370C_RESEARCH_PROJECT)
+project(CS370W_RESEARCH_PROJECT)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 link_directories(
@@ -10,6 +10,7 @@ link_directories(
 	"/var/local"
 	"/p"
 	"/p/CGAL-4.9"
+    "/p/libigl"
 )
 
 find_package(LIBIGL QUIET)

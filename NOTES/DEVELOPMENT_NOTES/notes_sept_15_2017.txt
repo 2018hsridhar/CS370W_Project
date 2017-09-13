@@ -1,0 +1,97 @@
+-------------------------------
+--- What Models to Generate ---
+-------------------------------
+
+0. Basic shapes
+  - sliced sphere
+  - mirroring planes [ sliced sphere ]
+  - mirroring planes, BUT slight translation [ part to the left by XXX amount ]
+
+1. Triple-egg slice
+  - assoc variations
+2. Torus cut
+  - 2 instead of 1 boundaries
+3. Cut a human
+  - not a well-defined boundary. Possess jagged edges.
+4. What sort of custom shapes can I work with?
+  - shapes with intrusions and extrusions?
+  - 
+
+----------------------------- 
+--- Generation Techniques ---
+----------------------------- 
+1. Bool operations
+  -- will this always result in valid OBJ mesh files?
+2.
+3.
+4.
+5.
+ 
+
+-------------------------
+--- The CGAL approach ---
+-------------------------
+1. What are NEF Polyhedra?
+  -- https://doc.cgal.org/latest/Nef_3/index.html#Nef_3Introduction
+2. 3D set operations require work on NEF Polyhedra
+  -- at the moment, I use "CGAL::Surface_mesh<K::Point_3> Mesh>
+  -- and that is after "kernel" initialization
+  -- can I convert from "surface_Mesh" to "mesh_polyhedron_3" here?
+  -- Polyhedron_3 can read the (.off) file format 
+  -- can convert to a surface mesh with ease though!!
+  -- refer to [ CGAL::convert_nef_polyhedron_to_polygon_mesh ]
+3. I can execute the CGAL examples
+  -- but I want to include a visualizer for them too!
+  -- it may or may not be a good idea to do this
+4.
+
+
+-----------------
+--- Questions ---
+-----------------
+1. what the heck is CSG [ Constructive Solid Geometry ]? I'm not very aware of this type of work
+  - what are BSP trees?
+  - should I be concerned with { Boundary Closure, Regularization }
+  - can one even convert from a 3D triangular mesh to CSG? Seems very weird!
+2. What are optimal meshes to be testing?
+  - suppose I used boolean operations to construct 2 meshes, A and B.
+  - A and B possess zero overlap. 
+  - boundary(A) = boundary(B), though
+  - I seperate them sufficiently far apart
+  - do I expect my algorithm to get an energy val <= TOL? Yes. I have this for the mirroring planes case.
+  - so I do expect this to close up.
+3.
+4.
+
+--------------------
+--- Useful Links ---
+--------------------
+1. http://www.zeropointnine.com/blog/cutting-up-a-mesh-into-tiny-little-pieces/
+2. https://github.com/evanw/csg.js
+3. https://stackoverflow.com/questions/8322759/three-js-bind-two-shapes-together-as-one/8328984#8328984
+4.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -21,6 +21,7 @@ FIND_PATH(LIBIGL_INCLUDE_DIR igl/readOBJ.h
    /usr/include
    /usr/local/include
    /usr/local/igl/libigl/include
+   /p/libigl/include
 )
 
 

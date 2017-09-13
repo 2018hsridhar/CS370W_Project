@@ -129,9 +129,8 @@ namespace MCF
 				diff += (Vc.row(i) - U.row(i)).norm();		
 			}
 
-			std::string output_of_mesh = "round[" + std::to_string(iter) + "].off";
-			igl::writeOFF(output_of_mesh,Vc,F);
-
+			//std::string output_of_mesh = "round[" + std::to_string(iter) + "].off";
+			//igl::writeOFF(output_of_mesh,Vc,F);
 			
 			// UPDATE Vc = (U | Vc ), based on if a vertex is on the boundary
 			for(int i = 0; i < numVertices; i++) 

@@ -347,7 +347,7 @@ void updateConfiguration(RigidBodyInstance* ScanBody, const Eigen::Vector3d& del
 // NEED axis-angle recovery formulas here!
 void solveTransformation(const RigidBodyInstance* ScanBody, Eigen::Matrix4d& T)
 {
-	const Eigen:Vector3d t_comp = ScanBody->c - ScanBody->c_0;
+	const Eigen::Vector3d t_comp = ScanBody->c - ScanBody->c_0;
 	const Eigen::Vector3d theta_diff = (ScanBody->theta - ScanBody->theta_0).normalized();
 	const Eigen::Matrix3d r_comp = VectorMath::rotationMatrix(theta_diff);
 	T.block<3,1>(0,3) = t_comp; 

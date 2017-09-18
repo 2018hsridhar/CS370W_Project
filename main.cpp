@@ -224,12 +224,12 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			/*******************************
 			 *** IMPULSE BASED ALIGNMENT ***
 			 *******************************/
-			// compute vertex normals for both scans
+			// [1] compute vertex normals for both scans
 			igl::PerVertexNormalsWeightingType weighting = PER_VERTEX_NORMALS_WEIGHTING_TYPE_UNIFORM; 
 			igl::per_vertex_normals(scan1.V,scan1.F,weighting,scan1.N);
 			igl::per_vertex_normals(scan2.V,scan2.F,weighting,scan2.N);
 
-			// CALCULATE boundary vertices for both scans
+			// [2] CALCULATE boundary vertices for both scans
 			igl::boundary_loop(scan1.F,scan1.bI);
 			igl::slice(scan1.V,scan1.bI,1,scan1.bV);
 			scan1.numBV = scan1.bV.rows();
@@ -239,10 +239,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			scan2.numBV = scan2.bV.rows();
 
 			// we can just assume \rho Vol = 1 ( unit mass, really )
-			// std::cout << "size of boundary loop, scan 1 = [" << scan1.numBV << "]\n";
-			// std::cout << "size of boundary loop, scan 2 = [" << scan2.numBV << "]\n";
-
-			// SOLVE for delta_cVel, delta_omega, for both scans
+			// [3] SOLVE for delta_cVel, delta_omega, for both scans
 			Eigen::Vector3d delta_cVel_1 = Eigen::Vector3d(0,0,0);
 			Eigen::Vector3d delta_omega_1 = Eigen::Vector3d(0,0,0);
 
@@ -255,26 +252,18 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			updateConfiguration(ScanOneBody,delta_cVel_1,delta_omega_1);
 			updateConfiguration(ScanTwoBody,delta_cVel_2,delta_omega_2);
 
-			// GENERATE transformation ( rotation + translation ) components
+			// [4] GENERATE transformation ( rotation + translation ) components
 			// for both partial scan boundaries
-
 			Eigen::Matrix4d T1 = Eigen::Matrix4d::Identity();
 			Eigen::Matrix4d T2 = Eigen::Matrix4d::Identity();
 
 			solveTransformation(ScanOneBody, T1);
 			solveTransformation(ScanTwoBody, T2);
 
-			/*******************************************************
-			 *** HOW TO I GET THIS TRANSFORMATION MATRIX THOUGH? ***
-			 ******************************************************/
-			// well, it's easy to determine the translation  :: c - c_0
-			// For the rotational piece :: set [theta - theta_0] to axis-angle formula
-			// 		and generate your 3d rotation matrix ( refer to Vouga's code ) 
-			// CREATE one global mesh, containing the two inputs, perturbed by (c - c_0)
-			// wait ... isn't it the previous configuratino, to store here? 
-			// well, it depends! Are you creating an animated, or non-animated version? For now, let us focus on the animated version! ... actually, as long as you use the initial mesh ONLY ( the template coordinates ) ... this shouldn't be that bad!
-	
-			// CREATE global mesh, contain the two inputs aligned based on impulses
+            std::cout << T1 << std::endl;
+            std::cout << T2 << std::endl;
+
+			// [5] CREATE global mesh, contain the two inputs aligned based on impulses
 			HELPER::applyRigidTransformation(scan1_orig.V,T1,scan1.V);
 			HELPER::applyRigidTransformation(scan2_orig.V,T2,scan2.V);
 			igl::cat(1,scan1.V,scan2.V,result.V);
@@ -312,6 +301,8 @@ void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_ome
 		// Rescale F_k_ext, by edge length, and solve for J_k_ext
 		n_avg.normalize();
 		double edge_len = (v_j - v_i).norm();
+		//Eigen::Vector3d n_avg_rescaled = edge_len * n_avg;
+		// #TODO :: is this too slow or not?? unsure
 		Eigen::Vector3d n_avg_rescaled = edge_len * n_avg;
 
 		Eigen::Vector3d F_k_ext = n_avg_rescaled; 
@@ -322,34 +313,36 @@ void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_ome
 		delta_cvel += delta_cVel_k;
 
 		// ADD UP CONTRIBUTIONS TO DELTA_OMEGA
+/*
 		const Eigen::Vector3d c = 0.5 * (v_i + v_j); 
 		const Eigen::Vector3d C = body->c; 			// ... isnt this from template?
 		const Eigen::Vector3d theta = body->theta;
 		Eigen::Vector3d delta_omega_k = VectorMath::rotationMatrix(theta) * ((VectorMath::rotationMatrix(-theta) * (C-c)).cross(VectorMath::rotationMatrix(-theta) * J_k_ext));
 		delta_omega += delta_omega_k;
+*/
 	}
 }
 
 void updateConfiguration(RigidBodyInstance* ScanBody, const Eigen::Vector3d& delta_cVel,const Eigen::Vector3d& delta_omega)
 {
 	ScanBody->cvel += delta_cVel;
-	ScanBody->w += delta_omega; // #TODO :: fix this calculation!
+	//ScanBody->w += delta_omega; // #TODO :: fix this calculation!
 
 	// UPDATE CONFIGURATION 
 	// VANISH OUT ( LINEAR & ANGULAR ) VELOCITIES - akin to 'molasses'
 	ScanBody->c += (ScanBody->cvel) * h; 
-	const Eigen::Matrix3d rotMat = VectorMath::rotationMatrix(h * ScanBody->w) * VectorMath::rotationMatrix(ScanBody->theta);
-    ScanBody->theta = VectorMath::axisAngle(rotMat);
+	//const Eigen::Matrix3d rotMat = VectorMath::rotationMatrix(h * ScanBody->w) * VectorMath::rotationMatrix(ScanBody->theta);
+    //ScanBody->theta = VectorMath::axisAngle(rotMat);
 	ScanBody->cvel.setZero();
-	ScanBody->w.setZero();
+	//ScanBody->w.setZero();
 }
 
 // NEED axis-angle recovery formulas here!
 void solveTransformation(const RigidBodyInstance* ScanBody, Eigen::Matrix4d& T)
 {
 	const Eigen::Vector3d t_comp = ScanBody->c - ScanBody->c_0;
-	const Eigen::Vector3d theta_diff = (ScanBody->theta - ScanBody->theta_0).normalized();
-	const Eigen::Matrix3d r_comp = VectorMath::rotationMatrix(theta_diff);
+	//const Eigen::Vector3d theta_diff = (ScanBody->theta - ScanBody->theta_0).normalized();
+	//const Eigen::Matrix3d r_comp = VectorMath::rotationMatrix(theta_diff);
 	T.block<3,1>(0,3) = t_comp; 
-	T.block<3,3>(0,0) = r_comp;
+	//T.block<3,3>(0,0) = r_comp;
 }

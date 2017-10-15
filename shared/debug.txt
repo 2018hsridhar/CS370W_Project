@@ -3,106 +3,127 @@ Prev energy = [1.79769e+308].
 Local energy = [4].
 Running J_ALIGN for [1] th iteration.
 Prev energy = [4].
-Local energy = [3.872].
+Local energy = [3.9872].
 Running J_ALIGN for [2] th iteration.
-Prev energy = [3.872].
-Local energy = [3.744].
+Prev energy = [3.9872].
+Local energy = [3.9744].
 Running J_ALIGN for [3] th iteration.
-Prev energy = [3.744].
-Local energy = [3.616].
+Prev energy = [3.9744].
+Local energy = [3.9616].
 Running J_ALIGN for [4] th iteration.
-Prev energy = [3.616].
-Local energy = [3.488].
+Prev energy = [3.9616].
+Local energy = [3.9488].
 Running J_ALIGN for [5] th iteration.
-Prev energy = [3.488].
-Local energy = [3.36].
+Prev energy = [3.9488].
+Local energy = [3.936].
 Running J_ALIGN for [6] th iteration.
-Prev energy = [3.36].
-Local energy = [3.232].
+Prev energy = [3.936].
+Local energy = [3.9232].
 Running J_ALIGN for [7] th iteration.
-Prev energy = [3.232].
-Local energy = [3.104].
+Prev energy = [3.9232].
+Local energy = [3.9104].
 Running J_ALIGN for [8] th iteration.
-Prev energy = [3.104].
-Local energy = [2.976].
+Prev energy = [3.9104].
+Local energy = [3.8976].
 Running J_ALIGN for [9] th iteration.
-Prev energy = [2.976].
-Local energy = [2.848].
+Prev energy = [3.8976].
+Local energy = [3.8848].
 Running J_ALIGN for [10] th iteration.
-Prev energy = [2.848].
-Local energy = [2.72].
+Prev energy = [3.8848].
+Local energy = [3.872].
 Running J_ALIGN for [11] th iteration.
-Prev energy = [2.72].
-Local energy = [2.592].
+Prev energy = [3.872].
+Local energy = [3.8592].
 Running J_ALIGN for [12] th iteration.
-Prev energy = [2.592].
-Local energy = [2.464].
+Prev energy = [3.8592].
+Local energy = [3.8464].
 Running J_ALIGN for [13] th iteration.
-Prev energy = [2.464].
-Local energy = [2.336].
+Prev energy = [3.8464].
+Local energy = [3.8336].
 Running J_ALIGN for [14] th iteration.
-Prev energy = [2.336].
-Local energy = [2.208].
+Prev energy = [3.8336].
+Local energy = [3.8208].
 Running J_ALIGN for [15] th iteration.
-Prev energy = [2.208].
-Local energy = [2.08].
+Prev energy = [3.8208].
+Local energy = [3.808].
 Running J_ALIGN for [16] th iteration.
-Prev energy = [2.08].
-Local energy = [1.952].
+Prev energy = [3.808].
+Local energy = [3.7952].
 Running J_ALIGN for [17] th iteration.
-Prev energy = [1.952].
-Local energy = [1.824].
+Prev energy = [3.7952].
+Local energy = [3.7824].
 Running J_ALIGN for [18] th iteration.
-Prev energy = [1.824].
-Local energy = [1.696].
+Prev energy = [3.7824].
+Local energy = [3.7696].
 Running J_ALIGN for [19] th iteration.
-Prev energy = [1.696].
-Local energy = [1.568].
+Prev energy = [3.7696].
+Local energy = [3.7568].
 Running J_ALIGN for [20] th iteration.
-Prev energy = [1.568].
-Local energy = [1.44].
+Prev energy = [3.7568].
+Local energy = [3.744].
 Running J_ALIGN for [21] th iteration.
-Prev energy = [1.44].
-Local energy = [1.312].
+Prev energy = [3.744].
+Local energy = [3.7312].
 Running J_ALIGN for [22] th iteration.
-Prev energy = [1.312].
-Local energy = [1.184].
+Prev energy = [3.7312].
+Local energy = [3.7184].
 Running J_ALIGN for [23] th iteration.
-Prev energy = [1.184].
-Local energy = [1.056].
+Prev energy = [3.7184].
+Local energy = [3.7056].
 Running J_ALIGN for [24] th iteration.
-Prev energy = [1.056].
-Local energy = [0.928].
+Prev energy = [3.7056].
+Local energy = [3.6928].
 Running J_ALIGN for [25] th iteration.
-Prev energy = [0.928].
-Local energy = [0.8].
+Prev energy = [3.6928].
+Local energy = [3.68].
 Running J_ALIGN for [26] th iteration.
-Prev energy = [0.8].
-Local energy = [0.672].
+Prev energy = [3.68].
+Local energy = [3.6672].
 Running J_ALIGN for [27] th iteration.
-Prev energy = [0.672].
-Local energy = [0.544].
+Prev energy = [3.6672].
+Local energy = [3.6544].
 Running J_ALIGN for [28] th iteration.
-Prev energy = [0.544].
-Local energy = [0.416].
+Prev energy = [3.6544].
+Local energy = [3.6416].
 Running J_ALIGN for [29] th iteration.
-Prev energy = [0.416].
-Local energy = [0.288].
+Prev energy = [3.6416].
+Local energy = [3.6288].
 Running J_ALIGN for [30] th iteration.
-Prev energy = [0.288].
-Local energy = [0.16].
+Prev energy = [3.6288].
+Local energy = [3.616].
 Running J_ALIGN for [31] th iteration.
-Prev energy = [0.16].
-Local energy = [0.032].
-SGD Converged to a solution.
-Printing optimal transformation matrix.
-Transformation matrix, for scan one [t1] is:
-1 0 0 0
-0 1 0 0
-0 0 1 0
-0 0 0 1
-Transformation matrix, for scan one [t2] is:
-1 0 0 0
-0 1 0 0
-0 0 1 0
-0 0 0 1
+Prev energy = [3.616].
+Local energy = [3.6032].
+Running J_ALIGN for [32] th iteration.
+Prev energy = [3.6032].
+Local energy = [3.5904].
+Running J_ALIGN for [33] th iteration.
+Prev energy = [3.5904].
+Local energy = [3.5776].
+Running J_ALIGN for [34] th iteration.
+Prev energy = [3.5776].
+Local energy = [3.5648].
+Running J_ALIGN for [35] th iteration.
+Prev energy = [3.5648].
+Local energy = [3.552].
+Running J_ALIGN for [36] th iteration.
+Prev energy = [3.552].
+Local energy = [3.5392].
+Running J_ALIGN for [37] th iteration.
+Prev energy = [3.5392].
+Local energy = [3.5264].
+Running J_ALIGN for [38] th iteration.
+Prev energy = [3.5264].
+Local energy = [3.5136].
+Running J_ALIGN for [39] th iteration.
+Prev energy = [3.5136].
+Local energy = [3.5008].
+Running J_ALIGN for [40] th iteration.
+Prev energy = [3.5008].
+Local energy = [3.488].
+Running J_ALIGN for [41] th iteration.
+Prev energy = [3.488].
+Local energy = [3.4752].
+Running J_ALIGN for [42] th iteration.
+Prev energy = [3.4752].
+Local energy = [3.4624].

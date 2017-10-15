@@ -55,7 +55,7 @@ option(LIBIGL_WITH_TETGEN      "Use Tetgen"         OFF)
 option(LIBIGL_WITH_TRIANGLE    "Use Triangle"       OFF)
 option(LIBIGL_WITH_XML         "Use XML"            OFF)
 option(LIBIGL_WITH_LIM         "Use LIM"            OFF)
-option(LIBIGL_WITH_COMISO      "Use CoMiso"         OFF)
+option(LIBIGL_WITH_COMISO      "Use CoMiso"         ON)
 option(LIBIGL_WITH_BOOLEAN     "Use Cork boolean"   OFF) # This option is not supported yet
 option(LIBIGL_WITH_MATLAB      "Use Matlab"         OFF) # This option is not supported yet
 option(LIBIGL_WITH_MOSEK       "Use MOSEK"          OFF) # This option is not supported yet

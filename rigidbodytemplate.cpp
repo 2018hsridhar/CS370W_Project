@@ -44,6 +44,7 @@ void RigidBodyTemplate::initialize()
 	igl::centroid(V,F,CoM,area);
 
     // translate the body, s.t. its center of mass lies at the origin (0,0,0)
+	// #TODO :: is this translation of CoM coordinates correct? 2x-check here!
     oldCoM = CoM;
     for(int i = 0; i < V.rows(); ++i)
         V.row(i) -= CoM;

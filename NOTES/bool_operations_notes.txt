@@ -1,0 +1,76 @@
+-------------------------------
+--- Goal of Bool operations ---
+-------------------------------
+Given a mesh, such as the horse
+Take a rectangular box, and intersection with said mesh
+Get 2/3 pieces
+Move these pieces to different locations
+Evaluate the alignment of those pieces
+
+---------------------------------
+--- Bool operations on meshes ---
+---------------------------------
+CSG makes bool operations straightforward
+	- shape surface = closure of all points x in A
+	- open set of points x, where isTrue(a(x))
+	- based on representation of complex surfaces by sets and set operations
+Are there specific shapes I'm interested in ( see base-case representations )?
+LibIGL - must work with [explicit, triangle mesh, boundary representations ] of solid shapes
+	- NOTE :: this is what your two inputs are. We assume these as givens
+	- what difficulties with CSG operations might arise here?
+	- TO NOTE :: CSG operations are hard to compute robustly with boundary representations
+The winding number 
+	- used as a (2x)-tupel to label each "cell" bounded by the arrangement's surfaces
+NOTE :: underneath this, you actually use CGAL :-P. Have fun with that! 
+Yes, you'll get the same output type back. This is taken care of for you :-)
+
+-----------------
+--- QUESTIONS ---
+-----------------
+1. Do I have to worry if the mesh is manifold or not? 
+2. Should I check out the cork boolean library too?
+	- note :: this is going to be buggy. perhaps ignore for now
+3. Speed vs. robustness
+	- discuss this with Etienne
+	- CGAL lib doesn't suffer robustness issues. But requires annoying configs GAAHH!
+4. Do I have to worry about how internal structures are treated - see union, symm diff, and resolve
+	- symmetric difference is also useful for alignment cases
+	- internal surfaces REVERSED in orientation ---> could lead to future issues :-(
+5. Do I need to use the "resolve" operation
+	- eliminate intersections
+	- glue coincident vertices
+	- maintian original triangel orientations??
+
+--------------------------------------
+--- Relationship w/Winding Numbers ---
+--------------------------------------
+What is a Winding Number?
+Only meshes that possess piecewise const winding numbers serve as valid inputs to solid set operations.
+#TODO :: Read up on background underlying valid CSG inputs.
+
+-------------------------
+--- Links of Interest ---
+-------------------------
+- http://libigl.github.io/libigl/tutorial/tutorial.html#booleanoperationsonmeshes
+- http://www.cs.columbia.edu/cg/mesh-arrangements/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

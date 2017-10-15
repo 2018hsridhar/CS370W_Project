@@ -1,0 +1,20 @@
+--------------------
+--- Condor stuff ---
+--------------------
+1. IO
+2. Inputs and outputs - how to include these?
+	- to load mesh in executable? seems inefficient
+	- it is easy to generate perturbations. I can do that tommorrow for sure!
+	- I believe there are optinos for this. See <in.$(Process)>?? ... hmmm ...
+	- Pass in as <input> or <cmd_line_arg>?? ... hmmm ...
+3. Vector visualization - gmm lib doesn't actually work. Problem on their end?
+4. CSG bool opers - uhh, plane cutting doesn't work. winding numbers?
+
+
+
+
+
+
+
+
+

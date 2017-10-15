@@ -11,7 +11,7 @@
 #include <iostream>
 #include <fstream>
 
-// MY LIBRARIES  
+// MY LIBRARIES ( they're probably helping take care of some of this btw ) 
 #include "glob_defs.h"
 #include "meanCurvatureFlow.h"
 #include "interpSurface.h"
@@ -22,17 +22,6 @@
 #include "rigidbodyinstance.h"
 #include "helpers.h"
 #include "vectormath.h"
-
-// LibIgl includes
-#include <igl/writeOFF.h>
-#include <igl/viewer/Viewer.h>
-// I have a good feeling that it is the vertex normals, versus the edge normals, that are needed in this situation! 
-#include <igl/per_edge_normals.h>
-#include <igl/per_vertex_normals.h>
-#include <igl/print_vector.h>
-#include <igl/signed_distance.h> 
-#include <igl/boundary_loop.h>
-#include <igl/slice.h>
 
 // needed for randomized of "(N)ormals" here
 #include <igl/random_dir.h>

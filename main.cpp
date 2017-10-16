@@ -49,11 +49,13 @@ struct Mesh
 	Eigen::VectorXi bI; // boundary indices; just indxs to specific faces ( not a 1,0 boolean thing ) 
 	Eigen::MatrixXd N;
 	int numBV; 			// number of boundary vertices
-} scan1,scan2,scan1_rest,scan2_rest,interp,remeshed, flowed, result;
+} scan1,scan2,scan1_rest,scan2_rest,interp,remeshed, flowed, debug_result, result, normals, normals_info;
+// #TODO :: note that these <normals> are for <scan1> primarily, and <normals_info> is used to compute said <normals> 3D triangle-mesh structure.
 
 ofstream debugFile;
 Eigen::Matrix4d T1 = Eigen::Matrix4d::Identity();
 Eigen::Matrix4d T2 = Eigen::Matrix4d::Identity();
+// I expect initialy COMS and orientations to be equal to 0. 
 const Vector3d scanOneCenter(0,0,0);
 const Vector3d scanOneOrient(0,0,0);
 const Vector3d scanTwoCenter(0,0,0);
@@ -166,6 +168,8 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			//cout << "Generating interpolating surface" << endl;
 			INTERP_SURF::generateOffsetSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
 			double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
+			//rEL = rEL / 10.0; // #NOTE :: can actually visualize pinching occuring here
+			rEL = rEL / 5.0; // #NOTE :: can actually visualize pinching occuring here
 			bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
 			if(!remSucc)
 			{
@@ -229,7 +233,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			 *** J_ext as a vec field, ... in pinched surface *** 
 			 *******************************/
 			// [1] Compute vertex normals for both scans
-			// #NOTE :: are these normals updating as expected! always calcualted from [scan1.V,scan2.V]. Ensure the transformation is applied here BTW in computations!
+			// #TODO :: are these normals updating as expected, and do they correspond to scans under the transformation? I believe so, due to the set of conditions stipulated later here.
 			igl::PerVertexNormalsWeightingType weighting = PER_VERTEX_NORMALS_WEIGHTING_TYPE_UNIFORM; 
 			igl::per_vertex_normals(scan1.V,scan1.F,weighting,scan1.N);
 			igl::per_vertex_normals(scan2.V,scan2.F,weighting,scan2.N);
@@ -265,8 +269,8 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			solveTransformation(ScanOneBody, T1);
 			solveTransformation(ScanTwoBody, T2);
 
-            std::cout << T1 << std::endl;
-            std::cout << T2 << std::endl;
+            //std::cout << T1 << std::endl;
+            //std::cout << T2 << std::endl;
 
 			// [5] CREATE global mesh, contain the two inputs aligned based on impulses
 			HELPER::applyRigidTransformation(scan1_rest.V,T1,scan1.V);
@@ -274,14 +278,21 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			igl::cat(1,scan1.V,scan2.V,result.V);
 			igl::cat(1,scan1.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
 
-			// concatenate the interpolating surface too, in this example [ going to visualize this too ]
-			//igl::cat(1,interpSurface.V,result.V, result.V);
-			//igl::cat(1,interpSurface.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
+			// concat the interpolating surface too, in this example [ going to visualize this too ]
+			//igl::cat(1,result.V, flowed.V, debug_result.V);
+			//igl::cat(1,result.F, MatrixXi(flowed.F.array() + result.V.rows()), debug_result.F);
+
+			// concat the normals of scan 1 too [ too visualize ] 
+			igl::cat(1,result.V, normals.V, debug_result.V);
+			igl::cat(1,result.F, MatrixXi(normals.F.array() + result.V.rows()), debug_result.F);
+
 			//igl::writeOFF(output_bad_mesh, interp.V, interp.F);
-			std::string output_mesh = "iterMesh[" + std::to_string(iters) + "].off";
-			igl::writeOFF(output_mesh, result.V,result.F);
+			//std::string output_mesh = "iterMesh[" + std::to_string(iters) + "].off";
+			//igl::writeOFF(output_mesh, result.V,result.F);
+			//igl::writeOFF(output_mesh, debug_result.V,debug_result.F);
 			viewer.data.clear();
-			viewer.data.set_mesh(result.V,result.F);
+			//viewer.data.set_mesh(result.V,result.F);
+			viewer.data.set_mesh(debug_result.V,debug_result.F);
 
 			++iters;
 			break;
@@ -295,6 +306,16 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_omega ,struct Mesh m, RigidBodyInstance* body)
 {
 	// ITERATE over boundary verts; calculate interpolating bnd {norm, vert}
+
+
+	/*
+     **************************************************************************
+	 * You'll have numBV normals and numBV new vertices. Construct from here!
+	 * use your global vars ( def above ) to help debug this
+     **************************************************************************
+     */
+	normals_info.V = Eigen::MatrixXd(m.numBV,3);
+	normals_info.N = Eigen::MatrixXd(m.numBV,3);	
 	for(int k = 0; k < m.numBV; ++k) 
 	{
 		// get idx of 2 bndry verts of interest	
@@ -335,41 +356,66 @@ void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_ome
 		const Eigen::Vector3d c = 0.5 * (v_i + v_j); 
 		const Eigen::Vector3d C = body->c; 			// ... isnt this from template?
 		const Eigen::Vector3d theta = body->theta;
-		Eigen::Vector3d delta_omega_k = VectorMath::rotationMatrix(theta) * ((VectorMath::rotationMatrix(-theta) * (C-c)).cross(VectorMath::rotationMatrix(-theta) * J_k_ext));
+		// #TODO :: ask if this calculation of <delta_omega_k> is correct or NOT!
+		Eigen::Vector3d delta_omega_k = VectorMath::rotationMatrix(theta) * ((VectorMath::rotationMatrix(-1.0 * theta) * (C-c)).cross(VectorMath::rotationMatrix(-1.0 * theta) * J_k_ext));
 		delta_omega += delta_omega_k;
+
+		// keeping track of normals data and boundary vertices
+		normals_info.V.row(k) = c;
+		//normals_info.N.row(k) = n_avg_rescaled; // according to edge len ( also F_k_ext too)
+		// so F_k_ext looks right. now for delta_omega k's
+		normals_info.N.row(k) = delta_omega_k * 100; // for visualization purposes ( * 100 )
 	}
+	constructNormalField(normals_info.V, normals_info.N, normals.V, normals.F);
 	// we expect delta_omega = 0 , in the 2 planes case. if not, there is a bug somewhere!
 	// this is not high priority anymore!
-	std::cout << delta_omega;
+	std::cout << "delta_omega vector = \n";
+	std::cout << delta_omega << std::endl;
+	std::cout << "delta_omega magnitude = \n";
+	std::cout << delta_omega.norm() << std::endl;
 }
 
+// #TODO :: something weird is happenign here.
 void updateConfiguration(RigidBodyInstance* ScanBody, const Eigen::Vector3d& delta_cVel,const Eigen::Vector3d& delta_omega)
 {
 	ScanBody->cvel += delta_cVel;
+
+	std::cout << "Before, value of w = " << ScanBody->w << std::endl;
 	ScanBody->w += delta_omega; // #TODO :: fix this calculation!
+	std::cout << "After, value of w = " << ScanBody->w << std::endl;
 
 	// UPDATE CONFIGURATION 
 	// VANISH OUT ( LINEAR & ANGULAR ) VELOCITIES - akin to 'molasses'
 	ScanBody->c += (ScanBody->cvel) * h; 
 	const Eigen::Matrix3d rotMat = VectorMath::rotationMatrix(h * ScanBody->w) * VectorMath::rotationMatrix(ScanBody->theta);
 	// #TODO :: check that this update logic makes sense! huge difference between "=" and "+=" here!
+    std::cout << "BEFORE, theta = " << ScanBody->theta << std::endl;
     ScanBody->theta = VectorMath::axisAngle(rotMat);
+    std::cout << "AFTEr, theta = " << ScanBody->theta << std::endl;
 	ScanBody->cvel.setZero();
 	ScanBody->w.setZero();
 }
 
 // NEED axis-angle recovery formulas here!
+// #TODO :: doing something wrong in the transformation here for rotatinoal component. Needs to be fixed!
+// bring up with Dr. Vouga --- is this axis angle represnetation correct!
 void solveTransformation(const RigidBodyInstance* ScanBody, Eigen::Matrix4d& T)
 {
 	const Eigen::Vector3d t_comp = ScanBody->c - ScanBody->c_0;
-	const Eigen::Vector3d theta_diff = (ScanBody->theta - ScanBody->theta_0).normalized();
+	//#TODO ::  wait a sec, should this vector be getting normalized? Could be an issue
+	//const Eigen::Vector3d theta_diff = (ScanBody->theta - ScanBody->theta_0).normalized();
+	const Eigen::Vector3d theta_diff = (ScanBody->theta - ScanBody->theta_0);
     // #TODO :: fix this. theta_diff = NaN, is definetely an error!
+	const Eigen::Vector3d temp_diff = Eigen::Vector3d(0,0,0);
+	std::cout << "Comparing two axis-angle vectors" << std::endl;
+	// #TODO :: we expect <theta_diff> to be a more non-zero value. What is happening to ScanBody->theta here?
     std::cout << theta_diff << std::endl;
-	const Eigen::Matrix3d r_comp = VectorMath::rotationMatrix(theta_diff);
+    std::cout << temp_diff << std::endl;
+	const Eigen::Matrix3d r_comp = VectorMath::rotationMatrix(temp_diff);
+	// I expect r_comp = I_3. if not, something else is wrong in the computational of these rotation matrices
 	// #NOTE :: this is definetely getting correctly written :-)
 	T.block<3,1>(0,3) = t_comp; 
-//	T.block<3,3>(0,0) = r_comp;
-	//T.block<3,3>(0,0) = r_comp;
+	T.block<3,3>(0,0) = r_comp;
 }
 
 void constructNormalField(Eigen::MatrixXd& V, Eigen::MatrixXd& N,

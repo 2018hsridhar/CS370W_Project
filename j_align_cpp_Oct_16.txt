@@ -1,10 +1,8 @@
-﻿// #TODO :: note that this version will perform alignment ACCORDING to the interpolating surface, instead of the objects themselves
-// NEED to align based on cross product of { edge_vectors, object_normals } W.R.T. the boundary
-//  --- how do I get this boundary though? it is a set of common vertices with object scans ( for sure ). 
+﻿// in this example, the torque and forces point correctly, but only according to the object surfaces
+// #TODO :: include the interpolating surface as part of consideration too. We currently forgot this, which is bad!
 
-
-
-
+// one question to raise about this alignment scheme, is this at least
+// is alignment happening to the interpolating surface, or the flowed surface? It doesn't seem like it's actually happening to the flowed surface, but rather the interpolating surface. This raises a couple of concerns at the moment.
 /*** FILE SHOULD BE CALLED :: test_J_Align.cpp ***/
 // C++ includes
 #include <iostream>
@@ -101,7 +99,7 @@ int main(int argc, char *argv[])
 int runPipeline() 
 {
 	// #TODO :: work on setting up the visualization correctly!
-	//igl::viewer::Viewer viewer;
+	igl::viewer::Viewer viewer;
 	std::cout << "Executing Zero-Overlap, Impuslse-Driven, rigid Alignment Pipeline" << std::endl;
 
 	if(!readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F)) {
@@ -125,9 +123,9 @@ int runPipeline()
 
 	igl::cat(1,scan1.V,scan2.V,result.V);
 	igl::cat(1,scan1.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
-//	viewer.data.clear();
-//	viewer.data.set_mesh(result.V,result.F);
-//	viewer.callback_key_down = key_down;
+	viewer.data.clear();
+	viewer.data.set_mesh(result.V,result.F);
+	viewer.callback_key_down = key_down;
 	std::cout<<"Press [space] to smooth."<<std::endl;
 	std::cout<<"Press [r] to reset."<<std::endl;
 
@@ -143,8 +141,7 @@ int runPipeline()
 	// any debug output here btw?
 	std::cout << "Finished setting up template and body instances.\n"; 
 
-	//return viewer.launch();
-	return 0;
+	return viewer.launch();
 }
 
 bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
@@ -172,23 +169,11 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 
 			// GENERATE INTERPOLATING SURFACE
 			//cout << "Generating interpolating surface" << endl;
-			INTERP_SURF::generateInterpolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
-			// #TODO :: shouldn't I be working with the average length of only the boundary edges, and NOT all edges? But, assuming my inputs possess reasonable aspect ratios, I think I should be fine here.
+			INTERP_SURF::generateOffsetSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
 			double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
-			//rEL = rEL / 5.0; // #NOTE :: can actually visualize pinching occuring here
-
-// #TODO :: note that we do run into the issue of splitting more edges than neccessary. We must keep edge lens ( lest we end up with extraneuous boundary vertices ). We need to keep the set of boundary vertices as it is
-// #TODO :: do vertex or face normals make more sense here? Face normals might be difficult to compute. Easier to use vertex normals/edge normals, isn't it??? It has to be a face normal. With vertex normals, you'll always get things pointing in a straight direction. This would lead to an error in logic.
-
+			//rEL = rEL / 10.0; // #NOTE :: can actually visualize pinching occuring here
+			rEL = rEL / 5.0; // #NOTE :: can actually visualize pinching occuring here
 			bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
-
-			// check indices of [interp.V,remeshed.V] here for consistency
-			std::string interp_output = "interpSurface.off";
-			std::string remesh_output = "remeshedSurface.off";
-			igl::writeOFF(interp_output, interp.V, interp.F);
-			igl::writeOFF(remesh_output, remeshed.V, remeshed.F);
-			return 0;
-
 			if(!remSucc)
 			{
 				std::cout << "BAD REMESHING!" << std::endl;
@@ -205,7 +190,6 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			// APPLY MCF TO SURFACE [ denoted as 'flowed' here ]
 //			cout << "Flowing the interpolating surface" << endl;
 			assert(MCF::meshHasBoundary(remeshed.V,remeshed.F));
-			// #NOTE :: in the MCF computation, we've the boolean vector ( igl::is_border_vertex )
 			MCF::computeMeanCurvatureFlow(remeshed.V,remeshed.F,0.001, flowed.V);
 			flowed.F = remeshed.F;
 
@@ -437,7 +421,6 @@ void solveTransformation(const RigidBodyInstance* ScanBody, Eigen::Matrix4d& T)
 	T.block<3,3>(0,0) = r_comp;
 }
 
-// #NOTE :: this is a debug method . It's not really used in the codebase. 
 void constructNormalField(Eigen::MatrixXd& V, Eigen::MatrixXd& N,
 						Eigen::MatrixXd& V_res, Eigen::MatrixXi& N_edges)
 {
@@ -453,7 +436,7 @@ void constructNormalField(Eigen::MatrixXd& V, Eigen::MatrixXd& N,
 	igl::cat(1,V,offsetedV,V_res);
 
 	// set up edges between [Scan1.V,scan2.V]
-	//std::cout << "COMMENCING set up of edges corresponding to normals\n";
+	std::cout << "COMMENCING set up of edges corresponding to normals\n";
 	int offset = V.rows();
 	N_edges = Eigen::MatrixXi(offset,3);
 	for(int i = 0; i < offset; ++i)
@@ -462,5 +445,5 @@ void constructNormalField(Eigen::MatrixXd& V, Eigen::MatrixXd& N,
 		// hmm ... cheat, set one of these the same ????
 		N_edges.row(i) = e_i;	
 	}	
-	//std::cout << "DONE setting up edges corresponding to normals\n";
+	std::cout << "DONE setting up edges corresponding to normals\n";
 }

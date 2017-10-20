@@ -23,7 +23,7 @@ namespace INTERP_SURF
 		return (a%b+b)%b;
 	}
 
-	void generateOffsetSurface(const Eigen::MatrixXd &V1, const Eigen::MatrixXi &F1, 
+	void generateInterpolatingSurface(const Eigen::MatrixXd &V1, const Eigen::MatrixXi &F1, 
 								const Eigen::MatrixXd &V2, const Eigen::MatrixXi &F2, 
 								Eigen::MatrixXd& vOff, Eigen::MatrixXi& fOff)
 	{

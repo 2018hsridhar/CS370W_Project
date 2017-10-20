@@ -1,0 +1,78 @@
+---------------------------------------
+-- BOUNDARY DETERMINATION ALGORITHM ---
+---------------------------------------
+- #TODO :: you'll have to write this up. Start delivering on your write ups too!
+
+
+
+We note that the vertices in the interpolating surface are of this form :  
+
+[
+	- v_1,1
+	- ...
+	- v_1,n
+	- v_2,1
+	- ...
+	- v_2,n
+]
+
+WHERE v_1 = vertices in boundary 1, v_2 = vertices in boundary 2
+
+The remesh file output is of form
+[
+	- v_1,1
+	- ...
+	- v_1,n
+	- v_2,1
+	- ...
+	- v_2,n
+	- v_3,1
+	- ...
+	- v_3,n
+]
+
+WHERE v_3 = extra vertices added ( either to the left, right, or interpolating surface )
+NOW we have code to easily determine if a vertex is part of the interior or boundary of a remeshed surface
+	... actually, we might not, but uhh, for now, I'll assume we do.
+FORTUNATELY, we concat the boundary vertices well in the construction of the interpolating surface. We can use this to our advantage.
+THE problem statement, at the moment, is determining, given an extraneuous vertex, whether it lies in the left boundary,
+	the right boundary, the the interpolating surface.
+We can construct graphs/boundary loops for our object of interest ( the remeshed surface )
+	- and ask ourselvse ... hey, is the vertex in one of those graphs
+	- if so, based on the graph it belongs in, we can establish that it is a LEFT or RIGHT boundary vertex
+So our approach basically uses connected components, to our advantage.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

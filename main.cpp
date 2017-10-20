@@ -21,6 +21,53 @@
 #include <igl/min.h> // #TODO :: use this to easily cheat too?
 #include <igl/max.h>
 
+// one question to raise about this alignment scheme, is this at least
+// is alignment happening to the interpolating surface, or the flowed surface? It doesn't seem like it's actually happening to the flowed surface, but rather the interpolating surface. This raises a couple of concerns at the moment.
+/*** FILE SHOULD BE CALLED :: test_J_Align.cpp ***/
+// C++ includes
+#include <iostream>
+#include <fstream>
+
+// MY LIBRARIES  
+#include "glob_defs.h"
+#include "meanCurvatureFlow.h"
+#include "interpSurface.h"
+#include "remesh.h"
+#include "sgd.h" // get rid of later
+#include "j_align.h"
+#include "rigidbodytemplate.h"
+#include "rigidbodyinstance.h"
+#include "helpers.h"
+#include "vectormath.h"
+
+// LibIgl includes
+#include <igl/writeOFF.h>
+#include <igl/viewer/Viewer.h>
+#include <igl/per_edge_normals.h>
+#include <igl/per_vertex_normals.h>
+#include <igl/print_vector.h>
+#include <igl/signed_distance.h> 
+#include <igl/boundary_loop.h>
+#include <igl/slice.h>
+#include <igl/random_dir.h>
+
+// remember to set each rigid body instance's {c,theta} and {cvel,w} to 0 
+	// ... nvm, {c,theta} zeroed out @ constructor time!
+// #TODO :: for debug output, use print_vector
+// Namespace includes 
+using namespace Eigen;  
+using namespace std;
+using namespace igl;
+
+struct Mesh
+{
+	Eigen::MatrixXd V; 
+	Eigen::MatrixXd bV;  // boundary vertices
+	Eigen::MatrixXi F;
+	Eigen::VectorXi bI; // boundary indices; just indxs to specific faces ( not a 1,0 boolean thing ) 
+	Eigen::MatrixXd N;
+	int numBV; 			// number of boundary vertices
+} scan1,scan2,scan1_rest,scan2_rest,interp,remeshed, flowed, debug_result, result, normals, normals_info;
 
 // #TODO :: look up <circumradius.cpp> library? 
 
@@ -116,7 +163,41 @@ int main(int argc, char *argv[])
 	// Seems to work when both are "cow.off". How about both "camelHead.off"?
 	// in the cow ( contians bunny in hollow interior ) ---> why is the bunny the result of the intersection? Seems kinda weird IMO!
 
-    igl::readOBJ(TUTORIAL_SHARED_PATH "/circle.obj",VA,FA);
+
+// check indexing structure of meshes ( simple test ) 
+	if(!readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F)) {
+		std::cout << "Failed to load partial scan one." << std::endl;
+	} 
+
+	if(!readOFF(GLOBAL::pipelineScan2File,scan2.V,scan2.F)) {
+		std::cout << "Failed to load partial scan two." << std::endl;
+	}
+
+	std::cout << "Executing pipeline for the following meshes" << std::endl;
+	std::cout << "Mesh one [" << GLOBAL::pipelineScan1File << "]" << std::endl;
+	std::cout << "Mesh two [" << GLOBAL::pipelineScan2File << "]" << std::endl;
+
+// check if first n ( interp ) = first n ( remesh )  
+
+	INTERP_SURF::generateInterpolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
+	double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
+	rEL = rEL / 5.0; // #NOTE :: can actually visualize pinching occuring here
+	bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
+	if(!remSucc)
+	{
+		std::cout << "BAD REMESHING!" << std::endl;
+		exit(0);
+	}
+
+	igl::writeOFF("interpolating_surface.off", interp.V,interp.F);
+	igl::writeOFF("remeshed_surface.off", remeshed.V,remeshed.F);
+
+
+
+
+
+
+//    igl::readOBJ(TUTORIAL_SHARED_PATH "/circle.obj",VA,FA);
   //igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VB,FB);
   //igl::readOFF(TUTORIAL_SHARED_PATH "/bunny.off",VA,FA);
   //igl::readOFF(TUTORIAL_SHARED_PATH "/cow.off",VB,FB);
@@ -126,12 +207,12 @@ int main(int argc, char *argv[])
 
 
     // use code to rescale both objects to unit sphere
-    Eigen::MatrixXd VA_scaled;
-    applyUnitSphereRescaling(VA, FA, VA_scaled);
+    //Eigen::MatrixXd VA_scaled;
+    //applyUnitSphereRescaling(VA, FA, VA_scaled);
 
     // write off values
-	std::string rescaled_mesh_file_name = "rescaled.off";
-    igl::writeOFF(rescaled_mesh_file_name, VA,FA);
+	//std::string rescaled_mesh_file_name = "rescaled.off";
+    //igl::writeOFF(rescaled_mesh_file_name, VA,FA);
 
   // Initialize
   //update(viewer);

@@ -1,3 +1,10 @@
+// #TODO :: so with CSG operations, I can generate seperate meshes. BUT ... I need to get their boundary. And I'm not sure how to do this. I.e. I'm really just interested in a specific plane.
+	// ... wait a sec, isn't there some sort of simple vertex test here, or what not? I feel like there is. 
+	// ... well, at least I know what to look for next now.
+	// ... or one could apply a projection ( onto a 2D plane ), right?
+	// ... wait, isn't there a physical sim project where we did this a while ago?
+
+
 // #TODO :: refactor. This code is a mess of tests.
 // need to show Dr. Vouga this stuff - take out I/O aspect here
 //#include <igl/readOFF.h>
@@ -198,9 +205,9 @@ int main(int argc, char *argv[])
 	// Seems to work when both are "cow.off". How about both "camelHead.off"?
 	// in the cow ( contians bunny in hollow interior ) ---> why is the bunny the result of the intersection? Seems kinda weird IMO!
 
-    igl::readOBJ(TUTORIAL_SHARED_PATH "/sphere.obj",VA,FA);
-	// clearly VA prints right
-  //igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VB,FB);
+    //igl::readOBJ(TUTORIAL_SHARED_PATH "/sphere.obj",VA,FA);
+    igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VA,FA);
+    igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VB,FB);
 	// so clearly, works with off file ( the bunny )
 	// ... oh shit, thsi is circle.obj! you want sphere.obj! no wonder failure occuring!
   //igl::readOFF(TUTORIAL_SHARED_PATH "/bunny.off",VA,FA);
@@ -212,13 +219,27 @@ int main(int argc, char *argv[])
 
     // use code to rescale both objects to unit sphere
     Eigen::MatrixXd VA_scaled;
+    Eigen::MatrixXd VB_left_scaled;
+    Eigen::MatrixXd VB_right_scaled;
+    Eigen::MatrixXd VB_pre_offset_scaled;
     applyUnitSphereRescaling(VA, FA, VA_scaled);
+    applyUnitSphereRescaling(VB, FB, VB_pre_offset_scaled);
+
+	// APPLY offset to VB
+	Eigen::Vector3d offset_right = Eigen::Vector3d(0.5,0,0);
+	Eigen::Vector3d offset_left = Eigen::Vector3d(-0.5,0,0);
+	VB_right_scaled = VB_pre_offset_scaled.rowwise() + offset_right.transpose();
+	VB_left_scaled = VB_pre_offset_scaled.rowwise() + offset_left.transpose();
 
     // write off values
 	// #TODO :: why is this rescaling_code failing? that's weird? Why is this null?
-	std::cout << VA_scaled << std::endl;
-	std::string rescaled_mesh_file_name = "rescaled.obj";
-    igl::writeOBJ(rescaled_mesh_file_name, VA_scaled,FA);
+	std::string rescaled_mesh_a_file_name = "rescaled_A.obj";
+	std::string rescaled_mesh_b_right_file_name = "rescaled_right_B.obj";
+	std::string rescaled_mesh_b_left_file_name = "rescaled_left_B.obj";
+    igl::writeOBJ(rescaled_mesh_a_file_name, VA_scaled,FA);
+    igl::writeOBJ(rescaled_mesh_b_left_file_name, VB_left_scaled,FB);
+    igl::writeOBJ(rescaled_mesh_b_right_file_name, VB_right_scaled,FB);
+	// #TODO :: this code failed to scale the sphere. I'm not exactly sure why. MUST FIX THIS!!
 
   // Initialize
   //applyBooleanOperations(viewer);
@@ -260,11 +281,6 @@ void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::Mat
 	igl::centroid(V, F, cen,vol); // why is this centroid full of Nans? 
 
 	// [2] apply transformation
-	std::cout << V << std::endl;
-	// ... wait a sec, why si the value of 'c' undefined here? ... clearly an err!
-	// ... and why is vol = 0? that also makes no sense too!
-	std::cout << cen << std::endl;
-	std::cout << vol << std::endl;
 	V_shifted = V.rowwise() - cen.transpose();
    
 	// [3] calculate max distance of all points in V_shifted to origin (0,0,0)
@@ -281,5 +297,6 @@ void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::Mat
 	// [4] scale every point by max_dist #TODO :: a functional way to write this up?
 	// #TODO :: ensure correctness of unit sphere rescaling operations here BTW!
 	// 		--- would be a good idea to just straight up visualize this!
+	// #TODO :: is this the current point of failure? possibly? need to find out more though!
 	V_scaled = V_shifted / max_dist;
 }

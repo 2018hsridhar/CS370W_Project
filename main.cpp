@@ -1,6 +1,8 @@
+// #TODO :: refactor. This code is a mess of tests.
 // need to show Dr. Vouga this stuff - take out I/O aspect here
 //#include <igl/readOFF.h>
 #include <igl/readOBJ.h>
+#include <igl/writeOBJ.h>
 //#define IGL_NO_CORK
 //#undef IGL_STATIC_LIBRARY
 #include <igl/viewer/Viewer.h>
@@ -86,9 +88,10 @@ const char * MESH_BOOLEAN_TYPE_NAMES[] =
 };
 
 void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V_scaled);
+void applyBooleanOperations();
 
-//void update(igl::viewer::Viewer &viewer)
-void update()
+//void applyBooleanOperations(igl::viewer::Viewer &viewer)
+void applyBooleanOperations()
 {
   //std::cout << "before bool operations app" << std::endl;
 	// getting thrown a <Input mesh is not orientable!> error here! 
@@ -139,31 +142,14 @@ bool key_down(igl::viewer::Viewer &viewer, unsigned char key, int mods)
       viewer.core.camera_dnear += 0.1;
       return true;
   }
-  update(viewer);
+  applyBooleanOperations(viewer);
   return true;
 }
 */
 
 
-// so the cool thing, is that with unit sphere scaling
-// and knowing that I can apply row-wise translations
-// I should be able to easily generate some nice mesh data to use here :-)
-// ... so let's see if I can get both the cube cuts and sphere cuts tonight :-). That'll be a good start and motivator! 
-
-int main(int argc, char *argv[])
+void runIndexTestInterpRemesh()
 {
-    using namespace Eigen;
-    using namespace std;
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/cheburashka.off",VA,FA);
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/decimated-knight.off",VB,FB);
-	// note :: your input meshes MUST be orientable. Else err
-	// so I can get the intersection ... but how to get two pieces not part of intersection?A
-	// wiith the plane ... intersection and unions do NOT work as expected. Kinda weird!
-  // #NOTE ::  do my meshes have to be water tight? I think that could be an issue!
-	// Seems to work when both are "cow.off". How about both "camelHead.off"?
-	// in the cow ( contians bunny in hollow interior ) ---> why is the bunny the result of the intersection? Seems kinda weird IMO!
-
-
 // check indexing structure of meshes ( simple test ) 
 	if(!readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F)) {
 		std::cout << "Failed to load partial scan one." << std::endl;
@@ -191,14 +177,32 @@ int main(int argc, char *argv[])
 
 	igl::writeOFF("interpolating_surface.off", interp.V,interp.F);
 	igl::writeOFF("remeshed_surface.off", remeshed.V,remeshed.F);
+}
 
 
+// so the cool thing, is that with unit sphere scaling
+// and knowing that I can apply row-wise translations
+// I should be able to easily generate some nice mesh data to use here :-)
+// ... so let's see if I can get both the cube cuts and sphere cuts tonight :-). That'll be a good start and motivator! 
 
+int main(int argc, char *argv[])
+{
+    using namespace Eigen;
+    using namespace std;
+  //igl::readOFF(TUTORIAL_SHARED_PATH "/cheburashka.off",VA,FA);
+  //igl::readOFF(TUTORIAL_SHARED_PATH "/decimated-knight.off",VB,FB);
+	// note :: your input meshes MUST be orientable. Else err
+	// so I can get the intersection ... but how to get two pieces not part of intersection?A
+	// wiith the plane ... intersection and unions do NOT work as expected. Kinda weird!
+  // #NOTE ::  do my meshes have to be water tight? I think that could be an issue!
+	// Seems to work when both are "cow.off". How about both "camelHead.off"?
+	// in the cow ( contians bunny in hollow interior ) ---> why is the bunny the result of the intersection? Seems kinda weird IMO!
 
-
-
-//    igl::readOBJ(TUTORIAL_SHARED_PATH "/circle.obj",VA,FA);
+    igl::readOBJ(TUTORIAL_SHARED_PATH "/sphere.obj",VA,FA);
+	// clearly VA prints right
   //igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VB,FB);
+	// so clearly, works with off file ( the bunny )
+	// ... oh shit, thsi is circle.obj! you want sphere.obj! no wonder failure occuring!
   //igl::readOFF(TUTORIAL_SHARED_PATH "/bunny.off",VA,FA);
   //igl::readOFF(TUTORIAL_SHARED_PATH "/cow.off",VB,FB);
   //igl::readOFF(TUTORIAL_SHARED_PATH "/planexy.off",VB,FB);
@@ -207,16 +211,18 @@ int main(int argc, char *argv[])
 
 
     // use code to rescale both objects to unit sphere
-    //Eigen::MatrixXd VA_scaled;
-    //applyUnitSphereRescaling(VA, FA, VA_scaled);
+    Eigen::MatrixXd VA_scaled;
+    applyUnitSphereRescaling(VA, FA, VA_scaled);
 
     // write off values
-	//std::string rescaled_mesh_file_name = "rescaled.off";
-    //igl::writeOFF(rescaled_mesh_file_name, VA,FA);
+	// #TODO :: why is this rescaling_code failing? that's weird? Why is this null?
+	std::cout << VA_scaled << std::endl;
+	std::string rescaled_mesh_file_name = "rescaled.obj";
+    igl::writeOBJ(rescaled_mesh_file_name, VA_scaled,FA);
 
   // Initialize
-  //update(viewer);
-  //update();
+  //applyBooleanOperations(viewer);
+  //applyBooleanOperations();
   //igl::writeOFF(TUTORIAL_SHARED_PATH "/boolean.off", VC, FC);
 
 /*
@@ -241,17 +247,25 @@ int main(int argc, char *argv[])
 
 // #TODO :: make this a boolean to indicate <success/failure>? 
 // NOTE :: thsi method will also account if our object is contained WITHIN the unit sphere. Division by a fractional amount will be performed here.
+// NOTE ::these operations are being applied on WATERTIGHT meshes. so we expect to be able to calculate a centroid here.
+
 void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V_scaled)
 {
 	// [1] calcualte COM ( = centroid ) 
 	// ... wait a sec, can't we just use the centroid since this is a const density obj?
 	// ... not :: centroid calculations work for CLOSED MESHES ONLY! They won't work for your two inputs, unfortunately, since you deal with boundaries!
 	Eigen::MatrixXd V_shifted;
-	Eigen::VectorXd c; // centroid = (3x1) dimensional vector 
-	igl::centroid(V, F, c);
+	Eigen::Vector3d cen(0,0,0); // centroid = (3x1) dimensional vector  ... might've needed this
+	double vol;
+	igl::centroid(V, F, cen,vol); // why is this centroid full of Nans? 
 
 	// [2] apply transformation
-	V_shifted = V.rowwise() - c.transpose();
+	std::cout << V << std::endl;
+	// ... wait a sec, why si the value of 'c' undefined here? ... clearly an err!
+	// ... and why is vol = 0? that also makes no sense too!
+	std::cout << cen << std::endl;
+	std::cout << vol << std::endl;
+	V_shifted = V.rowwise() - cen.transpose();
    
 	// [3] calculate max distance of all points in V_shifted to origin (0,0,0)
 	// honestly, it's easier for me to just code up a for loop over the entirety of V_shifted.

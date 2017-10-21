@@ -4,52 +4,44 @@
 	// ... or one could apply a projection ( onto a 2D plane ), right?
 	// ... wait, isn't there a physical sim project where we did this a while ago?
 
+// #TODO :: we'll apply code logic for 2 or 3 splits. we need 5 generic vars for 2 splits, 7 generic vars for 3 splits [ 1 = original mesh, 1-1 = cutting meshes/resultant cut mesh ].
 
-// #TODO :: refactor. This code is a mess of tests.
-// need to show Dr. Vouga this stuff - take out I/O aspect here
-//#include <igl/readOFF.h>
-#include <igl/readOBJ.h>
-#include <igl/writeOBJ.h>
-//#define IGL_NO_CORK
-//#undef IGL_STATIC_LIBRARY
-#include <igl/viewer/Viewer.h>
 
-#include <Eigen/Core>
-#include <iostream>
-
-#include "tutorial_shared_path.h"
-
-// includes for CSG/bool opers AND unit-sphere scaling
-// #TODO ... wait don't I have a useful max distance library? ... might be useful for later!
-#include <igl/copyleft/cgal/mesh_boolean.h>
-#include <igl/doublearea.h>
- #include <igl/centroid.h> // actually, closed != water tight. This should work
-// #include <igl/circumradius.h> - not desired. This is a per triangle measure.
-// #include <igl/inradius.h> - not desired. Also a per triangle measure.
-#include <igl/all_pairs_distances.h> // could use this to cheat ( take max of vector? )
-#include <igl/min.h> // #TODO :: use this to easily cheat too?
-#include <igl/max.h>
-
-// one question to raise about this alignment scheme, is this at least
-// is alignment happening to the interpolating surface, or the flowed surface? It doesn't seem like it's actually happening to the flowed surface, but rather the interpolating surface. This raises a couple of concerns at the moment.
-/*** FILE SHOULD BE CALLED :: test_J_Align.cpp ***/
-// C++ includes
-#include <iostream>
-#include <fstream>
-
-// MY LIBRARIES  
+// MY LIBRARIES [ NOTE :: not all of these need to be included ]
 #include "glob_defs.h"
+#include "tutorial_shared_path.h"
 #include "meanCurvatureFlow.h"
 #include "interpSurface.h"
 #include "remesh.h"
-#include "sgd.h" // get rid of later
+#include "sgd.h" 
 #include "j_align.h"
 #include "rigidbodytemplate.h"
 #include "rigidbodyinstance.h"
 #include "helpers.h"
 #include "vectormath.h"
 
+// this is the primary include. Other includes may not be needed. #TODO refactor
+#include "bool_opers.h"
+
 // LibIgl includes
+// specific to CSG/bool opers + unit-sphere scaling
+#include <igl/readOBJ.h>
+#include <igl/writeOBJ.h>
+#include <igl/readOFF.h>
+#include <igl/writeOFF.h>
+#include <igl/viewer/Viewer.h>
+
+// includes for CSG/bool opers AND unit-sphere scaling
+#include <igl/copyleft/cgal/mesh_boolean.h>
+#include <igl/doublearea.h>
+#include <igl/centroid.h> 
+#include <igl/all_pairs_distances.h> // could use this to cheat ( take max of vector? )
+#include <igl/min.h> // #TODO :: use this to easily cheat too?
+#include <igl/max.h>
+
+
+
+
 #include <igl/writeOFF.h>
 #include <igl/viewer/Viewer.h>
 #include <igl/per_edge_normals.h>
@@ -60,10 +52,15 @@
 #include <igl/slice.h>
 #include <igl/random_dir.h>
 
-// remember to set each rigid body instance's {c,theta} and {cvel,w} to 0 
-	// ... nvm, {c,theta} zeroed out @ constructor time!
-// #TODO :: for debug output, use print_vector
-// Namespace includes 
+
+#include <Eigen/Core>
+#include <iostream>
+
+
+// C++ includes [ static libs + namespaces ]
+#include <iostream>
+#include <fstream>
+
 using namespace Eigen;  
 using namespace std;
 using namespace igl;
@@ -97,8 +94,9 @@ const char * MESH_BOOLEAN_TYPE_NAMES[] =
 void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V_scaled);
 void applyBooleanOperations();
 
-//void applyBooleanOperations(igl::viewer::Viewer &viewer)
-void applyBooleanOperations()
+// #TODO :: take out viewer logic later. For now it's useful since we want to see these cuts getting generated.
+//void applyBooleanOperations()
+void applyBooleanOperations(igl::viewer::Viewer &viewer)
 {
   //std::cout << "before bool operations app" << std::endl;
 	// getting thrown a <Input mesh is not orientable!> error here! 
@@ -155,6 +153,8 @@ bool key_down(igl::viewer::Viewer &viewer, unsigned char key, int mods)
 */
 
 
+// #TODO:: this should be included as a test method
+// ... and should be run with a test system ( e.g. akin to bb test, from Amazon ) 
 void runIndexTestInterpRemesh()
 {
 // check indexing structure of meshes ( simple test ) 
@@ -192,30 +192,24 @@ void runIndexTestInterpRemesh()
 // I should be able to easily generate some nice mesh data to use here :-)
 // ... so let's see if I can get both the cube cuts and sphere cuts tonight :-). That'll be a good start and motivator! 
 
+// need to rename some of these variables -> see support structures above!
+
 int main(int argc, char *argv[])
 {
     using namespace Eigen;
     using namespace std;
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/cheburashka.off",VA,FA);
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/decimated-knight.off",VB,FB);
 	// note :: your input meshes MUST be orientable. Else err
 	// so I can get the intersection ... but how to get two pieces not part of intersection?A
 	// wiith the plane ... intersection and unions do NOT work as expected. Kinda weird!
-  // #NOTE ::  do my meshes have to be water tight? I think that could be an issue!
-	// Seems to work when both are "cow.off". How about both "camelHead.off"?
-	// in the cow ( contians bunny in hollow interior ) ---> why is the bunny the result of the intersection? Seems kinda weird IMO!
 
-    //igl::readOBJ(TUTORIAL_SHARED_PATH "/sphere.obj",VA,FA);
+	/*
+     ***************** To note about boolen operations *******************
+	 * YES, meshes must be water tight for bool operations to be applicable. 
+	 * Hence why they fail in cases such as "circle.off" but not "camelHead.off"
+     */
+
     igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VA,FA);
     igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VB,FB);
-	// so clearly, works with off file ( the bunny )
-	// ... oh shit, thsi is circle.obj! you want sphere.obj! no wonder failure occuring!
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/bunny.off",VA,FA);
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/cow.off",VB,FB);
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/planexy.off",VB,FB);
-  // Plot the mesh with pseudocolors
-  //igl::viewer::Viewer viewer;
-
 
     // use code to rescale both objects to unit sphere
     Eigen::MatrixXd VA_scaled;
@@ -260,16 +254,13 @@ int main(int argc, char *argv[])
 */
 }
 
-// first check if libigl already provides you [unit-sphere] scaling funcs. Those might prove useful.
-// ... unfortunately, this is NOT provided at all! need to rethink approach here!
-// getting the mesh's COM is decently easy
-// can I get a <bounding_sphere>. Need to find out more!
-// NOTE :: we can keep faces the same. We care only for vertices
 
-// #TODO :: make this a boolean to indicate <success/failure>? 
-// NOTE :: thsi method will also account if our object is contained WITHIN the unit sphere. Division by a fractional amount will be performed here.
-// NOTE ::these operations are being applied on WATERTIGHT meshes. so we expect to be able to calculate a centroid here.
-
+/* Idea taken from calculating smallest bounding sphere for a mesh
+ *     and scaling according to its radius
+ *     should be noted that for meshes contained in the unit sphere, it'll still work
+ *     just based on a fractional radius
+ *     Note that operations are limited to watertight meshes
+ */
 void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V_scaled)
 {
 	// [1] calcualte COM ( = centroid ) 
@@ -300,3 +291,9 @@ void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::Mat
 	// #TODO :: is this the current point of failure? possibly? need to find out more though!
 	V_scaled = V_shifted / max_dist;
 }
+
+
+/* EXTRANEUOUS INFORMATION NOTED 
+ * #include <igl/circumradius.h> - not desired. This is a per triangle measure.
+ * #include <igl/inradius.h> - not desired. Also a per triangle measure.
+ */

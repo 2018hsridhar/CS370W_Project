@@ -4,14 +4,13 @@
 	// ... or one could apply a projection ( onto a 2D plane ), right?
 	// ... wait, isn't there a physical sim project where we did this a while ago?
 
-
+// #TODO :: we'll apply code logic for 2 or 3 splits. we need 5 generic vars for 2 splits, 7 generic vars for 3 splits [ 1 = original mesh, 1-1 = cutting meshes/resultant cut mesh ].
 // #TODO :: refactor. This code is a mess of tests.
-// need to show Dr. Vouga this stuff - take out I/O aspect here
-//#include <igl/readOFF.h>
+// ... okay, do review those parts later. BUT realize that at the moment, getting these CSGs generated is priority at the moment!
+
+#include <igl/readOFF.h>
 #include <igl/readOBJ.h>
 #include <igl/writeOBJ.h>
-//#define IGL_NO_CORK
-//#undef IGL_STATIC_LIBRARY
 #include <igl/viewer/Viewer.h>
 
 #include <Eigen/Core>
@@ -64,6 +63,17 @@
 	// ... nvm, {c,theta} zeroed out @ constructor time!
 // #TODO :: for debug output, use print_vector
 // Namespace includes 
+
+
+/*
+ ********************************************************************************
+ ********************************************************************************
+ ********************************************************************************
+ ********************************************************************************
+ ********************************************************************************
+ ********************************************************************************
+ */
+
 using namespace Eigen;  
 using namespace std;
 using namespace igl;
@@ -97,8 +107,9 @@ const char * MESH_BOOLEAN_TYPE_NAMES[] =
 void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V_scaled);
 void applyBooleanOperations();
 
-//void applyBooleanOperations(igl::viewer::Viewer &viewer)
-void applyBooleanOperations()
+// #TODO :: take out viewer logic later. For now it's useful since we want to see these cuts getting generated.
+//void applyBooleanOperations()
+void applyBooleanOperations(igl::viewer::Viewer &viewer)
 {
   //std::cout << "before bool operations app" << std::endl;
 	// getting thrown a <Input mesh is not orientable!> error here! 
@@ -192,30 +203,24 @@ void runIndexTestInterpRemesh()
 // I should be able to easily generate some nice mesh data to use here :-)
 // ... so let's see if I can get both the cube cuts and sphere cuts tonight :-). That'll be a good start and motivator! 
 
+// need to rename some of these variables -> see support structures above!
+
 int main(int argc, char *argv[])
 {
     using namespace Eigen;
     using namespace std;
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/cheburashka.off",VA,FA);
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/decimated-knight.off",VB,FB);
 	// note :: your input meshes MUST be orientable. Else err
 	// so I can get the intersection ... but how to get two pieces not part of intersection?A
 	// wiith the plane ... intersection and unions do NOT work as expected. Kinda weird!
-  // #NOTE ::  do my meshes have to be water tight? I think that could be an issue!
-	// Seems to work when both are "cow.off". How about both "camelHead.off"?
-	// in the cow ( contians bunny in hollow interior ) ---> why is the bunny the result of the intersection? Seems kinda weird IMO!
 
-    //igl::readOBJ(TUTORIAL_SHARED_PATH "/sphere.obj",VA,FA);
+	/*
+     ***************** To note about boolen operations *******************
+	 * YES, meshes must be water tight for bool operations to be applicable. 
+	 * Hence why they fail in cases such as "circle.off" but not "camelHead.off"
+     */
+
     igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VA,FA);
     igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VB,FB);
-	// so clearly, works with off file ( the bunny )
-	// ... oh shit, thsi is circle.obj! you want sphere.obj! no wonder failure occuring!
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/bunny.off",VA,FA);
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/cow.off",VB,FB);
-  //igl::readOFF(TUTORIAL_SHARED_PATH "/planexy.off",VB,FB);
-  // Plot the mesh with pseudocolors
-  //igl::viewer::Viewer viewer;
-
 
     // use code to rescale both objects to unit sphere
     Eigen::MatrixXd VA_scaled;

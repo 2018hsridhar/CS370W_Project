@@ -6,8 +6,6 @@
 
 // #TODO :: we'll apply code logic for 2 or 3 splits. we need 5 generic vars for 2 splits, 7 generic vars for 3 splits [ 1 = original mesh, 1-1 = cutting meshes/resultant cut mesh ].
 
-// libs needed - GLOBAL<REMESH,INTERP_SURF, writeOFF, readOFF
-
 // USER_DEFINED LIBRARIES
 #include "bool_opers.h" // primary include
 #include "glob_defs.h"

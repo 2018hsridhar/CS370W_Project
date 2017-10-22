@@ -6,7 +6,9 @@
 
 namespace BOOL_OPERS 
 {
+	void runIndexTestInterpRemesh();
 	void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V_scaled);
+	void applyBooleanOperations();
 }
 
 #endif

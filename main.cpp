@@ -6,61 +6,36 @@
 
 // #TODO :: we'll apply code logic for 2 or 3 splits. we need 5 generic vars for 2 splits, 7 generic vars for 3 splits [ 1 = original mesh, 1-1 = cutting meshes/resultant cut mesh ].
 
+// libs needed - GLOBAL<REMESH,INTERP_SURF, writeOFF, readOFF
 
-// MY LIBRARIES [ NOTE :: not all of these need to be included ]
+// USER_DEFINED LIBRARIES
+#include "bool_opers.h" // primary include
 #include "glob_defs.h"
-#include "tutorial_shared_path.h"
-#include "meanCurvatureFlow.h"
 #include "interpSurface.h"
 #include "remesh.h"
-#include "sgd.h" 
-#include "j_align.h"
-#include "rigidbodytemplate.h"
-#include "rigidbodyinstance.h"
+#include "tutorial_shared_path.h"
 #include "helpers.h"
-#include "vectormath.h"
 
-// this is the primary include. Other includes may not be needed. #TODO refactor
-#include "bool_opers.h"
-
-// LibIgl includes
+// LIBIGL INCLUDES
 // specific to CSG/bool opers + unit-sphere scaling
-#include <igl/readOBJ.h>
-#include <igl/writeOBJ.h>
 #include <igl/readOFF.h>
 #include <igl/writeOFF.h>
+#include <igl/readOBJ.h>
+#include <igl/writeOBJ.h>
 #include <igl/viewer/Viewer.h>
 
 // includes for CSG/bool opers AND unit-sphere scaling
 #include <igl/copyleft/cgal/mesh_boolean.h>
-#include <igl/doublearea.h>
 #include <igl/centroid.h> 
-#include <igl/all_pairs_distances.h> // could use this to cheat ( take max of vector? )
-#include <igl/min.h> // #TODO :: use this to easily cheat too?
-#include <igl/max.h>
-
-
-
-
-#include <igl/writeOFF.h>
-#include <igl/viewer/Viewer.h>
-#include <igl/per_edge_normals.h>
-#include <igl/per_vertex_normals.h>
-#include <igl/print_vector.h>
-#include <igl/signed_distance.h> 
-#include <igl/boundary_loop.h>
-#include <igl/slice.h>
-#include <igl/random_dir.h>
-
-
+// EIGEN INCLUDES
 #include <Eigen/Core>
+
+// C++ STATIC LIB INCLUDES
 #include <iostream>
-
-
-// C++ includes [ static libs + namespaces ]
 #include <iostream>
 #include <fstream>
 
+// C++ NAMESPACES 
 using namespace Eigen;  
 using namespace std;
 using namespace igl;
@@ -68,14 +43,12 @@ using namespace igl;
 struct Mesh
 {
 	Eigen::MatrixXd V; 
-	Eigen::MatrixXd bV;  // boundary vertices
 	Eigen::MatrixXi F;
-	Eigen::VectorXi bI; // boundary indices; just indxs to specific faces ( not a 1,0 boolean thing ) 
-	Eigen::MatrixXd N;
-	int numBV; 			// number of boundary vertices
+	Eigen::MatrixXd bV;  // boundary vertices
+	Eigen::VectorXi bI;  // boundary indices - for specific faces [ NOT a {0,1} boolean thing ] 
+	Eigen::MatrixXd N;   // Normals ( for Faces? or Vertices? )
+	int numBV; 		 	 // number of boundary vertices
 } scan1,scan2,scan1_rest,scan2_rest,interp,remeshed, flowed, debug_result, result, normals, normals_info;
-
-// #TODO :: look up <circumradius.cpp> library? 
 
 Eigen::MatrixXd VA,VB,VC;
 Eigen::VectorXi J,I;
@@ -91,113 +64,8 @@ const char * MESH_BOOLEAN_TYPE_NAMES[] =
   "Resolve",
 };
 
-void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V_scaled);
-void applyBooleanOperations();
-
-// #TODO :: take out viewer logic later. For now it's useful since we want to see these cuts getting generated.
-//void applyBooleanOperations()
-void applyBooleanOperations(igl::viewer::Viewer &viewer)
-{
-  //std::cout << "before bool operations app" << std::endl;
-	// getting thrown a <Input mesh is not orientable!> error here! 
-    // error is being thrown under /cgal/propagate_winding_numbers.cpp. Winding number is off for the planes case. Need to try cubes instead? 
-  igl::copyleft::cgal::mesh_boolean(VA,FA,VB,FB,boolean_type,VC,FC,J);
-  //std::cout << "after bool operations app" << std::endl;
-  Eigen::MatrixXd C(FC.rows(),3);
-  for(size_t f = 0;f<C.rows();f++)
-  {
-    if(J(f)<FA.rows())
-    {
-      C.row(f) = Eigen::RowVector3d(1,0,0);
-    }else
-    {
-      C.row(f) = Eigen::RowVector3d(0,1,0);
-    }
-  }
-  /*
-  viewer.data.clear();
-  viewer.data.set_mesh(VC,FC);
-  viewer.data.set_colors(C);
-  */ 
-  std::cout<<"A "<<MESH_BOOLEAN_TYPE_NAMES[boolean_type]<<" B."<<std::endl;
-}
-
-/*
-bool key_down(igl::viewer::Viewer &viewer, unsigned char key, int mods)
-{
-  switch(key)
-  {
-    default:
-      return false;
-    case '.':
-      boolean_type =
-        static_cast<igl::MeshBooleanType>(
-          (boolean_type+1)% igl::NUM_MESH_BOOLEAN_TYPES);
-      break;
-    case ',':
-      boolean_type =
-        static_cast<igl::MeshBooleanType>(
-          (boolean_type+igl::NUM_MESH_BOOLEAN_TYPES-1)%
-          igl::NUM_MESH_BOOLEAN_TYPES);
-      break;
-    case '[':
-      viewer.core.camera_dnear -= 0.1;
-      return true;
-    case ']':
-      viewer.core.camera_dnear += 0.1;
-      return true;
-  }
-  applyBooleanOperations(viewer);
-  return true;
-}
-*/
-
-
-// #TODO:: this should be included as a test method
-// ... and should be run with a test system ( e.g. akin to bb test, from Amazon ) 
-void runIndexTestInterpRemesh()
-{
-// check indexing structure of meshes ( simple test ) 
-	if(!readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F)) {
-		std::cout << "Failed to load partial scan one." << std::endl;
-	} 
-
-	if(!readOFF(GLOBAL::pipelineScan2File,scan2.V,scan2.F)) {
-		std::cout << "Failed to load partial scan two." << std::endl;
-	}
-
-	std::cout << "Executing pipeline for the following meshes" << std::endl;
-	std::cout << "Mesh one [" << GLOBAL::pipelineScan1File << "]" << std::endl;
-	std::cout << "Mesh two [" << GLOBAL::pipelineScan2File << "]" << std::endl;
-
-// check if first n ( interp ) = first n ( remesh )  
-
-	INTERP_SURF::generateInterpolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
-	double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
-	rEL = rEL / 5.0; // #NOTE :: can actually visualize pinching occuring here
-	bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
-	if(!remSucc)
-	{
-		std::cout << "BAD REMESHING!" << std::endl;
-		exit(0);
-	}
-
-	igl::writeOFF("interpolating_surface.off", interp.V,interp.F);
-	igl::writeOFF("remeshed_surface.off", remeshed.V,remeshed.F);
-}
-
-
-// so the cool thing, is that with unit sphere scaling
-// and knowing that I can apply row-wise translations
-// I should be able to easily generate some nice mesh data to use here :-)
-// ... so let's see if I can get both the cube cuts and sphere cuts tonight :-). That'll be a good start and motivator! 
-
-// need to rename some of these variables -> see support structures above!
-
 int main(int argc, char *argv[])
 {
-    using namespace Eigen;
-    using namespace std;
 	// note :: your input meshes MUST be orientable. Else err
 	// so I can get the intersection ... but how to get two pieces not part of intersection?A
 	// wiith the plane ... intersection and unions do NOT work as expected. Kinda weird!
@@ -208,6 +76,7 @@ int main(int argc, char *argv[])
 	 * Hence why they fail in cases such as "circle.off" but not "camelHead.off"
      */
 
+/*
     igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VA,FA);
     igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VB,FB);
 
@@ -239,7 +108,7 @@ int main(int argc, char *argv[])
   //applyBooleanOperations(viewer);
   //applyBooleanOperations();
   //igl::writeOFF(TUTORIAL_SHARED_PATH "/boolean.off", VC, FC);
-
+*/
 /*
   viewer.core.show_lines = true;
   viewer.callback_key_down = &key_down;
@@ -252,6 +121,39 @@ int main(int argc, char *argv[])
     "Hint: investigate _inside_ the model to see orientation changes."<<endl;
   viewer.launch();
 */
+	return 0;
+}
+
+// #TODO:: include as a test method, run in a testing system ( 
+// Method responsibility - asserts preservation of order of vertex indexing between the interpolating and remeshed surfaces. 
+// equivalently, assserts that the n vertices (interp) = first n ( remesh )
+// ... ( e.g. akin to bb test, from Amazon ) 
+void runIndexTestInterpRemesh()
+{
+	if(!readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F)) {
+		std::cout << "Failed to load partial scan one." << std::endl;
+	} 
+
+	if(!readOFF(GLOBAL::pipelineScan2File,scan2.V,scan2.F)) {
+		std::cout << "Failed to load partial scan two." << std::endl;
+	}
+
+	std::cout << "Executing pipeline for the following meshes" << std::endl;
+	std::cout << "Mesh one [" << GLOBAL::pipelineScan1File << "]" << std::endl;
+	std::cout << "Mesh two [" << GLOBAL::pipelineScan2File << "]" << std::endl;
+
+	INTERP_SURF::generateInterpolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
+	double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
+	rEL = rEL / 5.0; 
+	bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
+	if(!remSucc)
+	{
+		std::cout << "BAD REMESHING!" << std::endl;
+		exit(0);
+	}
+
+	igl::writeOFF("interpolating_surface.off", interp.V,interp.F);
+	igl::writeOFF("remeshed_surface.off", remeshed.V,remeshed.F);
 }
 
 
@@ -261,21 +163,23 @@ int main(int argc, char *argv[])
  *     just based on a fractional radius
  *     Note that operations are limited to watertight meshes
  */
+
 void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V_scaled)
 {
-	// [1] calcualte COM ( = centroid ) 
-	// ... wait a sec, can't we just use the centroid since this is a const density obj?
-	// ... not :: centroid calculations work for CLOSED MESHES ONLY! They won't work for your two inputs, unfortunately, since you deal with boundaries!
+	/*
+     * [1] calcualte COM ( = centroid ) 
+	 * We use the centedoid here since we can assume our meshes are of constant density. Note 
+     *    that centroid calculatison work only for CLOSED meshes.
+     */
 	Eigen::MatrixXd V_shifted;
-	Eigen::Vector3d cen(0,0,0); // centroid = (3x1) dimensional vector  ... might've needed this
+	Eigen::Vector3d cen = Eigen::Vector3d(0,0,0);
 	double vol;
-	igl::centroid(V, F, cen,vol); // why is this centroid full of Nans? 
+	igl::centroid(V, F, cen,vol); 
 
-	// [2] apply transformation
+	// [2] apply COM to origin translation
 	V_shifted = V.rowwise() - cen.transpose();
    
 	// [3] calculate max distance of all points in V_shifted to origin (0,0,0)
-	// honestly, it's easier for me to just code up a for loop over the entirety of V_shifted.
 	Eigen::Vector3d origin = Eigen::Vector3d(0,0,0); 
 	double max_dist = std::numeric_limits<double>::min();
 	for(int i = 0; i < V_shifted.rows(); ++i)
@@ -285,15 +189,74 @@ void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::Mat
 		max_dist = std::max(max_dist,dist);
 	}
 
-	// [4] scale every point by max_dist #TODO :: a functional way to write this up?
-	// #TODO :: ensure correctness of unit sphere rescaling operations here BTW!
-	// 		--- would be a good idea to just straight up visualize this!
-	// #TODO :: is this the current point of failure? possibly? need to find out more though!
+	// [4] scale every point by max_dist 
 	V_scaled = V_shifted / max_dist;
 }
 
 
-/* EXTRANEUOUS INFORMATION NOTED 
+// #TODO :: remove viewer logic later. Convert to stand-alone method
+// Handling <Input mesh is not orientable!> errors
+//    note that operations can be applied only on watertight meshes.
+//void applyBooleanOperations(igl::viewer::Viewer &viewer)
+void applyBooleanOperations()
+{
+	igl::copyleft::cgal::mesh_boolean(VA,FA,VB,FB,boolean_type,VC,FC,J);
+	Eigen::MatrixXd C(FC.rows(),3);
+	for(size_t f = 0;f<C.rows();f++)
+	{
+		if(J(f)<FA.rows())
+		{
+			C.row(f) = Eigen::RowVector3d(1,0,0);
+		}
+		else
+		{
+			C.row(f) = Eigen::RowVector3d(0,1,0);
+		}
+	}
+	//viewer.data.clear();
+	//viewer.data.set_mesh(VC,FC);
+	//viewer.data.set_colors(C);
+	std::cout<<"A "<<MESH_BOOLEAN_TYPE_NAMES[boolean_type]<<" B."<<std::endl;
+}
+
+/*
+bool key_down(igl::viewer::Viewer &viewer, unsigned char key, int mods)
+{
+  switch(key)
+  {
+    default:
+      return false;
+    case '.':
+      boolean_type =
+        static_cast<igl::MeshBooleanType>(
+          (boolean_type+1)% igl::NUM_MESH_BOOLEAN_TYPES);
+      break;
+    case ',':
+      boolean_type =
+        static_cast<igl::MeshBooleanType>(
+          (boolean_type+igl::NUM_MESH_BOOLEAN_TYPES-1)%
+          igl::NUM_MESH_BOOLEAN_TYPES);
+      break;
+    case '[':
+      viewer.core.camera_dnear -= 0.1;
+      return true;
+    case ']':
+      viewer.core.camera_dnear += 0.1;
+      return true;
+  }
+  applyBooleanOperations()
+  return true;
+}
+*/
+
+
+/* 
+ * EXTRANEUOUS INFORMATION NOTED 
  * #include <igl/circumradius.h> - not desired. This is a per triangle measure.
  * #include <igl/inradius.h> - not desired. Also a per triangle measure.
+ * #include <igl/all_pairs_distances.h> // could use this to cheat ( take max of vector? )
+ * #include <igl/min.h> // #TODO :: use this in place of for-loop dist calculations?
+ * #include <igl/max.h>
  */
+
+

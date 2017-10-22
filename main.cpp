@@ -1,3 +1,7 @@
+// a good pattern to estabslih
+// ... have one method handle all IO operations
+// ... it can grow confusing to have too many methods handle IO operations
+
 // #TODO :: so with CSG operations, I can generate seperate meshes. BUT ... I need to get their boundary. And I'm not sure how to do this. I.e. I'm really just interested in a specific plane.
 	// ... wait a sec, isn't there some sort of simple vertex test here, or what not? I feel like there is. 
 	// ... well, at least I know what to look for next now.
@@ -5,8 +9,6 @@
 	// ... wait, isn't there a physical sim project where we did this a while ago?
 
 // #TODO :: we'll apply code logic for 2 or 3 splits. we need 5 generic vars for 2 splits, 7 generic vars for 3 splits [ 1 = original mesh, 1-1 = cutting meshes/resultant cut mesh ].
-
-// libs needed - GLOBAL<REMESH,INTERP_SURF, writeOFF, readOFF
 
 // USER_DEFINED LIBRARIES
 #include "bool_opers.h" // primary include
@@ -48,81 +50,59 @@ struct Mesh
 	Eigen::VectorXi bI;  // boundary indices - for specific faces [ NOT a {0,1} boolean thing ] 
 	Eigen::MatrixXd N;   // Normals ( for Faces? or Vertices? )
 	int numBV; 		 	 // number of boundary vertices
-} scan1,scan2,scan1_rest,scan2_rest,interp,remeshed, flowed, debug_result, result, normals, normals_info;
-
-Eigen::MatrixXd VA,VB,VC;
-Eigen::VectorXi J,I;
-Eigen::MatrixXi FA,FB,FC;
-igl::MeshBooleanType boolean_type(igl::MESH_BOOLEAN_TYPE_INTERSECT);
+} mesh, meshL, meshR, frag1, frag2, scan1,scan2, interp, remeshed;
 
 const char * MESH_BOOLEAN_TYPE_NAMES[] =
 {
-  "Union",
-  "Intersect",
-  "Minus",
-  "XOR",
-  "Resolve",
+	"Union",
+	"Intersect",
+	"Minus",
+	"XOR",
+	"Resolve",
 };
+
 
 int main(int argc, char *argv[])
 {
-	// note :: your input meshes MUST be orientable. Else err
-	// so I can get the intersection ... but how to get two pieces not part of intersection?A
-	// wiith the plane ... intersection and unions do NOT work as expected. Kinda weird!
-
-	/*
-     ***************** To note about boolen operations *******************
-	 * YES, meshes must be water tight for bool operations to be applicable. 
-	 * Hence why they fail in cases such as "circle.off" but not "camelHead.off"
-     */
+	cout << "h1\n";
+    igl::readOBJ(GLOBAL::boolOpersMesh,mesh.V,mesh.F);
+	cout << "h2\n";
+	generateBoolOperMeshes(mesh.V, mesh.F, meshL.V, meshL.F, meshR.V, meshR.F);
+	cout << "h3\n";
+	generateMeshFragment(mesh.V,mesh.F,meshL.V,meshL.F, frag1.V, frag1.F);
+	cout << "h4\n";
+	generateMeshFragment(mesh.V,mesh.F,meshR.V,meshR.F, frag2.V, frag2.F);
+	cout << "h5\n";
+    igl::writeOBJ(GLOBAL::boolOpersFragOne,frag1.V,frag1.F);
+	cout << "h6\n";
+    igl::writeOBJ(GLOBAL::boolOpersFragTwo,frag2.V,frag2.F);
+	cout << "h7\n";
+}
 
 /*
-    igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VA,FA);
-    igl::readOBJ(TUTORIAL_SHARED_PATH "/cube.obj",VB,FB);
-
-    // use code to rescale both objects to unit sphere
+ * To note about boolean operations 
+ * YES, meshes must be water tight for bool operations to be applicable. 
+ *    they must also be orientable.
+ * Hence why they fail in cases such as <circle.off> but not <camelHead.off>
+ * NOTE :: V1 = left, V2 = right #TODO update naming conventions.
+ */
+void generateBoolOperMeshes(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V1, Eigen::MatrixXi& F1, Eigen::MatrixXd& V2, Eigen::MatrixXi& F2)
+{
+    // Rescale both objects to unit sphere
     Eigen::MatrixXd VA_scaled;
-    Eigen::MatrixXd VB_left_scaled;
-    Eigen::MatrixXd VB_right_scaled;
     Eigen::MatrixXd VB_pre_offset_scaled;
-    applyUnitSphereRescaling(VA, FA, VA_scaled);
-    applyUnitSphereRescaling(VB, FB, VB_pre_offset_scaled);
+    applyUnitSphereRescaling(V1, F1, VA_scaled);
+    applyUnitSphereRescaling(V2, F2, VB_pre_offset_scaled);
 
-	// APPLY offset to VB
+	// APPLY offsets to VB, both [-|+] x-axis. Generate two additional meshes for cutting
 	Eigen::Vector3d offset_right = Eigen::Vector3d(0.5,0,0);
 	Eigen::Vector3d offset_left = Eigen::Vector3d(-0.5,0,0);
-	VB_right_scaled = VB_pre_offset_scaled.rowwise() + offset_right.transpose();
-	VB_left_scaled = VB_pre_offset_scaled.rowwise() + offset_left.transpose();
 
-    // write off values
-	// #TODO :: why is this rescaling_code failing? that's weird? Why is this null?
-	std::string rescaled_mesh_a_file_name = "rescaled_A.obj";
-	std::string rescaled_mesh_b_right_file_name = "rescaled_right_B.obj";
-	std::string rescaled_mesh_b_left_file_name = "rescaled_left_B.obj";
-    igl::writeOBJ(rescaled_mesh_a_file_name, VA_scaled,FA);
-    igl::writeOBJ(rescaled_mesh_b_left_file_name, VB_left_scaled,FB);
-    igl::writeOBJ(rescaled_mesh_b_right_file_name, VB_right_scaled,FB);
-	// #TODO :: this code failed to scale the sphere. I'm not exactly sure why. MUST FIX THIS!!
-
-  // Initialize
-  //applyBooleanOperations(viewer);
-  //applyBooleanOperations();
-  //igl::writeOFF(TUTORIAL_SHARED_PATH "/boolean.off", VC, FC);
-*/
-/*
-  viewer.core.show_lines = true;
-  viewer.callback_key_down = &key_down;
-  viewer.core.camera_dnear = 3.9;
-  cout<<
-    "Press '.' to switch to next boolean operation type."<<endl<<
-    "Press ',' to switch to previous boolean operation type."<<endl<<
-    "Press ']' to push near cutting plane away from camera."<<endl<<
-    "Press '[' to pull near cutting plane closer to camera."<<endl<<
-    "Hint: investigate _inside_ the model to see orientation changes."<<endl;
-  viewer.launch();
-*/
-	return 0;
+	V1 = VB_pre_offset_scaled.rowwise() + offset_left.transpose();
+	V2 = VB_pre_offset_scaled.rowwise() + offset_right.transpose();
+	F1 = F2 = F;
 }
+
 
 // #TODO:: include as a test method, run in a testing system ( 
 // Method responsibility - asserts preservation of order of vertex indexing between the interpolating and remeshed surfaces. 
@@ -152,8 +132,8 @@ void runIndexTestInterpRemesh()
 		exit(0);
 	}
 
-	igl::writeOFF("interpolating_surface.off", interp.V,interp.F);
-	igl::writeOFF("remeshed_surface.off", remeshed.V,remeshed.F);
+	igl::writeOFF(TUTORIAL_SHARED_PATH "/interpolating_surface.off", interp.V,interp.F);
+	igl::writeOFF(TUTORIAL_SHARED_PATH "/remeshed_surface.off", remeshed.V,remeshed.F);
 }
 
 
@@ -193,14 +173,15 @@ void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::Mat
 	V_scaled = V_shifted / max_dist;
 }
 
-
-// #TODO :: remove viewer logic later. Convert to stand-alone method
-// Handling <Input mesh is not orientable!> errors
-//    note that operations can be applied only on watertight meshes.
-//void applyBooleanOperations(igl::viewer::Viewer &viewer)
-void applyBooleanOperations()
+// NOTE :: this method really can be placed back elsewhere, but for now, kep it in case we have to extend it later on!
+void generateMeshFragment(Eigen::MatrixXd& VA, Eigen::MatrixXi& FA, 
+							Eigen::MatrixXd& VB, Eigen::MatrixXi& FB,
+							Eigen::MatrixXd& VC, Eigen::MatrixXi& FC)
 {
+	Eigen::VectorXi J;
+	igl::MeshBooleanType boolean_type(igl::MESH_BOOLEAN_TYPE_INTERSECT);
 	igl::copyleft::cgal::mesh_boolean(VA,FA,VB,FB,boolean_type,VC,FC,J);
+	// note that here, <C> is actually for coloring purposes. We can eliminate this later, if need be!
 	Eigen::MatrixXd C(FC.rows(),3);
 	for(size_t f = 0;f<C.rows();f++)
 	{
@@ -213,10 +194,6 @@ void applyBooleanOperations()
 			C.row(f) = Eigen::RowVector3d(0,1,0);
 		}
 	}
-	//viewer.data.clear();
-	//viewer.data.set_mesh(VC,FC);
-	//viewer.data.set_colors(C);
-	std::cout<<"A "<<MESH_BOOLEAN_TYPE_NAMES[boolean_type]<<" B."<<std::endl;
 }
 
 /*
@@ -251,12 +228,28 @@ bool key_down(igl::viewer::Viewer &viewer, unsigned char key, int mods)
 
 
 /* 
+ * 
  * EXTRANEUOUS INFORMATION NOTED 
  * #include <igl/circumradius.h> - not desired. This is a per triangle measure.
  * #include <igl/inradius.h> - not desired. Also a per triangle measure.
  * #include <igl/all_pairs_distances.h> // could use this to cheat ( take max of vector? )
  * #include <igl/min.h> // #TODO :: use this in place of for-loop dist calculations?
  * #include <igl/max.h>
+ *
+ */
+
+
+/*
+ * OLD testing code for <unit_sphere_scaling>. Place elsewhere.
+ * void unitSphereTests()
+ * {
+	std::string rescaled_mesh_a_file_name = "rescaled_A.obj";
+	std::string rescaled_mesh_b_right_file_name = "rescaled_right_B.obj";
+	std::string rescaled_mesh_b_left_file_name = "rescaled_left_B.obj";
+    igl::writeOBJ(rescaled_mesh_a_file_name, VA_scaled,FA);
+    igl::writeOBJ(rescaled_mesh_b_left_file_name, VB_left_scaled,FB);
+    igl::writeOBJ(rescaled_mesh_b_right_file_name, VB_right_scaled,FB);
+ }
  */
 
 

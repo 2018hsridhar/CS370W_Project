@@ -33,6 +33,12 @@ namespace GLOBAL
 
 	// DEBUG VARS
 	const char* pipelineDebugFile = TUTORIAL_SHARED_PATH "/debug.txt";
+
+	// BOOL OPERS FILES
+	// NOTE :: <.OBJ> files are used since <blender> lacks <.OFF> file support.
+	const char* boolOpersMesh = TUTORIAL_SHARED_PATH "/cube.obj";
+	const char* boolOpersFragOne = TUTORIAL_SHARED_PATH "/fragment1.obj";
+	const char* boolOpersFragTwo = TUTORIAL_SHARED_PATH "/fragment2.obj";
 }
 #endif
 

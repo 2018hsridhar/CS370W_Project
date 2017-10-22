@@ -30,7 +30,7 @@ namespace GLOBAL
 
 	extern const char* viewMesh;
 
-	// inspired from Randall's code for rendering
+	// INSPIRED from Randall's code for rendering
 	// to adopt for later
 	/*
     extern const char* output_directory;
@@ -51,6 +51,10 @@ namespace GLOBAL
 	extern const char* pipelineOutputFile;
 
 	extern const char* pipelineDebugFile;
+
+	extern const char* boolOpersMesh;
+	extern const char* boolOpersFragOne;
+	extern const char* boolOpersFragTwo;
 }
 #endif
 

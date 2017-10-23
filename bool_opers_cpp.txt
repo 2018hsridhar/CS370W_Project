@@ -1,0 +1,545 @@
+
+// I can produce jagged and smooth boundaries, BUT ... they are always going to be planar. THey'll never really have kinks in their z-axis
+	// that is, unless I decide to randomly perturbate them :-). Then they might! ... wait, this is useful!
+
+// we can try to use vertices ( i.e. pick points out on a plane )
+	// but this too, can be flawed to a certain extent. It doesn't scale.
+// YES - BOOL OPERS DO NOT WORK AS EXPECTED. you can't take the intersection of 2 different objs, even if they share the same plane, to get a boundary
+// #TODO :: we'd like to use a plane, but we lack representation of infinities in finite, discrete mesh structures. So we'll just "pretend" to have one by using a VERY huge object that possesses.
+// [1] huge z-coords scaling ( try this first )
+// [2] huge y-coords scaling 
+// #TODO :: another next step, is to be able to generate some random perturbations of them. Add functionality for that  [ use <random_dir.h> to help with this. Translation + rotational components. ]. You're basically just projecting both boundaries somewhere into space.
+
+/*
+ * NEW CODING PATTERNS :: 
+ * 	[1] dir for shared inputs
+ * 	[2] dir for your specific outputs
+ * 	[3] One method handles all IO operations. Do not leave IO strewn across everywhere.
+ */
+
+// #TODO :: Can generate seperate meshes with CSG operations. Need to get their boundary though. Not sure how to do this.
+	// Idea #1 :: apply a projection ( onto a 2D plane ), right?
+// #TODO :: probably going to rename this file as <generateExpirementalData>. Will include boolean operations code later on though.
+
+
+// USER_DEFINED LIBRARIES
+#include "bool_opers.h" // primary include
+#include "glob_defs.h"
+#include "interpSurface.h"
+#include "remesh.h"
+#include "vectormath.h" // NOTE :: needed for projecting a mesh randomly into space
+#include "tutorial_shared_path.h"
+#include "helpers.h"
+
+// LIBIGL INCLUDES
+// specific to CSG/bool opers + unit-sphere scaling
+#include <igl/readOFF.h>
+#include <igl/writeOFF.h>
+#include <igl/readOBJ.h>
+#include <igl/writeOBJ.h>
+#include <igl/viewer/Viewer.h>
+#include <igl/boundary_facets.h>
+
+// includes for CSG/bool opers AND unit-sphere scaling
+#include <igl/copyleft/cgal/mesh_boolean.h>
+#include <igl/centroid.h> 
+#include <igl/random_dir.h>
+#include <igl/cat.h>
+// EIGEN INCLUDES
+#include <Eigen/Core>
+
+// C++ STATIC LIB INCLUDES
+#include <iostream>
+#include <iostream>
+#include <fstream>
+
+// C++ NAMESPACES 
+using namespace Eigen;  
+using namespace std;
+using namespace igl;
+
+struct Mesh
+{
+	Eigen::MatrixXd V; 
+	Eigen::MatrixXi F;
+	Eigen::MatrixXd bV;  // boundary vertices
+	Eigen::VectorXi bI;  // boundary indices - for specific faces [ NOT a {0,1} boolean thing ] 
+	Eigen::MatrixXd N;   // Normals ( for Faces? or Vertices? )
+	int numBV; 		 	 // number of boundary vertices
+} obj1_preSc, obj2_preSc, obj1, obj2, meshL, meshR, frag1, frag2, scan1,scan2, interp, remeshed;
+
+// NOTE the bool oper being used hereBTW!
+const char * MESH_BOOLEAN_TYPE_NAMES[] =
+{
+	"Union",
+	"Intersect",
+	"Minus",
+	"XOR",
+	"Resolve",
+};
+
+//#TODO :: extend logic to split into three pieces now.
+int main(int argc, char *argv[])
+{
+	// obj1 = cube mesh ( basic unit-cube cutter )
+	// obj2 = DOF ( whatever mesh we want to cut up )  
+	igl::readOBJ(GLOBAL::boolOpersMeshOne,obj1_preSc.V,obj1_preSc.F); // <xxx>
+	igl::readOBJ(GLOBAL::boolOpersMeshTwo,obj2_preSc.V,obj2_preSc.F); // cube
+
+	applyUnitSphereRescaling(obj1_preSc.V, obj1_preSc.F, obj1.V,obj1.F);
+	igl::writeOFF("unitSphere.obj", obj1.V, obj1.F);
+	// #TODO :: rename this operation to "rectangular-prism-rescaling."
+	//applyUnitSphereRescaling(obj2_preSc.V, obj2_preSc.F, obj2.V,obj2.F);
+	obj2.V = obj2_preSc.V;
+	obj2.F = obj2_preSc.F;
+
+	// We're basically making a really huge block; emulating an \inf plane, in a sense
+	for(int i = 0; i < obj2.V.rows(); ++i)
+	{
+		Vector3d temp = obj2.V.row(i);
+	//	temp(2) = temp(2) * 100;
+	//	temp(1) = temp(1) * 100;
+		temp(2) = temp(2) * 10;
+		temp(1) = temp(1) * 10;
+		obj2.V.row(i) = temp;
+	}
+	igl::writeOBJ("hugePrism.obj", obj2.V,obj2.F);
+
+	generateBoolOperMeshes(obj2.V,obj2.F, meshL.V, meshL.F, meshR.V, meshR.F);
+
+	generateMeshFragment(obj1.V,obj1.F,meshL.V,meshL.F, frag1.V, frag1.F);
+	//generateMeshFragment(obj1.V,obj1.F,meshR.V,meshR.F, frag2.V, frag2.F);
+
+	//igl::writeOBJ(GLOBAL::boolOpersFragOne,frag1.V,frag1.F);
+	//igl::writeOBJ(GLOBAL::boolOpersFragTwo,frag2.V,frag2.F);
+}
+
+
+void testMeshThrow()
+{
+	igl::readOBJ(GLOBAL::boolOpersMeshOne,obj1_preSc.V,obj1_preSc.F); // <xxx>
+	igl::readOBJ(GLOBAL::boolOpersMeshTwo,obj2_preSc.V,obj2_preSc.F); // cube
+	applyUnitSphereRescaling(obj1_preSc.V, obj1_preSc.F, obj1.V,obj1.F);
+	// #TODO :: rename this operation to "rectangular-prism-rescaling."
+	//applyUnitSphereRescaling(obj2_preSc.V, obj2_preSc.F, obj2.V,obj2.F);
+	obj2.V = obj2_preSc.V;
+	obj2.F = obj2_preSc.F;
+
+	// throw both meshes ( obj1, obj2)
+	throwMeshInSpace(obj1.V,obj1.F, frag1.V, frag1.F);
+	throwMeshInSpace(obj2.V,obj2.F, frag2.V, frag2.F);
+
+	igl::writeOFF(GLOBAL::boolOpersFragOne,frag1.V,frag1.F);
+	igl::writeOFF(GLOBAL::boolOpersFragTwo,frag2.V,frag2.F);
+
+}
+
+void throwMeshInSpace(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V_p, Eigen::MatrixXi& F_p)
+{
+	// apply rotation
+	Eigen::Vector3d axisAngle = igl::random_dir();
+	Eigen::Matrix3d rotationMat = VectorMath::rotationMatrix(axisAngle);
+	Eigen::MatrixXd perturbedByR = V * rotationMat;
+
+	// apply translation
+	double scale = 10.0; // #NOTE :: can set to desired value.
+	Eigen::Vector3d randomDir = igl::random_dir();
+    Eigen::Vector3d translationVec = scale * randomDir;
+	Eigen::MatrixXd perturbedByT = perturbedByR.rowwise() + translationVec.transpose(); 
+
+	// output results
+    V_p = perturbedByT;
+    F_p = F;
+}
+
+/*
+* To note about boolean operations 
+* YES, meshes must be water tight for bool operations to be applicable. 
+*    they must also be orientable.
+* Hence why they fail in cases such as <circle.off> but not <camelHead.off>
+* NOTE :: V1 = left, V2 = right #TODO update naming conventions.
+* We'll always use the unit-cube ( it's a basic cutter for us ). We'll vary the other mesh though.
+*/
+void generateBoolOperMeshes(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V1, Eigen::MatrixXi& F1, Eigen::MatrixXd& V2, Eigen::MatrixXi& F2)
+{
+	// APPLY offsets to V, both [-|+] x-axis. Generate two additional meshes for cutting
+	Eigen::Vector3d offset_left = Eigen::Vector3d(-0.5,0,0);
+	Eigen::Vector3d offset_right = Eigen::Vector3d(0.5,0,0);
+
+	V1 = V.rowwise() + offset_left.transpose();
+	V2 = V.rowwise() + offset_right.transpose();
+	F1 = F2 = F;
+	igl::writeOBJ("hugePrismLeft.obj", V1, F1);
+	igl::writeOBJ("hugePrismRight.obj", V2, F2);
+}
+
+
+// #TODO:: include as a test method, run in a testing system ( 
+// Method responsibility - asserts preservation of order of vertex indexing between the interpolating and remeshed surfaces. 
+// equivalently, assserts that the n vertices (interp) = first n ( remesh )
+// ... ( e.g. akin to bb test, from Amazon ) 
+void runIndexTestInterpRemesh()
+{
+	if(!readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F)) {
+		std::cout << "Failed to load partial scan one." << std::endl;
+	} 
+
+	if(!readOFF(GLOBAL::pipelineScan2File,scan2.V,scan2.F)) {
+		std::cout << "Failed to load partial scan two." << std::endl;
+	}
+
+	std::cout << "Executing pipeline for the following meshes" << std::endl;
+	std::cout << "Mesh one [" << GLOBAL::pipelineScan1File << "]" << std::endl;
+	std::cout << "Mesh two [" << GLOBAL::pipelineScan2File << "]" << std::endl;
+
+	INTERP_SURF::generateInterpolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
+	double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
+	rEL = rEL / 5.0; 
+	bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
+	if(!remSucc)
+	{
+		std::cout << "BAD REMESHING!" << std::endl;
+		exit(0);
+	}
+
+	igl::writeOFF("interpolating_surface.off", interp.V,interp.F);
+	igl::writeOFF("remeshed_surface.off", remeshed.V,remeshed.F);
+}
+
+
+/* Idea taken from calculating smallest bounding sphere for a mesh
+*     and scaling according to its radius
+*     should be noted that for meshes contained in the unit sphere, it'll still work
+*     just based on a fractional radius
+*     Note that operations are limited to watertight meshes
+*/
+
+void applyUnitSphereRescaling(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::MatrixXd& V_scaled, Eigen::MatrixXi& F_scaled)
+{
+/*
+	* [1] calcualte COM ( = centroid ) 
+	* We use the centedoid here since we can assume our meshes are of constant density. Note 
+	*    that centroid calculatison work only for CLOSED meshes.
+	*/
+	Eigen::MatrixXd V_shifted;
+	Eigen::Vector3d cen = Eigen::Vector3d(0,0,0);
+	double vol;
+	igl::centroid(V, F, cen,vol); 
+
+	// [2] apply COM to origin translation
+	V_shifted = V.rowwise() - cen.transpose();
+
+	// [3] calculate max distance of all points in V_shifted to origin (0,0,0)
+	Eigen::Vector3d origin = Eigen::Vector3d(0,0,0); 
+	double max_dist = std::numeric_limits<double>::min();
+	for(int i = 0; i < V_shifted.rows(); ++i)
+	{
+		Eigen::Vector3d cur_point = V.row(i);
+		double dist = (cur_point - origin).norm();
+		max_dist = std::max(max_dist,dist);
+	}
+
+	// [4] scale every point by max_dist 
+	V_scaled = V_shifted / max_dist;
+	F_scaled = F;
+}
+
+// NOTE :: this method really can be placed back elsewhere, but for now, keep it in case we have to extend it later on!
+void generateMeshFragment(Eigen::MatrixXd& VA, Eigen::MatrixXi& FA, 
+						Eigen::MatrixXd& VB, Eigen::MatrixXi& FB,
+						Eigen::MatrixXd& VC, Eigen::MatrixXi& FC)
+{
+	// Bool opers = { "Union", "Intersect", "Minus", "XOR", "Resolve" }
+	Eigen::VectorXi J;
+	igl::MeshBooleanType boolean_type(igl::MESH_BOOLEAN_TYPE_MINUS); // yields plane of interest
+	//igl::MeshBooleanType boolean_type(igl::MESH_BOOLEAN_TYPE_INTERSECT); // does not yield plane of interest
+	igl::copyleft::cgal::mesh_boolean(VA,FA,VB,FB,boolean_type,VC,FC,J);
+	Eigen::MatrixXi FACES;
+	igl::cat(1,FA,FB,FACES);
+	std::cout << FACES << std::endl;
+	std::cout << "Going to print value of J"  << std::endl;
+	std::cout << J << std::endl;
+	std::cout << "Printed out value of J"  << std::endl;
+
+
+// so this shoudl be easy ... need to count faces in new mesh BTW
+
+	// new idea - hey, we cut with a cube, so we're guaranteed coords. Let's just use that :-)
+	// boolean vector - vertices with corresponding coord
+	//bool onPlane[VC.rows()]; // you know, a set would be more useful here instead!
+	//cout << VC << endl;
+	std::set<int> onPlane;   
+	for(int i = 0; i < VC.rows(); ++i)
+	{
+		Vector3d myRow = VC.row(i);
+		if(myRow(0) == 0)
+		{
+			onPlane.insert(i);
+		//	cout<< "i = [ " << i << "] and myRow = [" << myRow << "]\n";
+		}
+	}
+/*
+	cout << "--------------------------------------\n";
+	cout << "--------------------------------------\n";
+	cout << "--------------------------------------\n";
+	cout << "--------------------------------------\n";
+	cout << "--------------------------------------\n";
+*/
+	// loop over faces w/corresponding vertices
+	// [1] get total # of faces
+	int faceCnt = 0;
+	for(int i = 0; i < J.size(); ++i)
+	{	
+		int val = J(i);
+		if(val <= FA.rows())
+		{
+			faceCnt++;
+		}
+	}	
+
+// you want to keep A, and CHUCK out B. Remmeber what your expected input is supposed to look like [ you had this wrong earlier BTW ! ]
+	Eigen::MatrixXi bF = Eigen::MatrixXi(faceCnt,3);
+	int idx = 0;
+	for(int i = 0; i < J.size(); ++i)
+	{	
+		int val = J(i);
+		if(val <= FA.rows())
+		{
+			Eigen::Vector3i curFace = FA.row(val);
+			bF.row(idx) = curFace;
+			idx++;
+		}
+	}
+
+	cout << bF << endl;
+
+	// [2] get the actual faces from FA itself
+//	for(int i = 0; i < J.rows(); ++i)
+	/*
+	for(int i = 0; i < FC.rows(); ++i)
+	{
+		Vector3i myFace = FC.row(i);
+		int v1 = myFace(0);
+		int v2 = myFace(1);
+		int v3 = myFace(2);
+		const bool is_in_v1 = onPlane.find(v1) != onPlane.end();
+		const bool is_in_v2 = onPlane.find(v2) != onPlane.end();
+		const bool is_in_v3 = onPlane.find(v3) != onPlane.end();
+
+		if(is_in_v1 && is_in_v2 && is_in_v3) {
+			faceCnt++;
+		}
+	}
+	*/
+
+
+	// so let's just generate the mesh from this instead
+	// need to set up our mapping here too!
+	// or the cheap solution - hey, let's just create isolated points :-P
+/*
+	Eigen::MatrixXi bF = Eigen::MatrixXi(faceCnt,3);
+	int idx = 0;
+	for(int i = 0; i < FC.rows(); ++i)
+	{
+		Vector3i myFace = FC.row(i);
+		int v1 = myFace(0);
+		int v2 = myFace(1);
+		int v3 = myFace(2);
+		const bool is_in_v1 = onPlane.find(v1) != onPlane.end();
+		const bool is_in_v2 = onPlane.find(v2) != onPlane.end();
+		const bool is_in_v3 = onPlane.find(v3) != onPlane.end();
+
+		if(is_in_v1 && is_in_v2 && is_in_v3) {
+			bF.row(idx) = myFace;
+			idx++;
+		}
+	}
+*/
+
+// #TODO :: note the idea of loose vertices. You need to check this too!. SEe if you need to work about this or NOT!
+
+	igl::writeOFF("testBoundary.off", VA, bF);
+	
+	return;
+
+
+
+
+
+
+	// so face extraction has to occur here instead [ with VC, FC, J ]
+	// parameter shadowing? HUH?
+	//Eigen::MatrixXd VB;
+	//Eigen::MatrixXi FB;
+	//extractBoundary(VC, FC, J, VB, FB);
+
+	// <BOUNDARY_EXTRACTION>
+	// [1] get boundary faces for FA, FB
+
+	// [2] check indices in J into FA, FB if in boundary or not
+	// ... huh, can't I just get the intersection? Lemme print out both ze vectors!
+	// libs of interest - <is_boundary_edge>, <boundary_loop>, <on_boundary>
+
+	// #include <igl/boundary_facets.h> - this determines boundary faces, but for tetrahedra - wait a sec, useful for m by 3 case, n by 2 case ( we get boundary edges ).
+
+// wait, do I pass in the vertex or face list? IDK?
+//#include <igl/boundary_facets.h>
+//#include <igl/boundary_loop.h> // will this also work? It get's boundary vetices though/
+//#include <igl/is_boundary_edge.h> // also useful? hmm? - not really. need edge list, and get's edges, NOT faces!
+// is it true that EVERY boundary face consists only of boundary vertices? 
+	// NO. BUT ... you are incident to EXACTLY 2 boundary vertices, for sure. 
+	// actually wait ... I have some new faces introduced from BOOL-OPERS. Don't those compromise my mesh boundaries. UHH ,,, we should have this defined again!
+	// think about it ... if you just use INTERSECT, you get a set of edges and vertices. WITH XOR, we can get faces in between here ( and apply remeshing too, if need be? )
+	// ... oh shit, do I have to remesh here too! oh CRA... CRUD!
+
+	// ... can one determine boundary_faces, from boundary_vertices? possibly?
+	// ... we should at least get this cube case working.
+	// ... so uhh, with the current cubes case ... this just straight up fails. 
+	// ... let's try the spheres case ... and it still fails.
+	// ... do boundary vertices work at least?
+
+	// IDEAS NOW
+	// [1] apply INTERSECT operation, extract boundary loop, construct a plane from set of vertices
+	// [2] apply SET_DIFF operation, and extract the set of introduced faces and vertices. Apply remeshing operations on this mesh too, and pass that as your interpolating surface. Or just pass this directly as your interp surface. 
+	// ... I prefer approach number two. Let's see if order preservation still holds here!
+
+
+/*
+	igl::boundary_facets(FC,f_boundary);
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << "------------- Normal Faces ------------------" << std::endl;
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << FC << std::endl;
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << "------------- Boundary Faces ----------------" << std::endl;
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << f_boundary << std::endl; // this is null. need to fix this with something else now!
+*/
+
+	// yep ... I do get that issue. Bool opers result in CLOSED WATERTIGHT meshes. I need to work around this somehow. Any way of specifying options here?
+	// NOTE :: use INTERSECT, not SET_DIFF operation, to actually obtain a boundary!
+	// NOTE :: J is of form [FA:FA.rows() + FB] = birth facet
+
+	// so ... if we want the plane
+	// we eliminate any face from FA or FB
+	// and just add faces from F{\FA\unionFB}
+
+/*
+	std::cout << FA << std::endl; // we always take a subset of FA ( shifted mesh ). FB,VB = offsetted prism cutters
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << FC << std::endl;
+
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << VA << std::endl;
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << VC << std::endl;
+*/
+
+
+	// so since this is a set difference with the prism example
+	// you technically possess none of VA. 
+	// actually, why don't I take set diff ( intersect, set diff)? wouldn't that give the desired output??
+	// 3 bool opers - get my plane :-)
+	// Bool opers = { "Union", "Intersect", "Minus", "XOR", "Resolve" }
+
+/*
+
+	Eigen::VectorXi J_1;
+	Eigen::VectorXi J_2;
+	Eigen::VectorXi J_3;
+	Eigen::VectorXi J_4;
+
+	// set diff
+	Eigen::MatrixXd vM;
+	Eigen::MatrixXi fM;
+	igl::MeshBooleanType boolean_type_1(igl::MESH_BOOLEAN_TYPE_MINUS);
+	igl::copyleft::cgal::mesh_boolean(VA,FA,VB,FB,boolean_type_1,vM,fM,J_1);
+
+	// set intersection #1 [ need XOR too I think? ]
+	Eigen::MatrixXd vI;
+	Eigen::MatrixXi fI;
+	igl::MeshBooleanType boolean_type_2(igl::MESH_BOOLEAN_TYPE_INTERSECT);
+	igl::copyleft::cgal::mesh_boolean(VA,FA,VB,FB,boolean_type_2,vI,fI,J_2);
+*/
+	
+// CRUD ... XOR does resolution. I don't desire this!
+// ... and why is intersection not outputting expected wire frame? the heck?
+/*
+	Eigen::MatrixXd vX;
+	Eigen::MatrixXi fX;
+	igl::MeshBooleanType boolean_type_x(igl::MESH_BOOLEAN_TYPE_XOR);
+	igl::copyleft::cgal::mesh_boolean(VA,FA,vI,fI,boolean_type_x,vX,fX,J_3);
+*/
+/*
+	// set intersect #2
+	Eigen::MatrixXd vP;
+	Eigen::MatrixXi fP;
+	//igl::MeshBooleanType boolean_type_3(igl::MESH_BOOLEAN_TYPE_MINUS);
+	igl::MeshBooleanType boolean_type_3(igl::MESH_BOOLEAN_TYPE_INTERSECT);
+	igl::copyleft::cgal::mesh_boolean(vM,fM,vI,fI,boolean_type_3,vP,fP,J_4);
+
+	igl::writeOBJ("testDiff.obj",vM,fM);
+	igl::writeOBJ("testIntersect.obj",vI,fI); // fix this ( to other side )
+	//igl::writeOBJ("testXOR.obj",vX,fX); // fix this ( to other side )
+	igl::writeOBJ("testBoundary.obj",vP,fP);
+*/
+
+
+}
+
+// BOUNDARY EXTRACTION method - time to go write this up too!
+// test on a boolean operation mesh too btw ( assume we have this!! )
+// remember that J-vector you still have ( from igl::boolean )
+// get faces ON the boundary specifically. ... uhhh, wait a sec. I need to get vertices ... oh wait, that's EASY! as long as I've the index, I can get them! 
+// note :: J is a BOOL [0,1]-vector.
+// shit ... you need {FA, FB} here too! CRUD! ... uhhh, you might wanna refactor this later only!
+
+void extractBoundary(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::VectorXi& J, Eigen::MatrixXd& BV, Eigen::MatrixXi& BF)
+{
+}
+/* 
+* 
+* EXTRANEUOUS INFORMATION NOTED 
+* #include <igl/circumradius.h> - not desired. This is a per triangle measure.
+* #include <igl/inradius.h> - not desired. Also a per triangle measure.
+* #include <igl/all_pairs_distances.h> // could use this to cheat ( take max of vector? )
+* #include <igl/min.h> // #TODO :: use this in place of for-loop dist calculations?
+* #include <igl/max.h>
+*/
+
+
+/*
+* OLD testing code for <unit_sphere_scaling>. Place elsewhere.
+* void unitSphereTests()
+* {
+std::string rescaled_mesh_a_file_name = "rescaled_A.obj";
+std::string rescaled_mesh_b_right_file_name = "rescaled_right_B.obj";
+std::string rescaled_mesh_b_left_file_name = "rescaled_left_B.obj";
+igl::writeOBJ(rescaled_mesh_a_file_name, VA_scaled,FA);
+igl::writeOBJ(rescaled_mesh_b_left_file_name, VB_left_scaled,FB);
+igl::writeOBJ(rescaled_mesh_b_right_file_name, VB_right_scaled,FB);
+}
+*/
+
+// #TODO :: NOTE THIS CODE TOO!
+// note that here, <C> is actually for coloring purposes. 
+// # NOTE :: this is the technique Vouga was talking about for the remeshed vs interp thing. ... oh, coloring would be really helpful, now that I think about it.
+/*
+Eigen::MatrixXd C(FC.rows(),3);
+for(size_t f = 0;f<C.rows();f++)
+{
+if(J(f)<FA.rows())
+{
+	C.row(f) = Eigen::RowVector3d(1,0,0);
+}
+else
+{
+	C.row(f) = Eigen::RowVector3d(0,1,0);
+}
+}
+*/
+
+

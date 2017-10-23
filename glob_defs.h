@@ -52,7 +52,8 @@ namespace GLOBAL
 
 	extern const char* pipelineDebugFile;
 
-	extern const char* boolOpersMesh;
+	extern const char* boolOpersMeshOne;
+	extern const char* boolOpersMeshTwo;
 	extern const char* boolOpersFragOne;
 	extern const char* boolOpersFragTwo;
 }

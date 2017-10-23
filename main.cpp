@@ -1,3 +1,6 @@
+// NEW pattern
+	// [1] dir for shared inputs
+	// [1] dir for your specific outputs
 // a good pattern to estabslih
 // ... have one method handle all IO operations
 // ... it can grow confusing to have too many methods handle IO operations
@@ -50,7 +53,7 @@ struct Mesh
 	Eigen::VectorXi bI;  // boundary indices - for specific faces [ NOT a {0,1} boolean thing ] 
 	Eigen::MatrixXd N;   // Normals ( for Faces? or Vertices? )
 	int numBV; 		 	 // number of boundary vertices
-} mesh, meshL, meshR, frag1, frag2, scan1,scan2, interp, remeshed;
+} meshPreScaled, mesh, meshL, meshR, frag1, frag2, scan1,scan2, interp, remeshed;
 
 const char * MESH_BOOLEAN_TYPE_NAMES[] =
 {
@@ -64,19 +67,14 @@ const char * MESH_BOOLEAN_TYPE_NAMES[] =
 
 int main(int argc, char *argv[])
 {
-	cout << "h1\n";
-    igl::readOBJ(GLOBAL::boolOpersMesh,mesh.V,mesh.F);
-	cout << "h2\n";
+    igl::readOBJ(GLOBAL::boolOpersMesh,meshPreScaled.V,meshPreScaled.F);
+    applyUnitSphereRescaling(meshPreScaled.V, meshPreScaled.F, mesh.V);
+	mesh.F = meshPreScaled.F;
 	generateBoolOperMeshes(mesh.V, mesh.F, meshL.V, meshL.F, meshR.V, meshR.F);
-	cout << "h3\n";
 	generateMeshFragment(mesh.V,mesh.F,meshL.V,meshL.F, frag1.V, frag1.F);
-	cout << "h4\n";
 	generateMeshFragment(mesh.V,mesh.F,meshR.V,meshR.F, frag2.V, frag2.F);
-	cout << "h5\n";
     igl::writeOBJ(GLOBAL::boolOpersFragOne,frag1.V,frag1.F);
-	cout << "h6\n";
     igl::writeOBJ(GLOBAL::boolOpersFragTwo,frag2.V,frag2.F);
-	cout << "h7\n";
 }
 
 /*
@@ -91,12 +89,11 @@ void generateBoolOperMeshes(Eigen::MatrixXd& V, Eigen::MatrixXi& F, Eigen::Matri
     // Rescale both objects to unit sphere
     Eigen::MatrixXd VA_scaled;
     Eigen::MatrixXd VB_pre_offset_scaled;
-    applyUnitSphereRescaling(V1, F1, VA_scaled);
-    applyUnitSphereRescaling(V2, F2, VB_pre_offset_scaled);
+    applyUnitSphereRescaling(V, F, VB_pre_offset_scaled);
 
 	// APPLY offsets to VB, both [-|+] x-axis. Generate two additional meshes for cutting
-	Eigen::Vector3d offset_right = Eigen::Vector3d(0.5,0,0);
 	Eigen::Vector3d offset_left = Eigen::Vector3d(-0.5,0,0);
+	Eigen::Vector3d offset_right = Eigen::Vector3d(0.5,0,0);
 
 	V1 = VB_pre_offset_scaled.rowwise() + offset_left.transpose();
 	V2 = VB_pre_offset_scaled.rowwise() + offset_right.transpose();
@@ -132,8 +129,8 @@ void runIndexTestInterpRemesh()
 		exit(0);
 	}
 
-	igl::writeOFF(TUTORIAL_SHARED_PATH "/interpolating_surface.off", interp.V,interp.F);
-	igl::writeOFF(TUTORIAL_SHARED_PATH "/remeshed_surface.off", remeshed.V,remeshed.F);
+	igl::writeOFF("interpolating_surface.off", interp.V,interp.F);
+	igl::writeOFF("remeshed_surface.off", remeshed.V,remeshed.F);
 }
 
 
@@ -180,8 +177,11 @@ void generateMeshFragment(Eigen::MatrixXd& VA, Eigen::MatrixXi& FA,
 {
 	Eigen::VectorXi J;
 	igl::MeshBooleanType boolean_type(igl::MESH_BOOLEAN_TYPE_INTERSECT);
+	// #TODO :: why is seg fault happening here?
 	igl::copyleft::cgal::mesh_boolean(VA,FA,VB,FB,boolean_type,VC,FC,J);
+	
 	// note that here, <C> is actually for coloring purposes. We can eliminate this later, if need be!
+	/*
 	Eigen::MatrixXd C(FC.rows(),3);
 	for(size_t f = 0;f<C.rows();f++)
 	{
@@ -194,6 +194,7 @@ void generateMeshFragment(Eigen::MatrixXd& VA, Eigen::MatrixXi& FA,
 			C.row(f) = Eigen::RowVector3d(0,1,0);
 		}
 	}
+	*/
 }
 
 /*

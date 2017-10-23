@@ -64,7 +64,6 @@ const char * MESH_BOOLEAN_TYPE_NAMES[] =
 	"Resolve",
 };
 
-
 int main(int argc, char *argv[])
 {
     igl::readOBJ(GLOBAL::boolOpersMesh,meshPreScaled.V,meshPreScaled.F);

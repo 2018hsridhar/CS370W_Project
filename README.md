@@ -8,3 +8,5 @@ tutorial_shared_path.h :: used to help obtain access to /shared/<image> data, fo
 #TODO :: Describe how to test out stuff, as a user
 
 #TODO :: Describe future expansions that might prove possible
+
+#TODO :: rename folder from <shared> to <meshes>

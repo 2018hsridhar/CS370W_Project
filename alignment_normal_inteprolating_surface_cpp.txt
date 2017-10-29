@@ -2,8 +2,7 @@
 // NEED to align based on cross product of { edge_vectors, object_normals } W.R.T. the boundary
 //  --- how do I get this boundary though? it is a set of common vertices with object scans ( for sure ). 
 
-
-/*** FILE SHOULD BE CALLED :: test_J_Align.cpp ***/
+/*** FILE SHOULD REALLY BE CALLED :: test_J_Align.cpp ***/
 // C++ includes
 #include <iostream>
 #include <fstream>

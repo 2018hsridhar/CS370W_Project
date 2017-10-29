@@ -1,4 +1,5 @@
-﻿// idea - to visualize the field ; take each vertex v_i, it's normal n_i, and append the magnitude of the normal to another vertex v_j = v_i + n_i. generate your mesh from that! Assoc each edge properly too
+﻿// in reality, this is more so a test file. I'd include it elsewhere!
+// idea - to visualize the field ; take each vertex v_i, it's normal n_i, and append the magnitude of the normal to another vertex v_j = v_i + n_i. generate your mesh from that! Assoc each edge properly too
 // in essense, we generate this interesting pseudo-triangle mesh
 // we can try out a basic one with 6 vertices ... why not?
 // we can then place this back atop and see if it matches up with our intuition!

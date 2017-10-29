@@ -37,7 +37,8 @@ bool key_down( igl::viewer::Viewer& viewer, unsigned char key, int modifier)
   return false;
 }
 
-int main(int argc, char *argv[])
+//int main(int argc, char *argv[])
+void generateCamelTestData()
 {
   // Load a mesh in OFF format
   igl::readOFF(TUTORIAL_SHARED_PATH "/camelhead.off", V, F);

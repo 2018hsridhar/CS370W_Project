@@ -1,7 +1,0 @@
---------------------
---- Oct 09, 2017 ---
---------------------
-1. Thirty minutes - cleaning up and refactoring parts of codebase
-2. One hour - compilation issues, things not building, some issue with <NRosy.h>. Should I post a <FIX request> here? Perhaps. Will postpone for later!
-3. 
-4. #TOD

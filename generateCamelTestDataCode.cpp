@@ -10,7 +10,6 @@ Eigen::MatrixXi F;
 Eigen::MatrixXd V_rotated;
 Eigen::MatrixXi F_rotated;
 
-// function is called when keyboard buttons are pressed down. useful for alternating amongst a set of differing views
 bool key_down( igl::viewer::Viewer& viewer, unsigned char key, int modifier)
 {
   std::cout << "Key : " << key << (unsigned int) key << std::endl;

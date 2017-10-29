@@ -1,19 +1,20 @@
-﻿// #TODO :: actually enable asserts ... I think you need to do this
+﻿// #TODO :: 
+	// [1] actually enable asserts. 
+	// [2] Heavily refactor. At least algo still works as expected. I'd refactor it according to pipeline design, but it's kinda too late. Going to have to write <#@$#@> instead atm!
 // PURPOSE :: a greedy interpolating surface construction algorithm, from 2 range images, based of sticthing the best edge in a 4-point processing method. #TODO :: write up with a better description!
 
+// MY LIBRARIES
 #include "interpSurface.h"
 #include "remesh.h"
 #include "glob_defs.h"
+
+// Other namespace includes
 using namespace Eigen;  
 using namespace igl;
-using namespace std; // take out, but for now, useful in debug statements
+using namespace std;
 
-//#include "igl/orient_outward.h"
-// use combine.h --- for mesh concatenation?
-// use cut_mesh.h --- for cutting? anyway to just cut along an axis ... really!! ... nope, need the set of edges to cut 
-// use orient_outward.h --- to orient mesh outwards?? seems useful?? ... possible, might fail
-// use slice methods too - only for matrices, or for tetrahedral meshes
-// easiest -- rotate the plane, by a 180-deg rotation, about its y-axis ( rip from generate_data.cpp). This will prove easiest!
+// #TODO :: include method to get back boundary vertices
+// call is peformed in :: igl::cat(1,bndVertsScan1, bndVertsScan2,vOff);
 
 namespace INTERP_SURF 
 {
@@ -22,6 +23,14 @@ namespace INTERP_SURF
 	{
 		return (a%b+b)%b;
 	}
+
+	void generateBoundaryVertices(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, 
+								Eigen::MatrixXd& V_boundary)
+	{
+		Eigen::VectorXi bndIndexes;
+		igl::boundary_loop(F,bndIndexes); 
+		igl::slice(V,bndIndexes,1,V_boundary); 
+	}	
 
 	void generateInterpolatingSurface(const Eigen::MatrixXd &V1, const Eigen::MatrixXi &F1, 
 								const Eigen::MatrixXd &V2, const Eigen::MatrixXi &F2, 
@@ -43,14 +52,11 @@ namespace INTERP_SURF
 		Eigen::MatrixXd boundaryVertices_scan2;
 		std::vector<int> newTriangleFaces;
 
-
-// possibly a better approach to this problem!
-//http://stackoverflow.com/questions/27337529/eigen-stdset-with-vectorxd ... set of vectors, with thy own comparator
-// *** should be a set, but for now, am using a vector instead ***
-
-	// interpolating surface generation is a marching face-reconstruction based-approach
-	// we handle bad figure-8 cases, in which one marches error 
-	// this visited_set, is needed only when building a traversing back to the seed edge in 		
+	 /*
+	  * Interpolating surface generation is a marching face-reconstruction based-approach
+	  * we handle bad figure-8 cases, in which one marches error 
+	  * this visited_set, is needed only when building a traversing back to the seed edge in 		
+	  */
 
 		/*
 		 * *** SOLVE BOUNDARY VERTICES ( GET CYCLICAL ORDERING TOO ) ***
@@ -409,3 +415,12 @@ namespace INTERP_SURF
 
 
 }
+
+/*
+ * EXTRANEUOUS NOTES 
+ * <igl/combine.h> --- maybe for mesh concatenation. but for now, <igl/cat.h> works.
+ * <igl/cut_mesh.h> --- use to cut a mesh? Doesn't really work
+ * <igl/orient_outward.h. --- orient mesh normals in a different direction 
+ * Are slice methods limited to matrices? Something about tetrahedral meshes too?
+ */
+

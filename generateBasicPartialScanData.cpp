@@ -10,7 +10,7 @@ Eigen::MatrixXi F;
 Eigen::MatrixXd V_rotated;
 Eigen::MatrixXi F_rotated;
 
-bool key_down( igl::viewer::Viewer& viewer, unsigned char key, int modifier)
+bool key_down_distinct( igl::viewer::Viewer& viewer, unsigned char key, int modifier)
 {
   std::cout << "Key : " << key << (unsigned int) key << std::endl;
   if ( key == '1' )
@@ -71,7 +71,7 @@ for(int i = 0; i < V_rotated.rows(); i++)
 
   // Plot the ROTATED mesh 
   igl::viewer::Viewer viewer;
-  viewer.callback_key_down = &key_down;
+  viewer.callback_key_down = &key_down_distinct;
   viewer.data.set_mesh(V, F);
   viewer.launch();
 

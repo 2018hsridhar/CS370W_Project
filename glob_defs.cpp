@@ -6,8 +6,9 @@
 
 namespace GLOBAL
 {
-	const char* interpSurfGenScan1File = TUTORIAL_SHARED_PATH "/badScan1.off";
-    const char* interpSurfGenScan2File = TUTORIAL_SHARED_PATH "/badScan2.off";
+
+	const char* interpSurfGenScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
+    const char* interpSurfGenScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";
 	const char* remeshInputFile = TUTORIAL_SHARED_PATH "/offset.off";
     const char* remeshOutputFile = TUTORIAL_SHARED_PATH "/offsetRemesh.off";
 
@@ -26,8 +27,8 @@ namespace GLOBAL
 
 //	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/2triangles.off";
 	// #TODO :: test non-animated pipeline here with boundary mesh
-	//const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
-	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/testBoundary.off";
+	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
+	//const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/testBoundary.off";
 	const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";
 	//const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/camelhead.off";
 	//const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/camelhead2.off";

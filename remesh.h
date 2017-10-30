@@ -33,7 +33,8 @@ namespace REMESH
 						Eigen::MatrixXd& Vr, Eigen::MatrixXi& Fr, 
 						double target_edge_length);
 	double avgEdgeLenInputMeshes(Eigen::MatrixXd& V1, Eigen::MatrixXi& F1, Eigen::MatrixXd& V2, Eigen::MatrixXi& F2);
-	void getRemeshedBoundaryVerts(const int numBV_one, const int numBV_two, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, Eigen::MatrixXd& remeshBoundaryOne, Eigen::MatrixXd& remeshBoundaryTwo);
+//	void getRemeshedBoundaryVerts(const int numBV_one, const int numBV_two, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, Eigen::MatrixXd& remeshBoundaryOne, Eigen::MatrixXd& remeshBoundaryTwo);
+	void getRemeshedBoundaryVerts(const int numBV_one, const int numBV_two, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, std::vector<int>& remeshBoundaryOne, std::vector<int>& remeshBoundaryTwo);
 }
 
 #endif

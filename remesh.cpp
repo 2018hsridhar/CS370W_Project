@@ -137,7 +137,8 @@ namespace REMESH
 	* Gets boundary vertices for both parts of the remeshed interpolated surface
 	* Based on solving for <boundary_loop> of this remeshed interpolated surface 
 	*/
-	void getRemeshedBoundaryVerts(const int numBV_one, const int numBV_two, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, Eigen::MatrixXd& remeshBoundaryOne, Eigen::MatrixXd& remeshBoundaryTwo)
+	//void getRemeshedBoundaryVerts(const int numBV_one, const int numBV_two, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, Eigen::MatrixXd& remeshBoundaryOne, Eigen::MatrixXd& remeshBoundaryTwo)
+	void getRemeshedBoundaryVerts(const int numBV_one, const int numBV_two, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, std::vector<int>& remeshBoundaryOne, std::vector<int>& remeshBoundaryTwo)
 	{
 		// ITERATE over <resmeshed.V>
 		// KNOW that the first [boundaryOne,boundaryTwo] vertices are already set.
@@ -182,7 +183,11 @@ namespace REMESH
 			b2_s_ptr++;
 		}
 
+		remeshBoundaryOne = firstBL;
+		remeshBoundaryTwo = secondBL;
+
 		// CONVERT type :: firstBL -> Eigen::VectorXi ( it is a vector, after all )
+/*
 		Eigen::VectorXi bl_one;
 		bl_one.resize(firstBL.size());
 		for(int i = 0; i < firstBL.size(); ++i)
@@ -196,6 +201,6 @@ namespace REMESH
 		// NOW get those two boundaries!
 		igl::slice(V,bl_one,1,remeshBoundaryOne);
 		igl::slice(V,bl_two,1,remeshBoundaryTwo);
-		
+*/		
 	}
 }

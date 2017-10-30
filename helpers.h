@@ -8,6 +8,7 @@ using namespace Eigen;
 
 #include <iostream>
 #include <vector>
+#include <igl/cat.h>
 
 namespace HELPER
 {

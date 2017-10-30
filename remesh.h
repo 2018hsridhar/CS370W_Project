@@ -9,6 +9,8 @@
 #include <igl/viewer/Viewer.h>
 #include <igl/avg_edge_length.h>
 #include <igl/cat.h>
+#include <igl/slice.h>
+#include <igl/boundary_loop.h>
 
 // CGAL includes
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
@@ -31,7 +33,7 @@ namespace REMESH
 						Eigen::MatrixXd& Vr, Eigen::MatrixXi& Fr, 
 						double target_edge_length);
 	double avgEdgeLenInputMeshes(Eigen::MatrixXd& V1, Eigen::MatrixXi& F1, Eigen::MatrixXd& V2, Eigen::MatrixXi& F2);
-
+	void getRemeshedBoundaryVerts(const int numBV_one, const int numBV_two, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, Eigen::MatrixXd& remeshBoundaryOne, Eigen::MatrixXd& remeshBoundaryTwo);
 }
 
 #endif

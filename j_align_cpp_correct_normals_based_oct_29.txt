@@ -88,8 +88,6 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
 void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_omega ,struct Mesh m, RigidBodyInstance* body);
 void updateConfiguration(RigidBodyInstance* ScanBody, const Eigen::Vector3d& delta_cVel,const Eigen::Vector3d& delta_omega);
 void solveTransformation(const RigidBodyInstance* ScanBody, Eigen::Matrix4d& T);
-void constructNormalField(Eigen::MatrixXd& V, Eigen::MatrixXd& N,
-						Eigen::MatrixXd& V_res, Eigen::MatrixXi& N_edges);
 // METHOD BODY
 int main(int argc, char *argv[])
 {
@@ -386,7 +384,7 @@ void solve_config_deltas(Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_ome
 		// so F_k_ext looks right. now for delta_omega k's
 		normals_info.N.row(k) = delta_omega_k * 100; // for visualization purposes ( * 100 )
 	}
-	constructNormalField(normals_info.V, normals_info.N, normals.V, normals.F);
+	HELPER::constructNormalField(normals_info.V, normals_info.N, normals.V, normals.F);
 	// we expect delta_omega = 0 , in the 2 planes case. if not, there is a bug somewhere!
 	// this is not high priority anymore!
 	std::cout << "delta_omega vector = \n";
@@ -436,32 +434,4 @@ void solveTransformation(const RigidBodyInstance* ScanBody, Eigen::Matrix4d& T)
 	// #NOTE :: this is definetely getting correctly written :-)
 	T.block<3,1>(0,3) = t_comp; 
 	T.block<3,3>(0,0) = r_comp;
-}
-
-// #NOTE :: this is a debug method . It's not really used in the codebase. 
-void constructNormalField(Eigen::MatrixXd& V, Eigen::MatrixXd& N,
-						Eigen::MatrixXd& V_res, Eigen::MatrixXi& N_edges)
-{
-	// #TODO :: convert this to it's own method body
-
-
-	// #NOTE :: you'll convert this into a method later that takes in (V,N) and returns (V',E) to represent these visualized normals.
-	// apply the normal scaling operation here
-	Eigen::MatrixXd offsetedV = V + N;
-	//scan2.V = (scan1.V).rowwise() + n.transpose(); 
-
-	// concat the two vertex meshes too ( need this for indexing to properly work )
-	igl::cat(1,V,offsetedV,V_res);
-
-	// set up edges between [Scan1.V,scan2.V]
-	//std::cout << "COMMENCING set up of edges corresponding to normals\n";
-	int offset = V.rows();
-	N_edges = Eigen::MatrixXi(offset,3);
-	for(int i = 0; i < offset; ++i)
-	{
-		Eigen::VectorXi e_i = Eigen::Vector3i(i,i + offset, i);  // #TODO :: fix this problem
-		// hmm ... cheat, set one of these the same ????
-		N_edges.row(i) = e_i;	
-	}	
-	//std::cout << "DONE setting up edges corresponding to normals\n";
 }

@@ -61,7 +61,6 @@ namespace J_ALIGN
 // aseembly and disassembly ... was used in "WorldOfGoo", to update particle data ( from config vector ) ... but we might not need that here though! we might just need {assembly, update} steps! ... or maybe need it ( bodyInstances must be updated, right? ) 
 //	void assembleConfiguration();
 	void updateConfiguration();
-//	void dissassembleConfiguration();	
 	void constructTransformationFromConfiguration();
 	void calculateExternalForces();
 	void calculateConfigForce();

@@ -18,6 +18,8 @@
 
 // viewer logic ( for debugging later )
 #include <igl/viewer/Viewer.h>
+#include <igl/cat.h>
+#include "helpers.h"
 
 // namespace includes
 using namespace Eigen;  
@@ -27,30 +29,12 @@ using namespace std;
 #include <algorithm> // needed for std-lib [containers + iterators]
 
 int mod(int a, int b);
-std::vector<int> instersection(std::vector<int> &v1, std::vector<int> &v2);
 int detectFace(const Eigen::Vector2i& e_i, const Eigen::MatrixXi& F);
+void solveExternalForcesForBoundary(const std::vector<int>& boundaryLoop, const Eigen::MatrixXd& remeshV, const Eigen::MatrixXi& remeshF, Eigen::MatrixXd& boundaryV, Eigen::MatrixXd& extBndForceMat);
 
 int mod(int a, int b)
 {
 	return (a%b+b)%b;
-}
-
-/*
- * vector intersection code - ripped from <StackOverFlow>
- * https://stackoverflow.com/questions/19483663/vector-intersection-in-c
- * IDK why one must sort vectors for set intersections
- */
-// oh crud ... those are eigen vectors. Could get intersection, BUT would take too much time! 
-std::vector<int> instersection(std::vector<int> &v1, std::vector<int> &v2)
-{
-    std::vector<int> v3;
-
-    std::sort(v1.begin(), v1.end());
-    std::sort(v2.begin(), v2.end());
-
-    std::set_intersection(v1.begin(),v1.end(),v2.begin(),v2.end(),back_inserter(v3));
-
-    return v3;
 }
 
 /*
@@ -63,15 +47,13 @@ int detectFace(const Eigen::Vector2i& e_i, const Eigen::MatrixXi& F)
 {
 	// SOLVE for the intersection of a 3d and a 2d vector.
 	// JUST use a HM frequency map honestly. Iterate over <e_i> as if those were your keys instead.
-	// O(F*E) time, O(E) space
+	// COMPLEXITY :: [O(F*E) time, O(E) space]
 	bool hasFace = false;
 	int f_i = -1; 
 	for(int i = 0; i < F.rows(); ++i)
 	{
+		// CONSTRUCT HM frequency of [face,edge] vertex indices.
 		Eigen::Vector3i myFace = F.row(i);
-
-		// construct HM frequency of [face,edge] vertex indices.
-		// #TODO :: refactor code to something simpler BTW
 		std::map<int,int> vFreq;
 		vFreq[myFace(0)]++;
 		vFreq[myFace(1)]++;
@@ -79,12 +61,8 @@ int detectFace(const Eigen::Vector2i& e_i, const Eigen::MatrixXi& F)
 		vFreq[e_i(0)]++;
 		vFreq[e_i(1)]++;
 
-		int numIncV = 0;
-		if(vFreq[e_i(0)] == 2)
-			numIncV++;
-		if(vFreq[e_i(1)] == 2)
-			numIncV++;
-		if(numIncV == 2)
+		// IF we hit two vertices, we have a matching face
+		if(vFreq[e_i(0)] == 2 && vFreq[e_i(1)] == 2) 
 		{
 			f_i = i;
 			break;
@@ -103,13 +81,14 @@ int main(int argc, char *argv[])
 	{
 		Eigen::MatrixXd V; 
 		Eigen::MatrixXi F;
-	} scan1, scan2, interp, remeshed;
+	} scan1, scan2, interp, remeshed, result;
 
 	Eigen::MatrixXd boundaryOne;
 	Eigen::MatrixXd boundaryTwo;
 	int bvOne_num;
 	int bvTwo_num;
 
+	// Experiments will be executed on mirroring planes case.
 	if(!readOFF(GLOBAL::interpSurfGenScan1File,scan1.V,scan1.F)) {
 		std::cout << "Failed to load partial scan one." << std::endl;
 	} 
@@ -122,7 +101,7 @@ int main(int argc, char *argv[])
 	INTERP_SURF::generateInterpolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
 	// generate remeshed surface
 	double rel = REMESH::avgEdgeLenInputMeshes(scan1.V, scan1.F, scan2.V, scan2.F);
-	rel /= 2.0;
+	rel /= 10.0;
 	REMESH::remeshSurface(interp.V, interp.F,remeshed.V,remeshed.F, rel);
 
 	// INCORPORATE THIS CODE BLOCK INTO YOUR ALGO PIPELINE NOW!
@@ -142,74 +121,141 @@ int main(int argc, char *argv[])
 	REMESH::getRemeshedBoundaryVerts(bvOne_num, bvTwo_num, remeshed.V, remeshed.F, remeshBoundaryOne, remeshBoundaryTwo);
 	cout << "Done collecting remeshed boundary vertices" << endl;
 
-// GOAL :: just apply these algorithm for one of these scans. We'll get to the other boundry ... later!
-// remember ... as long as F_ext is right and scaled, working on the remeshed vs interpolated boundary WILL NOT MATTER! scaling helps account for these issues.
+	Eigen::MatrixXd boundaryV_1;
+	Eigen::MatrixXd extBndForceMat_1;
+	solveExternalForcesForBoundary(remeshBoundaryOne, remeshed.V, remeshed.F, boundaryV_1, extBndForceMat_1);  
+	Eigen::MatrixXd V_res_1;
+	Eigen::MatrixXi N_edges_1;
+	HELPER::constructNormalField(boundaryV_1,extBndForceMat_1,V_res_1,N_edges_1);
+	cout << "Solved external force for boundary one." << endl;
 
+	Eigen::MatrixXd boundaryV_2;
+	Eigen::MatrixXd extBndForceMat_2;
+	solveExternalForcesForBoundary(remeshBoundaryTwo, remeshed.V, remeshed.F, boundaryV_2, extBndForceMat_2);  
+	Eigen::MatrixXd V_res_2;
+	Eigen::MatrixXi N_edges_2;
+	HELPER::constructNormalField(boundaryV_2,extBndForceMat_2,V_res_2,N_edges_2);
+	cout << "Solved external force for boundary two." << endl;
 
+	Eigen::MatrixXd V_res_temp;
+	Eigen::MatrixXi N_edges_temp;
+	igl::cat(1, V_res_1, V_res_2, V_res_temp);
+	igl::cat(1, N_edges_1, MatrixXi(N_edges_2.array() + V_res_1.rows()) , N_edges_temp);
+	cout << "Concat and solve for external forces of both boundaries." << endl;
 
+	igl::cat(1, remeshed.V, V_res_temp, result.V);
+	igl::cat(1, remeshed.F, MatrixXi(N_edges_temp.array() + remeshed.V.rows()) , result.F);
+	//igl::cat(1, remeshed.V, V_res, result.V);
+	//igl::cat(1, remeshed.F, MatrixXi(N_edges.array() + remeshed.V.rows()) , result.F);
+
+	cout << "Done executing program. Time to pop up the viewer." << endl;
+
+	igl::viewer::Viewer viewer;
+	viewer.data.clear();
+	viewer.data.set_mesh(result.V, result.F);
+	viewer.launch();
+}
+
+/*
+ * RETURNS a set of boundary vertices and assoc external force normals for each vertex
+ * INPUT = [remeshBoundaryOne, remeshed.V, remeshed.F]
+ * OUTPUT = [boundryV, extBndForceMat]
+ */
+void solveExternalForcesForBoundary(const std::vector<int>& boundaryLoop, const Eigen::MatrixXd& remeshV, const Eigen::MatrixXi& remeshF, Eigen::MatrixXd& boundaryV, Eigen::MatrixXd& extBndForceMat)
+{
 	// [1] Calculate all per face normals, and normalize them
 	// #TODO :: <Z> := should I be concerned about cases of faces with degenerate normals?
-	// why is it that in the example, degenerate faces are assigned (1/3. 1/3, 1/3)^0.5 ? Weird
+	// #TODO :: why in the example is it that degenerate faces are assigned (1/3. 1/3, 1/3)^0.5? 
 	Eigen::Vector3d Z = Eigen::Vector3d(1,1,1).normalized();
 	Eigen::MatrixXd N_face;
-	igl::per_face_normals(remeshed.V, remeshed.F, Z, N_face);
-
-	// current issue ... desire a mapping :: edge -> face. Would be nice to have
-	// can't I just collect the edges based on the boundary instead? huh? 
+	igl::per_face_normals(remeshV, remeshF, Z, N_face);
 
 	// [2] construct set of edges from <boundary_loop_vertices>
-	// BETTER IDEA - perform a test to discover a faceIdx, given two vertices. That'd be nice.
-	// use both a VALID and INVALID edge here, for testing purposes. 
-	// don't have to worry about [indexing/cardinality] 
-
-	// #TODO :: get some debug help from Dr. Vouga here. Will need it later.
-	// #TODO :: ASSERT that no face has an index of (-1).
-	// #TODO :: run ASSERTION that all faces are unique, and not (-1) BTW. Is this expected?
-	// Eigen::Matrix3i <vFIndices>, of form (v_i, v_j, f_i), will serve as a useful index map.
-	Eigen::MatrixXi vfIndices;	
-	vfIndices.resize(remeshBoundaryOne.size(),3);	
-	for ( int i = 0; i < remeshBoundaryOne.size(); ++i)
+	// Eigen::Matrix3i <vFIndices> is of form (v_i, v_j, f_i). It'll serve as a useful index map.
+	// #TODO :: ASSERT all faces are unique [ do this later ]
+	int numBV = boundaryLoop.size();
+	Eigen::MatrixXi vfIndices;	 // size = |bndryLoop| 
+	vfIndices.resize(numBV,3);	
+	for ( int i = 0; i < numBV; ++i)
 	{
-		int v_i = remeshBoundaryOne[mod(i,bvOne_num)];
-		int v_i_plus_1 = remeshBoundaryOne[mod((i+1), bvOne_num)];
+		int v_i = boundaryLoop[mod(i,numBV)];
+		int v_i_plus_1 = boundaryLoop[mod((i+1), numBV)];
 		Eigen::Vector2i e_i = Eigen::Vector2i(v_i,v_i_plus_1);
-		// let us detect corresponding face here
-		int f_i = detectFace(e_i, remeshed.F);
+		int f_i = detectFace(e_i, remeshF);
 		if(f_i == -1)
 			cout << "ERROR :: INVALID FACE INDEX\n";
 		Eigen::Vector3i myData = Eigen::Vector3i(v_i,v_i_plus_1,f_i);
 		vfIndices.row(i) = myData;
 	}
-	//cout << vfIndices << endl;
 
 	// [3] Construct normalized edge vectors and face normals.
 	// TAKE their cross product :: create new matrix of f_i_ext. 
-	// #TODO :: be careful of ordering of vectors in X-product. Depends on way boundry is iterated over too.
+	// #TODO :: ordering of X-prod vectors is tied to how the boundary is iterated over too.
 	Eigen::MatrixXd f_i_ext_Mat;
-	f_i_ext_Mat.resize(vfIndices.rows(), 3);
 	Eigen::MatrixXd V_norm;
-	V_norm.resize(vfIndices.rows(), 3);
-	for(int i = 0; i < vfIndices.rows(); ++i)
+
+	f_i_ext_Mat.resize(numBV, 3);
+	V_norm.resize(numBV, 3);
+
+	for(int i = 0; i < numBV; ++i)
 	{
 		Eigen::Vector3i myData = vfIndices.row(i);
 		int v_i = myData(0);
 		int v_i_plus_1 = myData(1);
 		int f_i = myData(2);
-		// #TODO :: fix this later
+
+		// Solve for face normal
+		Eigen::Vector3d f_norm;
 		if(f_i == -1) 
-			continue;
-		Eigen::Vector3d f_norm = N_face.row(f_i);	
-		Eigen::Vector3d e_i = (remeshed.V.row(v_i_plus_1) - remeshed.V.row(v_i));
+		{ 
+			// NOTE :: I do not expect this err to arise at all.
+			std::cout << "f_i = [-1] ERROR" << std::endl;
+			f_norm = Eigen::Vector3d(1,0,0);
+			exit(0);
+		}
+		f_norm = N_face.row(f_i);	
+
+		// solve for edge normal
+		Eigen::Vector3d e_i = (remeshV.row(v_i_plus_1) - remeshV.row(v_i));
 		double e_i_len = e_i.norm();
 		e_i.normalize();
-		Eigen::Vector3d f_i_ext = (f_norm.cross(e_i)).normalized() * e_i_len;
+
+		// Solve for the external force for bndry vertex
+		Eigen::Vector3d f_i_ext = (f_norm.cross(e_i)).normalized() * e_i_len; 
 		f_i_ext_Mat.row(i) = f_i_ext;
 
-		// extraneuous
-		Eigen::Vector3d c = 0.5 * (remeshed.V.row(v_i) + remeshed.V.row(v_i_plus_1));
-		V_norm.row(i) = c;
+		// Construct boundary vertex assoc w/specific external force <f_i_ext>  
+		Eigen::Vector3d c = 0.5 * (remeshV.row(v_i) + remeshV.row(v_i_plus_1));
+		V_norm.row(i) =  c;
 	}
 
-	// you know what ... just refactor and include this code back in your old alignment code. That's easier! 
-	// I don't want to rewrite this logic again!
+	// ASSERT :: cardinality(N_edges) matches cardinality(boundary_one_vertices)
+	if(numBV != f_i_ext_Mat.rows())
+	{
+		std::cout << "SIZE MISMATCH ERROR" << std::endl;
+		exit(0);
+	}
+
+	boundaryV = V_norm;
+	extBndForceMat = f_i_ext_Mat;
+
 }
+
+/*
+	* Was part of the main method a while back. 
+	* We could put back in later.
+
+	HELPER::constructNormalField(V_norm,f_i_ext_Mat,V_res,N);
+	igl::cat(1, remeshed.V, V_res, result.V);
+	igl::cat(1, remeshed.F, MatrixXi(N_edges.array() + remeshed.V.rows()) , result.F);
+
+	cout << "Done executing program. Time to pop up the viewer." << endl;
+
+	igl::viewer::Viewer viewer;
+	viewer.data.clear();
+	viewer.data.set_mesh(result.V, result.F);
+	viewer.launch();
+*/
+
+
+

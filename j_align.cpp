@@ -1,23 +1,16 @@
-﻿// #TODO :: refactor file; some of these methods truly do belong elsewhere, and are contributing to clutter.
-/*** FILE SHOULD REALLY BE CALLED :: test_J_Align.cpp ***/
-// C++ includes
+﻿// C++ includes
+#include <algorithm> 
+#include <map>
 #include <iostream>
-#include <fstream>
-
-// MY LIBRARIES  
-#include "glob_defs.h"
-//#include "interpSurface.h"
-//#include "remesh.h"
-//#include "sgd.h" // get rid of later
-#include "j_align.h"
-#include "rigidbodytemplate.h"
-#include "rigidbodyinstance.h"
-#include "helpers.h"
-#include "vectormath.h"
 
 // LibIgl includes
 #include <igl/per_face_normals.h>
-#include <algorithm> 
+
+// MY LIBRARIES  
+#include "glob_defs.h"
+#include "rigidbodyinstance.h"
+#include "j_align.h"
+#include "vectormath.h"
 
 // Namespace includes 
 using namespace Eigen;  
@@ -148,7 +141,7 @@ namespace J_ALIGN
 			Eigen::Vector2i e_i = Eigen::Vector2i(v_i,v_i_plus_1);
 			int f_i = detectFace(e_i, remeshF);
 			if(f_i == -1)
-				cout << "ERROR :: INVALID FACE INDEX\n";
+				std::cout << "ERROR :: INVALID FACE INDEX\n";
 			Eigen::Vector3i myData = Eigen::Vector3i(v_i,v_i_plus_1,f_i);
 			vfIndices.row(i) = myData;
 		}

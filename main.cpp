@@ -81,17 +81,9 @@ RigidBodyInstance *ScanTwoBody;
 RigidBodyTemplate *ScanOneTemplate;
 RigidBodyTemplate *ScanTwoTemplate;
 
-// TBH, your configurations ... lie in the RigidBodyInstances themselves. You update here!
-// How do I get the points, on the mesh, that corresponds to the face normals? Do I need to perform barycentric interp here, to find them! ... this does not seem right at all!
-// also ... for the code, I need to account for weighting ( based on edge len )! BE CAREFUL!
-// ... perhaps the usefulness of the signed distance field?? 
-
 // METHOD HEADERS
 int runPipeline();
 bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
-void solve_config_deltas(const Eigen::MatrixXd& vBoundary, const Eigen::MatrixXd bndExtForceMat, const RigidBodyInstance* body, Eigen::Vector3d& delta_cvel, Eigen::Vector3d& delta_omega);
-void updateConfiguration(RigidBodyInstance* ScanBody, const Eigen::Vector3d& delta_cVel,const Eigen::Vector3d& delta_omega);
-void solveTransformation(const RigidBodyInstance* ScanBody, Eigen::Matrix4d& T);
 
 // METHOD BODY
 int main(int argc, char *argv[])
@@ -228,7 +220,6 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				// close file
 				debugFile.close();	
 				// exit program
-				//exit(0);
 			}
 			else
 			{
@@ -242,13 +233,11 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			// generate boundary vertices from interpolating surface
 			Eigen::MatrixXd boundaryOne;
 			Eigen::MatrixXd boundaryTwo;
-			int bvOne_num;
-			int bvTwo_num;
 
 			INTERP_SURF::generateBoundaryVertices(scan1.V, scan1.F,boundaryOne); 
 			INTERP_SURF::generateBoundaryVertices(scan2.V, scan2.F,boundaryTwo); 
-			bvOne_num = boundaryOne.rows();
-			bvTwo_num = boundaryTwo.rows();
+			int bvOne_num = boundaryOne.rows();
+			int bvTwo_num = boundaryTwo.rows();
 			
 			// get FLOWED mesh ( after remeshing too, btw ) boundary vertices, for both scan parts
 			std::vector<int> remeshBoundaryOne;
@@ -283,22 +272,23 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			J_ALIGN::updateConfiguration(ScanTwoBody,delta_cVel_2,delta_omega_2);
 
 			// [7] GENERATE transformation [ rot + trans ] components
+			// ##TODO :: fix this transformation. It isn't correct. Something about it is off apparantely.
 			Eigen::Matrix4d T1 = Eigen::Matrix4d::Identity();
 			Eigen::Matrix4d T2 = Eigen::Matrix4d::Identity();
-
 			J_ALIGN::solveTransformation(ScanOneBody, T1);
 			J_ALIGN::solveTransformation(ScanTwoBody, T2);
 
-			// [8] CREATE global mesh, contain the two inputs aligned based on impulses
+			// [7] APPLY rigid transformations to both boundaries.
 			HELPER::applyRigidTransformation(scan1_rest.V,T1,scan1.V);
 			HELPER::applyRigidTransformation(scan2_rest.V,T2,scan2.V);
+			++iters;
+
+			
+			// [8] CREATE global mesh, contain the two inputs aligned based on impulses
 			igl::cat(1,scan1.V,scan2.V,result.V);
 			igl::cat(1,scan1.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
-
 			viewer.data.clear();
 			viewer.data.set_mesh(result.V,result.F);
-
-			++iters;
 			break;
 		}
 		default:

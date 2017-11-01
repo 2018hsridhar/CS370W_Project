@@ -148,7 +148,8 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			//cout << "Generating interpolating surface" << endl;
 			INTERP_SURF::generateInterpolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
 			double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
-			rEL = rEL / 3.0; // #NOTE :: can actually visualize pinching occuring here
+			rEL = rEL; // #NOTE :: can actually visualize pinching occuring here
+			//rEL = rEL / 3.0; // #NOTE :: can actually visualize pinching occuring here
 			bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
 
 			if(!remSucc)

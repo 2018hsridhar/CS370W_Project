@@ -1,0 +1,17 @@
+Mirror planes case, spaced apart by <xxx> amoutn of units
+
+Remesh /= NUMBER, # Trials
+1, 305
+2, 305
+3, 124 ... REMESH fails here. IDK why
+4, 305
+5,
+
+--- I expect that no matter how fine remeshing is, the number of trials/iterations to convergence stays constant.
+It sems like the impulse based alignment scheme works, but failure occurs in remeshing of certain meshes? Unsure why
+--- well, becuase of the remesh invariant, I really don't hav eto refine my remesh edge len.
+--- Do I need to adjust for a proper 'h-value', or not? unsure here?
+--- @ h = 1.0, this algo just keeps springing back-and-forth
+--- @ h = 0.5, same behavior as h = 1.0, but more iterations
+--- @ h = 0.025, this just tanks weirdly. It does converge in a nice number of iterations, and then starts to rotate in a weird manner. That shouldn't be happening.
+--- @ h = 0.01, the algorithm looks completely reasonable.

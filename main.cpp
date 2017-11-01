@@ -1,41 +1,27 @@
 ﻿// MY LIBRARIES  
-// #TODO :: cut down. This seriously affects compilation time.
 #include "glob_defs.h"
-#include "meanCurvatureFlow.h"
+#include "helpers.h"
 #include "interpSurface.h"
 #include "remesh.h"
-#include "sgd.h"  // #TODO :: eliminate later
-#include "j_align.h"
+#include "meanCurvatureFlow.h"
+#include "sgd.h"  
+#include "vectormath.h"
 #include "rigidbodytemplate.h"
 #include "rigidbodyinstance.h"
-#include "helpers.h"
-#include "vectormath.h"
+#include "j_align.h"
 
 // LibIgl includes
-#include <igl/readOFF.h>
 #include <igl/writeOFF.h>
-#include <igl/readOBJ.h>
-#include <igl/writeOBJ.h>
-#include <igl/per_edge_normals.h>
-#include <igl/per_vertex_normals.h>
-#include <igl/print_vector.h>
-#include <igl/signed_distance.h> 
-#include <igl/boundary_loop.h>
-#include <igl/slice.h>
-#include <igl/random_dir.h>
-#include <igl/boundary_loop.h>
-#include <igl/per_face_normals.h>
+// viewer logic ( viewing mostly )
+#include <igl/viewer/Viewer.h>
+#include <igl/cat.h>
 
 // C++ includes
 #include <iostream>
 #include <fstream>
-#include <algorithm> 			// needed for std-lib [containers + iterators]
+#include <algorithm> 
 
-// viewer logic [ For later debugging ... crucial only for main method ]
-#include <igl/viewer/Viewer.h>
-#include <igl/cat.h>
-
-// Namespace includes 
+// C++ Namespace includes 
 using namespace Eigen;  
 using namespace std;
 using namespace igl;
@@ -49,21 +35,12 @@ struct Mesh
 {
 	Eigen::MatrixXd V; 
 	Eigen::MatrixXi F;
-
 	Eigen::MatrixXd bV;  // boundary vertices
-	Eigen::VectorXi bI; // boundary indices; just indxs to specific faces ( not a 1,0 boolean thing ) 
-
+	Eigen::VectorXi bI; // boundary indices 
 	Eigen::MatrixXd N;
-
 	int numBV; 			// number of boundary vertices
+} scan1, scan2, scan1_rest, scan2_rest, interp, remeshed, flowed, result;
 
-} scan1,scan2,scan1_rest,scan2_rest,interp,remeshed, flowed, debug_result, result, normals, normals_info;
-// #TODO :: note that these <normals> are for <scan1> primarily, and <normals_info> is used to compute said <normals> 3D triangle-mesh structure.
-// #TODO :: please improve naming conventions here.
-// #TODO :: organize file better. I'm getting lost in these variable names and what not.
-// #TODO :: note the stage in which speciifc data is written ( i.e. interp, remesh, flow ) 
-
-ofstream debugFile;
 Eigen::Matrix4d T1 = Eigen::Matrix4d::Identity();
 Eigen::Matrix4d T2 = Eigen::Matrix4d::Identity();
 // I expect initialy COMS and orientations to be equal to 0. 
@@ -84,11 +61,12 @@ RigidBodyTemplate *ScanTwoTemplate;
 // METHOD HEADERS
 int runPipeline();
 bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
+ofstream debugFile;
 
 // METHOD BODY
 int main(int argc, char *argv[])
 {
-	// EXECUTE J_ALIGN PIPELINE
+	// EXECUTE IMPUSLE-BASED, J_ALIGN PIPELINE
 	runPipeline();
 }
 

@@ -18,7 +18,8 @@ using namespace std;
 using namespace igl;
 
 // PREALLOCATION
-const double h = 0.01;
+//const double h = 0.01;
+const double h = 0.1;
 //const double h = 0.1;
 
 // NOTE that the <body> is assoc with a <boundary> in this set up.

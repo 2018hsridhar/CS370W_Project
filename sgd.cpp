@@ -138,9 +138,11 @@ namespace SGD
 		// solve for surface area of input mesh
 		Eigen::VectorXd dbla;
 		igl::doublearea(V,F,dbla);
+
+		// this surface area isn't right. something is off. #TODO fix this
 		double surfaceArea = 0.5 * dbla.sum();	
 
-		// calculat energy 
+		// calculate energy 
 		double result = surfaceArea;
 		assert(result >= 0);
 		return result;

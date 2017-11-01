@@ -1,4 +1,6 @@
-﻿// #TODO :: 
+﻿// call this <stitching>, not <interp_surface> generation. DEBUG this!
+
+// #TODO :: 
 	// [1] actually enable asserts. 
 	// [2] Heavily refactor. At least algo still works as expected. I'd refactor it according to pipeline design, but it's kinda too late. Going to have to write <#@$#@> instead atm!
 // PURPOSE :: a greedy interpolating surface construction algorithm, from 2 range images, based of sticthing the best edge in a 4-point processing method. #TODO :: write up with a better description!

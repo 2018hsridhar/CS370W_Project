@@ -78,6 +78,11 @@ namespace MCF
 			{
 				diff += (Vc.row(i) - U.row(i)).norm();		
 			}
+
+			// DIVIDE diff by the number of vertices too ( rescaling operation)
+			// ACCOUNTS for scaling of both small and large meshes.
+			diff /= numVertices;
+
 			//printf("Difference this round is %f.\n", diff);
 			Vc = U;
 
@@ -95,6 +100,12 @@ namespace MCF
 		igl::MassMatrixType mcfType = igl::MASSMATRIX_TYPE_BARYCENTRIC;
 		Vc = V;
 		double diff;
+
+		// this threshold is dependnet on # vertices
+		// lots of vertices ... much higher than fewer
+		// we try to minimize energy here. Use better TOL ( use grad )
+		// divide by # of vertices ( invariant to # vertices of input meshes )
+
 		constexpr double mcfStoppingVal = 10;  
 		// #TODO :: fix difference of norm calculation ... it becomes constant, @ some point of time ... this is not good ! ... you should have made this fix a long long time ago!!!!
 
@@ -109,6 +120,9 @@ namespace MCF
 			diff = 0;
 			Eigen::SparseMatrix<double> A = ( M - ( timestep * L));
 			Eigen::MatrixXd B = ( M * Vc); 
+			// LDLT ( a more robust linear solver )
+			// could be a sign of an issue ( if optimization never converges )
+			// we expect arbitrary numbers beaten.
 			Eigen::SimplicialLLT<Eigen::SparseMatrix<double> > solver; 
 			solver.compute(A); 
 			if(solver.info() != Eigen::Success) {
@@ -129,8 +143,9 @@ namespace MCF
 				diff += (Vc.row(i) - U.row(i)).norm();		
 			}
 
-			//std::string output_of_mesh = "round[" + std::to_string(iter) + "].off";
-			//igl::writeOFF(output_of_mesh,Vc,F);
+			// DIVIDE diff by the number of vertices too ( rescaling operation)
+			// ACCOUNTS for scaling of both small and large meshes.
+			diff /= numVertices;
 			
 			// UPDATE Vc = (U | Vc ), based on if a vertex is on the boundary
 			for(int i = 0; i < numVertices; i++) 
@@ -145,6 +160,7 @@ namespace MCF
 			igl::massmatrix(Vc,F, mcfType, M);  
 			iter++;
 		} while ( diff > mcfStoppingVal);
+		// ensure that threshold is actually beat. Ensure linear solver is correct. 
 	}
 
 	void computeMeanCurvatureFlow(const Eigen::MatrixXd& V, const Eigen::MatrixXi &F, double timestep, Eigen::MatrixXd &Vc)

@@ -27,11 +27,11 @@ namespace GLOBAL
 
 //	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/2triangles.off";
 	// #TODO :: test non-animated pipeline here with boundary mesh
-	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
+	//const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
 	//const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/testBoundary.off";
-	const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";
-	//const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/camelhead.off";
-	//const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/camelhead2.off";
+	//const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";
+	const char* pipelineScan1File = TUTORIAL_SHARED_PATH "/camelhead.off";
+	const char* pipelineScan2File = TUTORIAL_SHARED_PATH "/camelhead2.off";
 	const char* pipelineOutputFile = TUTORIAL_SHARED_PATH "/result.off";
 
 	// DEBUG VARS

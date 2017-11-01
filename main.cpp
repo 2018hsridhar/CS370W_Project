@@ -1,4 +1,7 @@
-﻿// MY LIBRARIES  
+﻿// CHECK if interp surface has Nans, or [V,F] Nana,s [COMs, orientations], and if Forces are NaN
+// which step is causing the blow up
+
+// MY LIBRARIES  
 #include "glob_defs.h"
 #include "helpers.h"
 #include "interpSurface.h"
@@ -169,6 +172,9 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			flowed.F = remeshed.F;
 
 			// CHECK IF impulses improved alignment
+			// #TODO :: why do we get a <NaN> value here on 87th iteration of camel heads? That's somewhat off.
+			// IF we get a area to have NaN ... one of these vertices/triangles posses a NaN ... where is the problem in the pipeline. 
+			// PUT some ASSERTIONS here!
 			double local_energy = SGD::calculateSurfaceEnergy(flowed.V,flowed.F);
 
 			// this energy calculation seems awfully FISHY!
@@ -181,7 +187,13 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			// something tells me that I need to be careufl with this local energy value
 			// and need to double check magnitudes of F_ext being used here!
 			// [T1,T2] need to be properly updated here!
-			if(local_energy < 0.1) // #TODO :: find a better approach here??
+			// #TODO :: change this threshold.  
+			// simplest thing ... large # of iterations ( i.e. 500 ), don't stop early!
+			// use derivative f of energy ( close to 0 ). Magnitude of grad(E)
+			// compare both [trans,rot] of rigid bodies
+
+			//if(local_energy < 0.1) // #TODO :: find a better approach here??
+			if(local_energy < 0.025) // #TODO :: find a better approach here??
 			{
 				std::cout << "Impulse based alignment Converged to a solution" << std::endl;
 				std::cout << "Printing optimal transformation matrices" << std::endl;	

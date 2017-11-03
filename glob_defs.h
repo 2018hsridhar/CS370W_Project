@@ -17,6 +17,8 @@
 namespace GLOBAL
 {
 	extern const char* remeshInputFile;
+	extern const char* sleOutputFile;
+	extern const char* isoOutputFile;
     extern const char* remeshOutputFile;
 
 	extern const char* interpSurfGenScan1File;
@@ -51,6 +53,7 @@ namespace GLOBAL
 	extern const char* pipelineOutputFile;
 
 	extern const char* pipelineDebugFile;
+	extern const char* mcfDebugFile;
 
 	extern const char* boolOpersMeshOne;
 	extern const char* boolOpersMeshTwo;

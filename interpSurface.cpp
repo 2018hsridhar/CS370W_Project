@@ -1,5 +1,4 @@
 ﻿// call this <stitching>, not <interp_surface> generation. DEBUG this!
-
 // #TODO :: 
 	// [1] actually enable asserts. 
 	// [2] Heavily refactor. At least algo still works as expected. I'd refactor it according to pipeline design, but it's kinda too late. Going to have to write <#@$#@> instead atm!
@@ -26,6 +25,7 @@ namespace INTERP_SURF
 		return (a%b+b)%b;
 	}
 
+/*
 	void generateBoundaryVertices(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, 
 								Eigen::MatrixXd& V_boundary)
 	{
@@ -33,6 +33,14 @@ namespace INTERP_SURF
 		igl::boundary_loop(F,bndIndexes); 
 		igl::slice(V,bndIndexes,1,V_boundary); 
 	}	
+*/
+	// uhh, this is a one liner.
+	/*
+	void retIndicesBoundaryVertices(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, std::vector<int>& bndIndices)
+	{
+		igl::boundary_loop(F,bndIndices);
+	}	
+	*/
 
 	void generateInterpolatingSurface(const Eigen::MatrixXd &V1, const Eigen::MatrixXi &F1, 
 								const Eigen::MatrixXd &V2, const Eigen::MatrixXi &F2, 

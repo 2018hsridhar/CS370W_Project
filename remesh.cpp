@@ -2,6 +2,12 @@
 #include "glob_defs.h"
 using namespace Eigen;
 
+/*
+ * Some LibIgl includes - for debug purposes mostly.
+ */
+#include <igl/writeOFF.h>
+#include <igl/readOFF.h>
+
 // CGAL typedefs
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef CGAL::Surface_mesh<K::Point_3> Mesh;
@@ -76,6 +82,12 @@ int main(int argc, char* argv[])
 }
 */
 
+//////////////////////////////////////////////////////////////////
+// [1] test other orientations and translations
+// [2] test other examples
+// [3] Perhaps the camel heads constitutes a very unlucky case.
+//////////////////////////////////////////////////////////////////
+
 namespace REMESH
 { 
 	bool remeshSurface(Eigen::MatrixXd& V, Eigen::MatrixXi& F, 
@@ -93,11 +105,19 @@ namespace REMESH
 		}
 		unsigned int nb_iter = 3;
 		//std::cout << "Split border...";
+
+
+		// APPLY Split Border Operations
 		std::vector<edge_descriptor> border;
 		PMP::border_halfedges(faces(mesh),
 			mesh,
 			boost::make_function_output_iterator(halfedge2edge(mesh, border)));
 		PMP::split_long_edges(border, target_edge_length, mesh);
+
+		std::ofstream sle_off(GLOBAL::sleOutputFile);
+		sle_off << mesh;
+		sle_off.close();
+	
 		//std::cout << "done." << std::endl;
 		//std::cout << "Start remeshing of " << GLOBAL::remeshInputFile 
 		//	<< " (" << num_faces(mesh) << " faces)..." << std::endl;
@@ -106,8 +126,9 @@ namespace REMESH
 			std::cout << "REMESHING WILL FAIL HERE" << std::endl;
 			badInterp = false;
 		}
-		// something in isotropic_remeshing seems to fail ... occasional floating_point_exception?
-		// and why is the number of faces so low ( 116 vs 232 ) in the camel case? That too, is weird!!
+
+		// APPLY Isotropic Remeshing Operations
+
 		PMP::isotropic_remeshing(
 			faces(mesh),
 			target_edge_length,
@@ -115,10 +136,16 @@ namespace REMESH
 			PMP::parameters::number_of_iterations(nb_iter)
 			.protect_constraints(true)//i.e. protect border, here
 			);
-	//	std::cout << "Remeshing done." << std::endl;
-		std::ofstream cube_off(GLOBAL::remeshOutputFile);
-		cube_off << mesh;
-		cube_off.close();
+		std::cout << "Remeshing done." << std::endl;
+		std::ofstream iso_off(GLOBAL::isoOutputFile);
+		iso_off << mesh;
+		iso_off.close();
+
+		// ACTUALLY output remeshed file
+		// why is <iso_off> different from <remeshOutputFile>>? 
+		std::ofstream remesh_off(GLOBAL::remeshOutputFile);
+		remesh_off << mesh;
+		remesh_off.close();
 		igl::readOFF(GLOBAL::remeshOutputFile, Vr,Fr);
 		return badInterp;
 	}
@@ -136,8 +163,8 @@ namespace REMESH
 	/*
 	* Gets boundary vertices for both parts of the remeshed interpolated surface
 	* Based on solving for <boundary_loop> of this remeshed interpolated surface 
+	* {V,F} represent the remeshsed surface btw. [numBV_one, numBV_two] denote the stitched surface.
 	*/
-	//void getRemeshedBoundaryVerts(const int numBV_one, const int numBV_two, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, Eigen::MatrixXd& remeshBoundaryOne, Eigen::MatrixXd& remeshBoundaryTwo)
 	void getRemeshedBoundaryVerts(const int numBV_one, const int numBV_two, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, std::vector<int>& remeshBoundaryOne, std::vector<int>& remeshBoundaryTwo)
 	{
 		// ITERATE over <resmeshed.V>
@@ -158,8 +185,26 @@ namespace REMESH
 
 		// ASSERT that all verts in boundaryOne are in the firstBL 
 		// [scan1 = boundary1], and [scan2 = boundary2] here
+		// #TODO :: am I indexing incorrectly here. Need to check again!
 		int b1_s_ptr = 0;
 		int b2_s_ptr = numBV_one;
+
+		// #TODO :: why does this fail for the camel heads. Need to find out here.
+		// huh ... this boundary loop code should work as expected.
+
+
+		// sort 2 boundary loop vectors BTW - makes things easier to debug!
+		// BUT ... don't use the sorted version! 
+		// #TODO :: assert correct number of boundary vertices here. This is probably a huge issue at the moment!
+/*
+		std::vector<int> sortFirstBL = firstBL;
+		std::sort(sortFirstBL.begin(), sortFirstBL.end());
+		std::cout << numBV_one << std::endl;
+		for(int i : sortFirstBL)
+			std::cout << i << " ";
+		std::cout << std::endl;	
+*/
+/*
 		while(b1_s_ptr < numBV_one)
 		{
 			// assert vector contains said index
@@ -170,7 +215,9 @@ namespace REMESH
 			}
 			b1_s_ptr++;
 		}
-
+*/
+//		std::cout << std::endl;
+/*
 		// ASSERT that all verts in boundaryTwo are in the secondBL 
 		while(b2_s_ptr < numBV_two)
 		{
@@ -182,7 +229,7 @@ namespace REMESH
 			}
 			b2_s_ptr++;
 		}
-
+*/
 		remeshBoundaryOne = firstBL;
 		remeshBoundaryTwo = secondBL;
 

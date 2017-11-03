@@ -16,7 +16,8 @@ using namespace Eigen;
 namespace INTERP_SURF 
 {
 	int mod(int a, int b);
-	void generateBoundaryVertices(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, Eigen::MatrixXd& V_boundary);
+	//void retIndicesBoundaryVertices(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, std::vector<int>& bndIndices);
+	//void generateBoundaryVertices(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, Eigen::MatrixXd& V_boundary);
 	void generateInterpolatingSurface(const Eigen::MatrixXd &V1, const Eigen::MatrixXi &F1, 
 								const Eigen::MatrixXd &V2, const Eigen::MatrixXi &F2, 
 								Eigen::MatrixXd& vOff, Eigen::MatrixXi& fOff);

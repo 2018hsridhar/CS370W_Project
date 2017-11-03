@@ -1,5 +1,23 @@
 ﻿// CHECK if interp surface has Nans, or [V,F] Nana,s [COMs, orientations], and if Forces are NaN
 // which step is causing the blow up
+// @ 17th iteration of CamelHeads ---> something is off. Fix this!
+// so we get a stiffness matrix with NaN entries @ iteration 17 --- didn't Kazhdan mention something like this in his paper. Should corroborate his findings from earlier BTW!
+
+
+// vouga's questions
+// [1]  are the triangels really flat or not
+// [2]  print out the initial and final states of your test images. If it's close to zero, this is expected
+// [3] Run on more tests cases. Will be easy to do at the moment :-)
+// [4] gen interp and remesh only every couple of stages. Must flow @ each stage though. You can't help that. This is a later extension after other issues get resolved 
+// [5] what sort of entries are in the [MASS, STIFFNESS] matrices. We should check Nan's or invalid rows here, and ask why
+// [6] do visualize your 3 surfaces of interest [ 2 boundaries, stitching surface ] too
+// so for the Laplacian, it's given a decently valid remeshed mesh. aspect ratio doesn't seem to be an issue. And the call is basic:: it's <igl::cotMatrix(V,F,L)>, and computed once before we apply the MCF algorithm iteratively.
+
+
+// CGAL remeshing ... might be creating 2 accidental copies, instead of using same vertex
+// possibly due to FLOATING point issues
+// when it comes to introducing new boundary vertices
+
 
 // MY LIBRARIES  
 #include "glob_defs.h"
@@ -18,6 +36,11 @@
 // viewer logic ( viewing mostly )
 #include <igl/viewer/Viewer.h>
 #include <igl/cat.h>
+#include <igl/boundary_loop.h>
+
+// DBEUGGING ... cotmatrix
+#include <igl/cotmatrix.h>
+#include <igl/doublearea.h>
 
 // C++ includes
 #include <iostream>
@@ -67,10 +90,185 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
 ofstream debugFile;
 
 // METHOD BODY
+// also, output the mesh into the remeshed mesh
+// INPUT mesh can have some problems { your stitching algorithm )
+	// ... crud, is this wrong again! OMG!
+// good advice - each of these tests should be written as seperate methods. Otherwise, you'll get insanely lost here, and that is absolutely no good!!!
+
 int main(int argc, char *argv[])
 {
 	// EXECUTE IMPUSLE-BASED, J_ALIGN PIPELINE
+/*
+  	igl::readOFF(TUTORIAL_SHARED_PATH "/interpSurfCase.off", scan1.V, scan1.F);
+	Eigen::VectorXd dbla;
+	igl::doublearea(scan1.V,scan1.F,dbla);
+	cout << dbla << endl;
+*/
+	// note :: just put in a better script for <smallSurfaceArea>
+	// output your boundary verts too!
+		
+
+
+
 	runPipeline();
+
+	/* #TODO :: write a method to generate data. Put <runPipeline()> in its own file. It intrudes on what I desire in main.cpp.	
+	 * or better yet ... seperate <data_generation> from <pipeline> code.
+	 * ... hmmm ... a desired structure could be the following?
+ 	 *
+	 * 
+	 */
+
+	// got number boundary-vertices for the camel
+/*
+	igl::readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F);
+	// NOTE :: get boundary loops from <interp.F> instead
+	// u need to output the sttiched mitch. Code is deterministic. Print to file here.
+	std::vector<int> bndLoop
+	igl::boundary_loop(scan1.F, bndLoop);
+	cout << "# bndry verts = " << bndLoop.size() << endl;
+
+			/
+	// HERE, load in caes where the stiffness matrix blows up. Analyze why
+	// also #TODO :: get that bool_opers code fixed later. This is still an issue.
+*/
+
+/*
+ *** COTANGENT MATRIX CALCULATIONS 
+	Eigen::MatrixXd V; 
+	Eigen::MatrixXi F;
+  	igl::readOBJ(TUTORIAL_SHARED_PATH "/surfaceBlowUpCase.obj", V, F);
+
+	Eigen::SparseMatrix<double> L;
+	igl::cotmatrix(V,F,L);
+
+	cout << L.norm() << endl;
+	double L_norm = L.norm();
+	cout << L_norm << endl;
+*/
+	// uhhh, I don't think <L> at first is the issue, but rather, something later in the algorithm itself, that is probably provoking this issue. Need to take a more careful look at this now!
+
+	// eval sum of diagonal coeffs too --- uhh, can't eval traces(matrices) for sparse(matrix)
+	// take rowwise sum
+	// wait a sec ... does it even make sense to take these norms? or not? HUH?
+	// Eigen::VectorXd row_sum = V.rowwise().sum();
+	// cout << row_sum << endl;
+	// NOTE:: the sum of these row elements seems completely valid
+	// NOTE :: we operate specifically on the Frobenius norm here.
+	// #TODO :: omit rows containing [a] Nans or [b] Infs?
+	// #TODO :: does L work off of facse, or vertices? I believe faces. 
+
+	// nan check
+	//cout << "Num vertices = " << V.rows() << endl;
+	//cout << "Num faces = " << F.rows() << endl;
+
+	// check if your vertices are on the boundary or NOT
+	// we know vertex zero is on the boundary for sure ( based on indexing scheme )
+
+
+	// laplacian is a [V,V] matrix. 
+	// so we need to get the set of adj faces, and analyze those specific faces in more depth!
+	// hmm ... these are cotangents ... when do they approach [-inf,inf]? 
+	// cot(x) -> \inf as x -> 0
+	// cot(x) -> -\inf as x -> \pi
+	// so the aspect ratio needs to be checked, as well sa triangle flatness too, I guess, in the MCF algorithm.
+
+
+	// let us also run a test over each area of the triangle, and see what areas we get for said triagnles. If we get something close to zero, that'll be an issue for us
+	// hmm, some of them are small, but not small enough to make me suspect that they would blow up
+/*
+	cout << "Will print out triangle areas" << endl;
+	Eigen::VectorXd dbla;
+	igl::doublearea(V,F,dbla);
+	// note :: just seeing how small triangle areas can get
+	// there's only one really tiny triangle. 
+	// but it does correspond to vertex indices that are failing [ e.g. 0, 100, 200 ]
+	for(int i = 0; i < dbla.size(); ++i)
+	{
+		if(dbla(i) < 0.000001)
+		{
+			cout << dbla(i) << endl;
+			cout << i << endl;
+			Eigen::Vector3i myFace = F.row(i);
+			cout << "[" << myFace(0) << ", " << myFace(1) << ", " << myFace(2) << "]\n";
+		}
+	}
+	cout << "Done printing out triangle areas" << endl;
+	exit(0);
+*/
+/*
+	cout << "will exec nan check" << endl;
+	// wait a sec... this isn't the right set of dims
+	cout << "num rows in L " << L.rows() << endl;
+	cout << "num cols in L " << L.cols() << endl; // 2409
+	for(int i = 0; i < L.rows(); ++i)
+	{
+		for(int j = 0; j < L.cols(); ++j)
+		{
+			// #NOTE :: there's a faster way. [coeffRef] is quite slow.
+			// wait a sec ... the first entry itself is off? what??
+			if(isinf(L.coeffRef(i,j))) 
+			{
+				cout << "[i,j] = [" << i << ", " << j << "]\n";
+			}
+		}
+	}
+*/
+
+	// indices corresponding to inf :: [0,100], [0,200], [100,0], [100,200], [200,0], [200,100], [200,200]
+	// indices correspoding to nan :: [0,0], [100,100]. Two of these diagonal entries
+	// let's print out those rows. let's try the first row
+
+	// okay, there is a [-inf] and [inf] here too.
+	// I preusme [-inf] + [inf] = [nan], right? 
+	// where does this stem from though?
+	// let us check those too!
+/*
+	cout << "------------------------------------------------------" << endl;
+	for(int j = 0; j < L.cols(); ++j)
+	{
+		// wait a sec ... the first entry itself is off? what??
+		cout << L.coeffRef(0,j) << endl;
+	}
+	cout << "------------------------------------------------------" << endl;
+	cout << endl;
+
+	// in lapaclian, equals -(sum) of all other row entries
+
+	cout << "done with nan check" << endl;
+*/
+
+/*
+	cout << L << endl;
+	cout << "V_vertics" << endl;
+	cout << V.norm() << endl;
+	cout << "------------------------------------------------------" << endl;
+	Eigen::MatrixXd flowed_V;
+	MCF::computeMeanCurvatureFlow(V,F,0.001, flowed_V);
+	cout << "------------------------------------------------------" << endl;
+	cout << "flowed_V_vertices" << endl;
+	cout << flowed_V.norm() << endl;
+	cout << "------------------------------------------------------" << endl;
+*/
+
+	
+
+
+
+	// so this mesh seems completely valid
+	// are any of these triangles flat?
+	// any thing to note about computation of stiffness matrices too?
+	// okay, this code itself can't be changed.
+	// which of these rows is Nan? let's take a sum of each row
+	// eval sum, see triangle
+
+/*
+	igl::viewer::Viewer viewer;
+	viewer.data.clear();
+	viewer.data.set_mesh(V,F);
+	return viewer.launch();
+*/
+
 }
 
 // note :: only 2 rigid bodies to consider ... no point in putting them in an iterator
@@ -149,11 +347,16 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 
 			// GENERATE INTERPOLATING SURFACE
 			//cout << "Generating interpolating surface" << endl;
+			// let's output interp_surf for camel heads case, to same file, all the time
+			// #TODO :: change <INTERP> to <STITCH>, as its a better naming convention.
 			INTERP_SURF::generateInterpolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
+			igl::writeOFF("stitching.off", interp.V, interp.F);
+
 			double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
-			//rEL = rEL; // #NOTE :: can actually visualize pinching occuring here
-		//	rEL = rEL / 4.0; // #NOTE :: can actually visualize pinching occuring here
 			bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
+			// #TODO :: why is this file different from the other file?
+			// that is bizzare
+			igl::writeOFF("remeshed_after_succ.off", remeshed.V, remeshed.F);
 
 			if(!remSucc)
 			{
@@ -166,11 +369,27 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				exit(0);
 			}
 
+
 			// APPLY MCF TO SURFACE [ denoted as 'flowed' here ]
 			assert(MCF::meshHasBoundary(remeshed.V,remeshed.F));
+			// #TODO :: fix MCF algorithm. failure is here. Nan's are getting introduced here. 
+			// Need we re-read Kazhdan's ( surface pinch cases? Perhaps. Or what val is set too also ) 
+			ofstream myFile ("mcfDebug.txt", std::ios_base::app); // need append mode
+			if (myFile.is_open())
+			{
+				myFile << "Iteration [" << std::to_string(iters) << "]\n";
+			}
+			myFile.close();
 			MCF::computeMeanCurvatureFlow(remeshed.V,remeshed.F,0.001, flowed.V);
 			flowed.F = remeshed.F;
 
+			// write mcf file ... see if Nan's
+/*
+			std::string remesh_mesh = "remeshMesh[" + std::to_string(iters) + "].off";
+			igl::writeOFF(remesh_mesh, remeshed.V, remeshed.F);
+			std::string mcf_mesh = "mcfMesh[" + std::to_string(iters) + "].off";
+			igl::writeOFF(mcf_mesh, flowed.V, flowed.F);
+*/
 			// CHECK IF impulses improved alignment
 			// #TODO :: why do we get a <NaN> value here on 87th iteration of camel heads? That's somewhat off.
 			// IF we get a area to have NaN ... one of these vertices/triangles posses a NaN ... where is the problem in the pipeline. 
@@ -222,6 +441,10 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			 *******************************/
 			// [1] CALCULATE boundary vertices for both scans
 			// generate boundary vertices from interpolating surface
+			// #TODO :: doesn't <generateBoundaryVertices> return a std::vector<int> in actuality? use that instead!
+			// #TODO :: not the insanely limited scope of <boundaryOne|boundaryTwo> here.
+
+			/*
 			Eigen::MatrixXd boundaryOne;
 			Eigen::MatrixXd boundaryTwo;
 
@@ -229,12 +452,73 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			INTERP_SURF::generateBoundaryVertices(scan2.V, scan2.F,boundaryTwo); 
 			int bvOne_num = boundaryOne.rows();
 			int bvTwo_num = boundaryTwo.rows();
-			
+			*/
+
+			// #TODO :: write a better test. We want to compare boundary loops, not pointers. That test might've been bad.
+			// I note that meshes passed here are [scan1.F, scan2.F], versus [interp.F]
+			// perhaps this is causing the difference for us? Let us check later!
+/*
+			std::vector<int> stitchBoundaryOne;
+			std::vector<int> stitchBoundaryTwo;
+			igl::boundary_loop(scan1.F,stitchBoundaryOne);
+			igl::boundary_loop(scan2.F,stitchBoundaryTwo);
+			int bvOne_num = stitchBoundaryOne.size();
+			int bvTwo_num = stitchBoundaryTwo.size();
+*/
+
+
+			// NOTE :: get boundary loops from <interp.F> instead
+			std::vector<std::vector<int>> stitch_bndryLoop;
+			igl::boundary_loop(interp.F, stitch_bndryLoop);
+
+			// GET both boundary loop vectors
+			std::vector<int> stitch_firstBL = stitch_bndryLoop[0];
+			std::vector<int> stitch_secondBL = stitch_bndryLoop[1];
+			int bvOne_num = stitch_firstBL.size();
+			int bvTwo_num = stitch_secondBL.size();
+
 			// get FLOWED mesh ( after remeshing too, btw ) boundary vertices, for both scan parts
 			std::vector<int> remeshBoundaryOne;
 			std::vector<int> remeshBoundaryTwo;
+
 			REMESH::getRemeshedBoundaryVerts(bvOne_num, bvTwo_num, flowed.V, flowed.F, remeshBoundaryOne, remeshBoundaryTwo);
 			cout << "Done collecting remeshed boundary vertices" << endl;
+
+			// #TODO :: eyeball both sets here
+			//std::sort(stitchBoundaryOne.begin(), stitchBoundaryOne.end());
+			//std::sort(stitchBoundaryTwo.begin(), stitchBoundaryTwo.end());
+			
+			// now sort and print them out ( let's focus on 1st boundary ) 
+/*
+			std::sort(stitch_firstBL.begin(), stitch_firstBL.end());
+			std::sort(stitch_secondBL.begin(), stitch_secondBL.end());
+			std::sort(remeshBoundaryOne.begin(), remeshBoundaryOne.end());
+			std::sort(remeshBoundaryTwo.begin(), remeshBoundaryTwo.end());
+
+
+			for ( int i : stitch_firstBL )
+				std::cout << i << " ";
+			std::cout << std::endl;
+			std::cout << "----------------------------------------------------------------------" << std::endl;
+			for ( int i : remeshBoundaryOne )
+				std::cout << i << " ";
+			std::cout << std::endl;
+			std::cout << "----------------------------------------------------------------------" << std::endl;
+
+			std::cout << "----------------------------------------------------------------------" << std::endl;
+
+			for ( int i : stitch_secondBL)
+				std::cout << i << " ";
+			std::cout << std::endl;
+			std::cout << "----------------------------------------------------------------------" << std::endl;
+			for ( int i : remeshBoundaryTwo )
+				std::cout << i << " ";
+			std::cout << std::endl;
+			std::cout << "----------------------------------------------------------------------" << std::endl;
+
+			exit(0);
+*/
+			// #TODO :: move method below to another file? Possibly an issue?
 
 			// [2] SOLVE for delta_cVel, delta_omega, for both scans
 			// NOTE :: Can assume $\rho$ Vol = 1 [ that is, our setting is of const unit mass ]

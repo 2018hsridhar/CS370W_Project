@@ -10,6 +10,8 @@
 using namespace Eigen; 
 using namespace std;
 
+#include <math.h> 		/* isnan, sqrt */
+
 namespace MCF
 {
 	bool meshHasBoundary(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F)
@@ -39,7 +41,7 @@ namespace MCF
 		// #TODO :: try to choose a better convergence/stopping value, over here!
 
 		//CALCUALTE the initial mass and stiffness matrices
-		igl::cotmatrix(V,F,L);  
+		igl::cotmatrix(V,F,L); 
 		igl::massmatrix(V,F, mcfType, M);  
 
 		// ITERATE till reach convergence criteria
@@ -88,11 +90,12 @@ namespace MCF
 
 			// RECALCULATE mass matrix
 			// igl::massmatrix(Vc,F, mcfType, M);  
-			// igl::printOFF(Vc,F,"iteration i = " << i );
 		} while ( diff > mcfStoppingVal);
 
 	}
 
+	// zero-area face. Won't work in the case of the Stiffness matrix
+	// your angles and aspect ratios seem fine though
 	void computeMeanCurvatureFlowBoundary(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, std::vector<bool> boundary, double timestep, Eigen::MatrixXd &Vc)
 	{
 		// PREALLOCATION
@@ -110,7 +113,15 @@ namespace MCF
 		// #TODO :: fix difference of norm calculation ... it becomes constant, @ some point of time ... this is not good ! ... you should have made this fix a long long time ago!!!!
 
 		//CALCUALTE the initial mass and stiffness matrices
-		igl::cotmatrix(V,F,L);  
+		igl::cotmatrix(V,F,L);  // calculate used in stiffness matrix #TODO :: this blows up. hmmm and I know {V,F} at this point too since it corresponds to remeshed surface.
+		// in addition, we calculate this once only. So does the issue lie here? 
+		double L_norm = L.norm();
+		if(isnan(L_norm))
+		{
+			igl::writeOFF("surfaceBlowUpCase.off", V,F);
+		}
+		// NOTE :: this will correspond to latest remeshed surface
+
 		igl::massmatrix(V,F, mcfType, M);  
 
 		// ITERATE till reach convergence criteria
@@ -120,6 +131,27 @@ namespace MCF
 			diff = 0;
 			Eigen::SparseMatrix<double> A = ( M - ( timestep * L));
 			Eigen::MatrixXd B = ( M * Vc); 
+
+			ofstream myFile ("mcfDebug.txt", std::ios_base::app); // need append mode
+			// we expect norm to be a real number. if it's nan, that is an issue
+			if (myFile.is_open())
+			{
+				myFile << "Stiffness matrix = \n";
+				myFile << L.norm();
+				myFile << "\n-------------------------------------------------------------------------------\n";
+				myFile << "Mass matrix = \n";
+				myFile << M.norm();
+				myFile << "\n-------------------------------------------------------------------------------\n";
+				myFile << "Current Vertex set = \n";
+				myFile << Vc.norm();
+				myFile << "\n-------------------------------------------------------------------------------\n";
+				myFile << "\n-------------------------------------------------------------------------------\n";
+				myFile << "\n-------------------------------------------------------------------------------\n";
+				myFile << "\n-------------------------------------------------------------------------------\n";
+				myFile << "\n-------------------------------------------------------------------------------\n";
+			}
+			myFile.close();
+
 			// LDLT ( a more robust linear solver )
 			// could be a sign of an issue ( if optimization never converges )
 			// we expect arbitrary numbers beaten.
@@ -136,6 +168,10 @@ namespace MCF
 			if ( solver.info() != Eigen::Success )  {
 				std::cout << "Solving B failed." << std::endl;
 			}
+			std::cout << "U_norm = " << std::endl;
+			std::cout << U.norm() << std::endl;
+			std::cout << "[.....................]" << endl;
+
 			int numVertices = Vc.rows();
 			// SOLVE for difference, between current and previous iteration of MCF ( Vc vs U )
 			for(int i = 0; i < numVertices; i++)
@@ -155,6 +191,7 @@ namespace MCF
 					Vc.row(i) = U.row(i);
 				}
 			}
+			cout << Vc.norm() << endl;
 
 			// RECALCULATE mass matrix
 			igl::massmatrix(Vc,F, mcfType, M);  

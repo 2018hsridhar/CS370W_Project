@@ -95,9 +95,12 @@ ofstream debugFile;
 	// ... crud, is this wrong again! OMG!
 // good advice - each of these tests should be written as seperate methods. Otherwise, you'll get insanely lost here, and that is absolutely no good!!!
 
+
 int main(int argc, char *argv[])
 {
 	// EXECUTE IMPUSLE-BASED, J_ALIGN PIPELINE
+	//runPipeline();
+
 /*
   	igl::readOFF(TUTORIAL_SHARED_PATH "/interpSurfCase.off", scan1.V, scan1.F);
 	Eigen::VectorXd dbla;
@@ -106,11 +109,6 @@ int main(int argc, char *argv[])
 */
 	// note :: just put in a better script for <smallSurfaceArea>
 	// output your boundary verts too!
-		
-
-
-
-	runPipeline();
 
 	/* #TODO :: write a method to generate data. Put <runPipeline()> in its own file. It intrudes on what I desire in main.cpp.	
 	 * or better yet ... seperate <data_generation> from <pipeline> code.
@@ -119,7 +117,7 @@ int main(int argc, char *argv[])
 	 * 
 	 */
 
-	// got number boundary-vertices for the camel
+	// read the number of boundary-vertices for the camel
 /*
 	igl::readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F);
 	// NOTE :: get boundary loops from <interp.F> instead
@@ -350,13 +348,11 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			// let's output interp_surf for camel heads case, to same file, all the time
 			// #TODO :: change <INTERP> to <STITCH>, as its a better naming convention.
 			INTERP_SURF::generateInterpolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
-			igl::writeOFF("stitching.off", interp.V, interp.F);
+			igl::writeOFF(GLOBAL::stitching_output, interp.V, interp.F);
 
 			double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
 			bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
-			// #TODO :: why is this file different from the other file?
-			// that is bizzare
-			igl::writeOFF("remeshed_after_succ.off", remeshed.V, remeshed.F);
+			igl::writeOFF(GLOBAL::remesh_after_succ_file, remeshed.V, remeshed.F);
 
 			if(!remSucc)
 			{
@@ -374,7 +370,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			assert(MCF::meshHasBoundary(remeshed.V,remeshed.F));
 			// #TODO :: fix MCF algorithm. failure is here. Nan's are getting introduced here. 
 			// Need we re-read Kazhdan's ( surface pinch cases? Perhaps. Or what val is set too also ) 
-			ofstream myFile ("mcfDebug.txt", std::ios_base::app); // need append mode
+			ofstream myFile (GLOBAL::mcfDebugText, std::ios_base::app); // need append mode
 			if (myFile.is_open())
 			{
 				myFile << "Iteration [" << std::to_string(iters) << "]\n";

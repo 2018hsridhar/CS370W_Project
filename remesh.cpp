@@ -94,10 +94,11 @@ namespace REMESH
 							Eigen::MatrixXd& Vr, Eigen::MatrixXi& Fr,
 							double target_edge_length)
 	{
+
+		// READ stitching file [ equivalent to remesh-input file ] 
 		bool badInterp = true;
 		igl::writeOFF(GLOBAL::remeshInputFile,V,F);
 		std::ifstream input(GLOBAL::remeshInputFile);
-	//	std::ifstream input(TUTORIAL_SHARED_PATH "/badOffset.off");
 		Mesh mesh;
 		if (!input || !(input >> mesh)) {
 			std::cerr << "Not a valid off file." << std::endl;
@@ -105,7 +106,6 @@ namespace REMESH
 		}
 		unsigned int nb_iter = 3;
 		//std::cout << "Split border...";
-
 
 		// APPLY Split Border Operations
 		std::vector<edge_descriptor> border;
@@ -146,6 +146,7 @@ namespace REMESH
 		std::ofstream remesh_off(GLOBAL::remeshOutputFile);
 		remesh_off << mesh;
 		remesh_off.close();
+
 		igl::readOFF(GLOBAL::remeshOutputFile, Vr,Fr);
 		return badInterp;
 	}

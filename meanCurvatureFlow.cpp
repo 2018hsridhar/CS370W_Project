@@ -6,6 +6,7 @@
 #include <igl/doublearea.h>
 #include <igl/massmatrix.h> 
 #include <igl/writeOFF.h>
+#include "glob_defs.h"
 
 using namespace Eigen; 
 using namespace std;
@@ -118,7 +119,7 @@ namespace MCF
 		double L_norm = L.norm();
 		if(isnan(L_norm))
 		{
-			igl::writeOFF("surfaceBlowUpCase.off", V,F);
+			igl::writeOFF(GLOBAL::surfaceBlowUpCase, V,F);
 		}
 		// NOTE :: this will correspond to latest remeshed surface
 
@@ -132,7 +133,7 @@ namespace MCF
 			Eigen::SparseMatrix<double> A = ( M - ( timestep * L));
 			Eigen::MatrixXd B = ( M * Vc); 
 
-			ofstream myFile ("mcfDebug.txt", std::ios_base::app); // need append mode
+			ofstream myFile (GLOBAL::mcfDebugText, std::ios_base::app); // need append mode
 			// we expect norm to be a real number. if it's nan, that is an issue
 			if (myFile.is_open())
 			{

@@ -16,10 +16,15 @@
 
 namespace GLOBAL
 {
+	// most of these variables - for debugging of pipeline steps mostly. Not much for other tasks.
+	extern const char* stitching_output;
 	extern const char* remeshInputFile;
 	extern const char* sleOutputFile;
 	extern const char* isoOutputFile;
     extern const char* remeshOutputFile;
+	extern const char* remesh_after_succ_file;
+	extern const char* mcfDebugText;
+	extern const char* surfaceBlowUpCase;
 
 	extern const char* interpSurfGenScan1File;
 	extern const char* interpSurfGenScan2File;

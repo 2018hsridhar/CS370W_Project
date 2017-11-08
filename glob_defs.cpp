@@ -10,12 +10,18 @@ namespace GLOBAL
 	// #TODO :: usea  different directory aside from <shared>. 
 	// These two directories should've been seperated in the beginning.
 	// this is getting incredibly frustrating.
+	// NOTE :: only for the two inputs should the shared paths be used. Not for 
 	const char* interpSurfGenScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
     const char* interpSurfGenScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";
-	const char* remeshInputFile = TUTORIAL_SHARED_PATH "/offset.off";
-	const char* sleOutputFile = "sle_post.off";
-	const char* isoOutputFile = "iso_post.off";
-    const char* remeshOutputFile = "offsetRemesh.off";
+
+	const char* stitching_output = TUTORIAL_PROC_PATH "/stitching.off";
+	const char* remeshInputFile = TUTORIAL_PROC_PATH "/offset.off";
+	const char* sleOutputFile = TUTORIAL_PROC_PATH "/sle_post.off"; 
+	const char* isoOutputFile = TUTORIAL_PROC_PATH "/iso_post.off";
+    const char* remeshOutputFile = TUTORIAL_PROC_PATH "/offsetRemesh.off";
+	const char* remesh_after_succ_file = TUTORIAL_PROC_PATH "/remesh_after_succ.off";
+	const char* mcfDebugText = TUTORIAL_PROC_PATH "/mcf_debug.txt";
+	const char* surfaceBlowUpCase = TUTORIAL_PROC_PATH "/surfaceBlowUpCase.off";
 
 	//const char* interpSurfGenScan1File = TUTORIAL_SHARED_PATH "/planexy.off";
     //const char* interpSurfGenScan2File = TUTORIAL_SHARED_PATH "/mirrorPlane.off";

@@ -46,5 +46,3 @@ Camel case --- god this is incredibly slow!
 --- this is easy to get bugged! VISUALIZE IT CORRECTLY!
 
 *** CHECK each iteration makes positive progress ( include line searching too ) 
-
-

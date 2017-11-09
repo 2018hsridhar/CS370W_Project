@@ -1,7 +1,7 @@
 #ifndef BOOL_OPERS_H
 #define BOOL_OPERS_H
 
-#include "tutorial_shared_path.h"
+#include "path.h"
 #include <Eigen/Core> 
 
 // #TODO :: convert to <namespace> pattern

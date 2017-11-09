@@ -1,7 +1,7 @@
 // #TODO :: try to exploit innate properties of structures / utilize acceleration structures to quicken computation of values  ... this takes too damn long to compute !
 #include <igl/readOFF.h>
 #include <igl/viewer/Viewer.h>
-#include "tutorial_shared_path.h"
+#include "path.h"
 #include <igl/rotation_matrix_from_directions.h>
 #include <igl/writeOFF.h> 
 #include <igl/per_vertex_normals.h>

@@ -1,6 +1,7 @@
 #include <igl/readOFF.h>
 #include <igl/viewer/Viewer.h>
-#include "tutorial_shared_path.h"
+#include "path.h"
+#include "glob_defs.h"
 #include <igl/rotation_matrix_from_directions.h>
 #include <igl/writeOFF.h>
 
@@ -41,7 +42,8 @@ bool key_down_distinct( igl::viewer::Viewer& viewer, unsigned char key, int modi
 void generateCamelTestData()
 {
   // Load a mesh in OFF format
-  igl::readOFF(TUTORIAL_SHARED_PATH "/camelhead.off", V, F);
+  //igl::readOFF(PATH "/camelhead.off", V, F);
+  igl::readOFF(GLOBAL::pipelineScan1File, V, F);
   std::cout << R"(
 1 switch to identity view
 2 Switch to rotated view 1

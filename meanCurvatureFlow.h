@@ -1,7 +1,7 @@
 #ifndef MCF_H
 #define MCF_H
 
-#include "tutorial_shared_path.h"
+#include "path.h"
 #include <Eigen/Core> 
 
 namespace MCF

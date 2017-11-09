@@ -1,6 +1,6 @@
 // STANDARD INCLUDE FILES 
 #include "meanCurvatureFlow.h"
-#include "tutorial_shared_path.h"
+#include "path.h"
 #include <igl/is_border_vertex.h>
 #include <igl/cotmatrix.h>
 #include <igl/doublearea.h>

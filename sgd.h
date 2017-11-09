@@ -4,7 +4,7 @@
 // Q1 :: What is the order of convergence of this method? not sure atm
 // purpose of this code :: given a (4x4) transformation matrix/alignemnt, iteratively improve the alignemnt, via stoichastic gradient descent !  try 100 of these things ... take min. it will most likely converge ! 
 
-#include "tutorial_shared_path.h"
+#include "path.h"
 #include <set>
 #include <time.h> // #TODO :: do I even need this  ??
 

@@ -9,7 +9,8 @@
 
 // path to <mesh> directory. Represents commonly accessed meshes. 
 #ifndef SHARED_PATH
-#define SHARED_PATH "../MESHES"
+//#define SHARED_PATH "../MESHES"
+#define SHARED_PATH "../shared"
 #endif
 
 // path to <processing> dir. Represents meshes in the stage of being processed.
@@ -17,6 +18,7 @@
 #define PROC_PATH "../PROCESSING"
 #endif
 
+/*
 // path to <debug> dir. Represents debug output
 #ifndef DEBUG_PATH
 #define DEBUG_PATH "../DEBUG"
@@ -42,7 +44,6 @@
 #ifndef IGL_PATH 
 #define IGL_Path "/p/libigl"
 #endif
-
-
+*/
 
 #endif

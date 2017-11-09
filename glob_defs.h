@@ -1,7 +1,8 @@
 #ifndef GLOBS_DEF_H
 #define GLOBS_DEF_H
 
-#include "tutorial_shared_path.h"
+//#include "path.h"
+#include "path.h"
 
 // #TODO :: read up how globals.h is set up as 
 // note :: most of these should be a bunch of consts

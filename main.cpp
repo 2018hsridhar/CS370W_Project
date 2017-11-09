@@ -3,7 +3,6 @@
 // @ 17th iteration of CamelHeads ---> something is off. Fix this!
 // so we get a stiffness matrix with NaN entries @ iteration 17 --- didn't Kazhdan mention something like this in his paper. Should corroborate his findings from earlier BTW!
 
-
 // Vouga's questions
 // [1]  are the triangels really flat or not
 // [2]  print out the initial and final states of your test images. If it's close to zero, this is expected
@@ -14,6 +13,10 @@
 // so for the Laplacian, it's given a decently valid remeshed mesh. aspect ratio doesn't seem to be an issue. And the call is basic:: it's <igl::cotMatrix(V,F,L)>, and computed once before we apply the MCF algorithm iteratively.
 // Current theory :: your CGAL remeshing might be creating two accidental copies, instead of using same vertex. basically, one of the underlying operations here could be introducing FPE [ Floating-Point Exceptions ]. Thus, what you expect to be right, is not actually right.
 
+// #TODO :: reduce time for compilation.
+// #TODO :: crud, I have [a] refactoring and [b] automation work for today - Friday. Well, this is just fantastic! 
+// #TODO :: take out dependencies for some of these targets - {glfw, CoMISo, glew }
+// u just need dependencise for CS370W_PROJ_bin
 
 // MY LIBRARIES  
 #include "glob_defs.h"
@@ -89,13 +92,13 @@ ofstream debugFile;
 // also, output the mesh into the remeshed mesh
 // INPUT mesh can have some problems { your stitching algorithm )
 	// ... crud, is this wrong again! OMG!
-// good advice - each of these tests should be written as seperate methods. Otherwise, you'll get insanely lost here, and that is absolutely no good!!!
+// GOOD ADVICE - write out each tests as seperate methods; Lest you get incredibly lost here.
 
 
 int main(int argc, char *argv[])
 {
 	// EXECUTE IMPUSLE-BASED, J_ALIGN PIPELINE
-	//runPipeline();
+	runPipeline();
 
 /* igl::readOFF(TUTORIAL_SHARED_PATH "/interpSurfCase.off", scan1.V, scan1.F);
 	Eigen::VectorXd dbla;

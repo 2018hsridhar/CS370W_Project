@@ -17,7 +17,7 @@
 #include "interpSurface.h"
 #include "remesh.h"
 #include "vectormath.h" // NOTE :: needed for projecting a mesh randomly into space
-#include "tutorial_shared_path.h"
+#include "path.h"
 #include "helpers.h"
 
 // LIBIGL INCLUDES

@@ -1,7 +1,7 @@
 #ifndef REMESH_H
 #define REMESH_h
 
-#include "tutorial_shared_path.h"
+#include "path.h"
 
 // LibIGL includes
 #include <igl/readOFF.h>

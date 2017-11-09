@@ -1,7 +1,7 @@
 #ifndef INTERP_H 
 #define INTERP_H 
 
-#include "tutorial_shared_path.h"
+#include "path.h"
 #include <igl/readOFF.h>
 #include <igl/viewer/Viewer.h>
 #include <igl/cat.h> 

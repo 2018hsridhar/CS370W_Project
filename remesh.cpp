@@ -96,7 +96,7 @@ namespace REMESH
 	{
 
 		// READ stitching file [ equivalent to remesh-input file ] 
-		bool badInterp = true;
+		bool badstitched = true;
 		igl::writeOFF(GLOBAL::remeshInputFile,V,F);
 		std::ifstream input(GLOBAL::remeshInputFile);
 		Mesh mesh;
@@ -124,7 +124,7 @@ namespace REMESH
 		if(num_faces(mesh) == 0)
 		{
 			std::cout << "REMESHING WILL FAIL HERE" << std::endl;
-			badInterp = false;
+			badstitched = false;
 		}
 
 		// APPLY Isotropic Remeshing Operations
@@ -148,7 +148,7 @@ namespace REMESH
 		remesh_off.close();
 
 		igl::readOFF(GLOBAL::remeshOutputFile, Vr,Fr);
-		return badInterp;
+		return badstitched;
 	}
 
 	double avgEdgeLenInputMeshes(Eigen::MatrixXd& V1, Eigen::MatrixXi& F1,
@@ -162,8 +162,8 @@ namespace REMESH
 	}
 
 	/*
-	* Gets boundary vertices for both parts of the remeshed interpolated surface
-	* Based on solving for <boundary_loop> of this remeshed interpolated surface 
+	* Gets boundary vertices for both parts of the remeshed stitchedolated surface
+	* Based on solving for <boundary_loop> of this remeshed stitchedolated surface 
 	* {V,F} represent the remeshsed surface btw. [numBV_one, numBV_two] denote the stitched surface.
 	*/
 	void getRemeshedBoundaryVerts(const int numBV_one, const int numBV_two, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, std::vector<int>& remeshBoundaryOne, std::vector<int>& remeshBoundaryTwo)

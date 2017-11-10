@@ -11,8 +11,8 @@ namespace GLOBAL
 	// These two directories should've been seperated in the beginning.
 	// this is getting incredibly frustrating.
 	// NOTE :: only for the two inputs should the shared paths be used. Not for 
-	const char* interpSurfGenScan1File = SHARED_PATH "/planexy.off";
-    const char* interpSurfGenScan2File = SHARED_PATH "/mirrorPlane.off";
+	const char* stitchedSurfGenScan1File = SHARED_PATH "/planexy.off";
+    const char* stitchedSurfGenScan2File = SHARED_PATH "/mirrorPlane.off";
 
 	const char* stitching_output = PROC_PATH "/stitching.off";
 	const char* remeshInputFile = PROC_PATH "/offset.off";
@@ -23,8 +23,8 @@ namespace GLOBAL
 	const char* mcfDebugText = PROC_PATH "/mcf_debug.txt";
 	const char* surfaceBlowUpCase = PROC_PATH "/surfaceBlowUpCase.off";
 
-	//const char* interpSurfGenScan1File = SHARED_PATH "/planexy.off";
-    //const char* interpSurfGenScan2File = SHARED_PATH "/mirrorPlane.off";
+	//const char* stitchedSurfGenScan1File = SHARED_PATH "/planexy.off";
+    //const char* stitchedSurfGenScan2File = SHARED_PATH "/mirrorPlane.off";
 //	const char* remeshInputFile = SHARED_PATH "/offset.off";
  //   const char* remeshOutputFile = SHARED_PATH "/offsetRemesh.off";
 
@@ -34,7 +34,7 @@ namespace GLOBAL
 	const char* meanCurvFlowOutputScanFile = SHARED_PATH "/mcf.off";
 
 	// a nice user setting, for my configuration!
-	const char* viewMesh = SHARED_PATH "/badInterpSurf.off";
+	const char* viewMesh = SHARED_PATH "/badstitchedSurf.off";
 
 //	const char* pipelineScan1File = SHARED_PATH "/2triangles.off";
 	// #TODO :: test non-animated pipeline here with boundary mesh

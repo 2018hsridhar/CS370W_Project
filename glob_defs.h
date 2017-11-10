@@ -27,8 +27,8 @@ namespace GLOBAL
 	extern const char* mcfDebugText;
 	extern const char* surfaceBlowUpCase;
 
-	extern const char* interpSurfGenScan1File;
-	extern const char* interpSurfGenScan2File;
+	extern const char* stitchedSurfGenScan1File;
+	extern const char* stitchedSurfGenScan2File;
 
 	extern const char* rigidIcpInputScanFile;
 	extern const char* rigidIcpOutputScanFile;

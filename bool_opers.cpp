@@ -14,7 +14,7 @@
 // USER_DEFINED LIBRARIES
 #include "bool_opers.h" // primary include
 #include "glob_defs.h"
-#include "interpSurface.h"
+#include "stitchedSurface.h"
 #include "remesh.h"
 #include "vectormath.h" // NOTE :: needed for projecting a mesh randomly into space
 #include "path.h"
@@ -105,10 +105,10 @@ namespace BOOL_OPERS
 
 
 	// #TODO:: include as a test method, run in a testing system ( 
-	// Method responsibility - asserts preservation of order of vertex indexing between the interpolating and remeshed surfaces. 
-	// equivalently, assserts that the n vertices (interp) = first n ( remesh )
+	// Method responsibility - asserts preservation of order of vertex indexing between the stitchedolating and remeshed surfaces. 
+	// equivalently, assserts that the n vertices (stitched) = first n ( remesh )
 	// ... ( e.g. akin to bb test, from Amazon ) 
-	void runIndexTestInterpRemesh()
+	void runIndexTeststitchedRemesh()
 	{
 	/*
 		if(!readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F)) {
@@ -123,17 +123,17 @@ namespace BOOL_OPERS
 		std::cout << "Mesh one [" << GLOBAL::pipelineScan1File << "]" << std::endl;
 		std::cout << "Mesh two [" << GLOBAL::pipelineScan2File << "]" << std::endl;
 
-		INTERP_SURF::generateInterpolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
+		STITCHED_SURF::generatestitchedolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, stitched.V,stitched.F);
 		double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
 		rEL = rEL / 5.0; 
-		bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
+		bool remSucc = REMESH::remeshSurface(stitched.V,stitched.F,remeshed.V,remeshed.F, rEL);
 		if(!remSucc)
 		{
 			std::cout << "BAD REMESHING!" << std::endl;
 			exit(0);
 		}
 
-		igl::writeOFF("interpolating_surface.off", interp.V,interp.F);
+		igl::writeOFF("stitchedolating_surface.off", stitched.V,stitched.F);
 		igl::writeOFF("remeshed_surface.off", remeshed.V,remeshed.F);
 	*/
 	}
@@ -259,7 +259,7 @@ igl::writeOBJ(rescaled_mesh_b_right_file_name, VB_right_scaled,FB);
 
 // #TODO :: NOTE THIS CODE TOO!
 // note that here, <C> is actually for coloring purposes. 
-// # NOTE :: this is the technique Vouga was talking about for the remeshed vs interp thing. ... oh, coloring would be really helpful, now that I think about it.
+// # NOTE :: this is the technique Vouga was talking about for the remeshed vs stitched thing. ... oh, coloring would be really helpful, now that I think about it.
 /*
 Eigen::MatrixXd C(FC.rows(),3);
 for(size_t f = 0;f<C.rows();f++)

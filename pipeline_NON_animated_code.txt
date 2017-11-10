@@ -1,4 +1,4 @@
-﻿// the good news, is that in the REMESHED mesh, vs just the INTERP mesh, we don't care about extra vertices, due to SGD principle here.
+﻿// the good news, is that in the REMESHED mesh, vs just the stitched mesh, we don't care about extra vertices, due to SGD principle here.
 // reference for c++ timer library is :: http://www.cplusplus.com/reference/ctime/
 // http://www.cplusplus.com/reference/ctime/clock/ ... uhh, make sure your units make sense! 
 // C++ includes
@@ -9,7 +9,7 @@
 // MY LIBRARIES  
 #include "glob_defs.h"
 #include "meanCurvatureFlow.h"
-#include "interpSurface.h"
+#include "stitchedSurface.h"
 #include "remesh.h"
 #include "sgd.h"
 #include "helpers.h"
@@ -27,7 +27,7 @@ struct Mesh
 {
 	Eigen::MatrixXd V; 
 	Eigen::MatrixXi F;
-} scan1,scan2,interp,remeshed, result;
+} scan1,scan2,stitched,remeshed, result;
 
 void runPipeline();
 
@@ -70,10 +70,10 @@ void runPipeline()
 		{
 			Eigen::MatrixXd transScan1;	
 			HELPER::applyRigidTransformation(scan1.V,transMats[i],transScan1);
-			INTERP_SURF::generateInterpolatingSurface(transScan1,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
+			STITCHED_SURF::generatestitchedolatingSurface(transScan1,scan1.F,scan2.V,scan2.F, stitched.V,stitched.F);
 			double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(transScan1,scan1.F,scan2.V,scan2.F);
 			printf("Going to remesh [%d] trans Mat.\n",i);
-			REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
+			REMESH::remeshSurface(stitched.V,stitched.F,remeshed.V,remeshed.F, remeshEdgeLen);
 			printf("Remeshed [%d] trans Mat.\n",i);
 
 			// let's just assume we already have a boundary in these cases ! 

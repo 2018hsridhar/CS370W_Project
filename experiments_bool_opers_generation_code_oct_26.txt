@@ -9,7 +9,7 @@
 // USER_DEFINED LIBRARIES
 #include "bool_opers.h" // primary include
 #include "glob_defs.h"
-#include "interpSurface.h"
+#include "stitchedSurface.h"
 #include "remesh.h"
 #include "vectormath.h" // NOTE :: needed for projecting a mesh randomly into space
 #include "path.h"
@@ -48,7 +48,7 @@ struct Mesh
 	Eigen::VectorXi bI;  // boundary indices - for specific faces [ NOT a {0,1} boolean thing ] 
 	Eigen::MatrixXd N;   // Normals ( for Faces? or Vertices? )
 	int numBV; 		 	 // number of boundary vertices
-} obj1_preSc, obj2_preSc, obj1, obj2, meshL, meshR, frag1, frag2, scan1,scan2, interp, remeshed, t1, t2, concat;
+} obj1_preSc, obj2_preSc, obj1, obj2, meshL, meshR, frag1, frag2, scan1,scan2, stitched, remeshed, t1, t2, concat;
 
 // NOTE the bool oper being used hereBTW!
 const char * MESH_BOOLEAN_TYPE_NAMES[] =

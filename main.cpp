@@ -7,21 +7,20 @@
 // [1]  are the triangels really flat or not
 // [2]  print out the initial and final states of your test images. If it's close to zero, this is expected
 // [3] Run on more tests cases. Will be easy to do at the moment :-)
-// [4] gen interp and remesh only every couple of stages. Must flow @ each stage though. You can't help that. This is a later extension after other issues get resolved 
+// [4] gen stitched and remesh only every couple of stages. Must flow @ each stage though. You can't help that. This is a later extension after other issues get resolved 
 // [5] what sort of entries are in the [MASS, STIFFNESS] matrices. We should check Nan's or invalid rows here, and ask why
 // [6] do visualize your 3 surfaces of interest [ 2 boundaries, stitching surface ] too
 // so for the Laplacian, it's given a decently valid remeshed mesh. aspect ratio doesn't seem to be an issue. And the call is basic:: it's <igl::cotMatrix(V,F,L)>, and computed once before we apply the MCF algorithm iteratively.
 // Current theory :: your CGAL remeshing might be creating two accidental copies, instead of using same vertex. basically, one of the underlying operations here could be introducing FPE [ Floating-Point Exceptions ]. Thus, what you expect to be right, is not actually right.
 
 // #TODO :: reduce time for compilation.
-// #TODO :: crud, I have [a] refactoring and [b] automation work for today - Friday. Well, this is just fantastic! 
-// #TODO :: take out dependencies for some of these targets - {glfw, CoMISo, glew }
-// u just need dependencise for CS370W_PROJ_bin
+// #TODO :: crud, I have [a] refactoring and [b] automation work for today - Friday. Well, this is just fantastic! ... ehhh, what to do ...
+// #TODO :: remove dependencies for some targets - {glfw, CoMISo, glew }. Just need dependencies for CS370W_PROJ_bin really.
 
 // MY LIBRARIES  
 #include "glob_defs.h"
 #include "helpers.h"
-#include "interpSurface.h"
+#include "stitchedSurface.h"
 #include "remesh.h"
 #include "meanCurvatureFlow.h"
 #include "sgd.h"  
@@ -64,7 +63,7 @@ struct Mesh
 	Eigen::VectorXi bI; // boundary indices 
 	Eigen::MatrixXd N;
 	int numBV; 			// number of boundary vertices
-} scan1, scan2, scan1_rest, scan2_rest, interp, remeshed, flowed, result;
+} scan1, scan2, scan1_rest, scan2_rest, stitched, remeshed, flowed, result;
 
 Eigen::Matrix4d T1 = Eigen::Matrix4d::Identity();
 Eigen::Matrix4d T2 = Eigen::Matrix4d::Identity();
@@ -100,7 +99,7 @@ int main(int argc, char *argv[])
 	// EXECUTE IMPUSLE-BASED, J_ALIGN PIPELINE
 	runPipeline();
 
-/* igl::readOFF(TUTORIAL_SHARED_PATH "/interpSurfCase.off", scan1.V, scan1.F);
+/* igl::readOFF(TUTORIAL_SHARED_PATH "/stitchedSurfCase.off", scan1.V, scan1.F);
 	Eigen::VectorXd dbla;
 	igl::doublearea(scan1.V,scan1.F,dbla);
 	cout << dbla << endl;
@@ -118,7 +117,7 @@ int main(int argc, char *argv[])
 	// read the number of boundary-vertices for the camel
 /*
 	igl::readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F);
-	// NOTE :: get boundary loops from <interp.F> instead
+	// NOTE :: get boundary loops from <stitched.F> instead
 	// u need to output the sttiched mitch. Code is deterministic. Print to file here.
 	std::vector<int> bndLoop
 	igl::boundary_loop(scan1.F, bndLoop);
@@ -341,25 +340,25 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			std::cout << "Running J_Align for [" << iters << "] th iteration" << std::endl;;
 			debugFile << "Running J_ALIGN for [" << iters << "] th iteration.\n";
 
-			// GENERATE INTERPOLATING SURFACE
-			//cout << "Generating interpolating surface" << endl;
-			// let's output interp_surf for camel heads case, to same file, all the time
-			// #TODO :: change <INTERP> to <STITCH>, as its a better naming convention.
-			INTERP_SURF::generateInterpolatingSurface(scan1.V,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
-			igl::writeOFF(GLOBAL::stitching_output, interp.V, interp.F);
+			// GENERATE stitchedOLATING SURFACE
+			//cout << "Generating stitchedolating surface" << endl;
+			// let's output STITCHED_SURF for camel heads case, to same file, all the time
+			// #TODO :: change <stitched> to <STITCH>, as its a better naming convention.
+			STITCHED_SURF::generateStitchedSurface(scan1.V,scan1.F,scan2.V,scan2.F, stitched.V,stitched.F);
+			igl::writeOFF(GLOBAL::stitching_output, stitched.V, stitched.F);
 
 			double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
-			bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, rEL);
+			bool remSucc = REMESH::remeshSurface(stitched.V,stitched.F,remeshed.V,remeshed.F, rEL);
 			igl::writeOFF(GLOBAL::remesh_after_succ_file, remeshed.V, remeshed.F);
 
 			if(!remSucc)
 			{
 				std::cout << "BAD REMESHING!" << std::endl;
-				std::cout << "Printing out interpolating surface" << std::endl;
-				std::string output_bad_mesh = "badInterpSurf[" + std::to_string(iters) + "].off";
+				std::cout << "Printing out stitchedolating surface" << std::endl;
+				std::string output_bad_mesh = "badstitchedSurf[" + std::to_string(iters) + "].off";
 				std::string scan1_bad = "badScan1.off";
 				std::string scan2_bad = "badScan2.off";
-				igl::writeOFF(output_bad_mesh, interp.V, interp.F);
+				igl::writeOFF(output_bad_mesh, stitched.V, stitched.F);
 				exit(0);
 			}
 
@@ -434,7 +433,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			 *** IMPULSE BASED ALIGNMENT ***
 			 *******************************/
 			// [1] CALCULATE boundary vertices for both scans
-			// generate boundary vertices from interpolating surface
+			// generate boundary vertices from stitchedolating surface
 			// #TODO :: doesn't <generateBoundaryVertices> return a std::vector<int> in actuality? use that instead!
 			// #TODO :: not the insanely limited scope of <boundaryOne|boundaryTwo> here.
 
@@ -442,14 +441,14 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			Eigen::MatrixXd boundaryOne;
 			Eigen::MatrixXd boundaryTwo;
 
-			INTERP_SURF::generateBoundaryVertices(scan1.V, scan1.F,boundaryOne); 
-			INTERP_SURF::generateBoundaryVertices(scan2.V, scan2.F,boundaryTwo); 
+			STITCHED_SURF::generateBoundaryVertices(scan1.V, scan1.F,boundaryOne); 
+			STITCHED_SURF::generateBoundaryVertices(scan2.V, scan2.F,boundaryTwo); 
 			int bvOne_num = boundaryOne.rows();
 			int bvTwo_num = boundaryTwo.rows();
 			*/
 
 			// #TODO :: write a better test. We want to compare boundary loops, not pointers. That test might've been bad.
-			// I note that meshes passed here are [scan1.F, scan2.F], versus [interp.F]
+			// I note that meshes passed here are [scan1.F, scan2.F], versus [stitched.F]
 			// perhaps this is causing the difference for us? Let us check later!
 /*
 			std::vector<int> stitchBoundaryOne;
@@ -461,9 +460,9 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 */
 
 
-			// NOTE :: get boundary loops from <interp.F> instead
+			// NOTE :: get boundary loops from <stitched.F> instead
 			std::vector<std::vector<int>> stitch_bndryLoop;
-			igl::boundary_loop(interp.F, stitch_bndryLoop);
+			igl::boundary_loop(stitched.F, stitch_bndryLoop);
 
 			// GET both boundary loop vectors
 			std::vector<int> stitch_firstBL = stitch_bndryLoop[0];

@@ -15,7 +15,7 @@ It sems like the impulse based alignment scheme works, but failure occurs in rem
 --- @ h = 0.5, same behavior as h = 1.0, but more iterations
 --- @ h = 0.025, this just tanks weirdly. It does converge in a nice number of iterations, and then starts to rotate in a weird manner. That shouldn't be happening.
 --- @ h = 0.01, the algorithm looks completely reasonable.
---- there seems to be an issue in INTERP_SURF generation here. Fix this
+--- there seems to be an issue in STITCHED_SURF generation here. Fix this
 
 
 Camel case --- god this is incredibly slow!
@@ -39,10 +39,10 @@ Camel case --- god this is incredibly slow!
 
 --------------- OPTIMIZE WHEN POSSIBLE ------------------------
 --- TRY simplest thing at first.
---- REMESH and INTERP every so often ( only when surface changes shape dramatically ! )
+--- REMESH and stitched every so often ( only when surface changes shape dramatically ! )
 --- remesh only when the triangles get bad ( bad aspect ratio )
 --- always have to FLOW your algo
---- INTERP surface is based on faces only! 
+--- stitched surface is based on faces only! 
 --- this is easy to get bugged! VISUALIZE IT CORRECTLY!
 
 *** CHECK each iteration makes positive progress ( include line searching too ) 

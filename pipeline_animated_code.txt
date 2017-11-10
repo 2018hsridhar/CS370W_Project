@@ -6,7 +6,7 @@
 // MY LIBRARIES  
 #include "glob_defs.h"
 #include "meanCurvatureFlow.h"
-#include "interpSurface.h"
+#include "stitchedSurface.h"
 #include "remesh.h"
 #include "sgd.h"
 #include "helpers.h"
@@ -22,7 +22,7 @@ using namespace igl;
 struct Mesh
 {
 	Eigen::MatrixXd V; Eigen::MatrixXi F;
-} scan1,scan2,interp,remeshed, result;
+} scan1,scan2,stitched,remeshed, result;
 
 int runPipeline();
 bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
@@ -119,25 +119,25 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 				HELPER::applyRigidTransformation(scan1.V,curT,transScan1); 
 				//cout << "Applied Transformation" << endl;
 
-				//cout << "Generating interpolating surface" << endl;
-				INTERP_SURF::generateInterpolatingSurface(transScan1,scan1.F,scan2.V,scan2.F, interp.V,interp.F);
+				//cout << "Generating stitchedolating surface" << endl;
+				STITCHED_SURF::generatestitchedolatingSurface(transScan1,scan1.F,scan2.V,scan2.F, stitched.V,stitched.F);
 				double remeshEdgeLen = REMESH::avgEdgeLenInputMeshes(transScan1,scan1.F,scan2.V,scan2.F);
-				// print scan + interp surface @ each iter ... to debug floating point err!
-				bool remSucc = REMESH::remeshSurface(interp.V,interp.F,remeshed.V,remeshed.F, remeshEdgeLen);
+				// print scan + stitched surface @ each iter ... to debug floating point err!
+				bool remSucc = REMESH::remeshSurface(stitched.V,stitched.F,remeshed.V,remeshed.F, remeshEdgeLen);
 				if(!remSucc)
 				{
 					std::cout << "BAD REMESHING!" << std::endl;
-					std::cout << "Printing out interpolating surface" << std::endl;
-					std::string output_bad_mesh = "badInterpSurf[" + std::to_string(k) + "].off";
+					std::cout << "Printing out stitchedolating surface" << std::endl;
+					std::string output_bad_mesh = "badstitchedSurf[" + std::to_string(k) + "].off";
 					std::string scan1_bad = "badScan1.off";
 					std::string scan2_bad = "badScan2.off";
-					igl::writeOFF(output_bad_mesh, interp.V, interp.F);
+					igl::writeOFF(output_bad_mesh, stitched.V, stitched.F);
 					igl::writeOFF(scan1_bad, transScan1, scan1.F);
 					igl::writeOFF(scan2_bad, scan2.V, scan2.F);
 					exit(0);
 				}
 
-	//			cout << "Flowing the interpolating surface" << endl;
+	//			cout << "Flowing the stitchedolating surface" << endl;
 				Eigen::MatrixXd Vc;
 				assert(MCF::meshHasBoundary(remeshed.V,remeshed.F));
 				MCF::computeMeanCurvatureFlow(remeshed.V,remeshed.F,0.001, Vc);
@@ -191,10 +191,10 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
 			viewer.data.clear();
 			viewer.data.set_mesh(result.V,result.F);
 
-			// PRINT out the interpolating surface ... something seems off here!
-			//std::string output_bad_mesh = "interpSurf[" + std::to_string(k) + "].off";
+			// PRINT out the stitchedolating surface ... something seems off here!
+			//std::string output_bad_mesh = "stitchedSurf[" + std::to_string(k) + "].off";
 /*	
-			igl::writeOFF(output_bad_mesh, interp.V, interp.F);
+			igl::writeOFF(output_bad_mesh, stitched.V, stitched.F);
 			if(k % 10 == 0)
 			{	
 				std::string output_of_mesh = "pipelineOutput[" + std::to_string(k) + "].off";

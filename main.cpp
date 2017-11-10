@@ -93,56 +93,96 @@ ofstream debugFile;
 	// ... crud, is this wrong again! OMG!
 // GOOD ADVICE - write out each tests as seperate methods; Lest you get incredibly lost here.
 
+bool surfacehasTriangleWithSmallArea(const Eigen::MatrixXd& V, const Eigen::MatrixXd& F, Eigen::Vector3i& assocFace);
+bool surfacehasCotangentMatrixBlowUp(const Eigen::MatrixXd& V, const Eigen::MatrixXd& F);
+bool matrixhasInfinites(const Eigen::SparseMatrix<double>& M);
+
+// #TODO :: would like to see if there's a surface whose triangle is flat, or poor aspect ratio. But it doesn't seem like we'll really need this!
+
+// TEST - helps us see if surface has a really tiny triangle
+// return face assoc with this tiny triangle
+bool surfacehasTriangleWithSmallArea(const Eigen::MatrixXd& V, const Eigen::MatrixXd& F, 
+										Eigen::Vector3i& assocFace)
+{
+	bool status = false;
+	cout << "Will print out triangle areas" << endl;
+	// NOTE :: See how small triangle areas can get. Even if just one really tiny triangle.
+	// CHECK which vertex indices said triangle corresponds to [ e.g. {0, 100, 200} ]
+	Eigen::VectorXd dbla;
+	igl::doublearea(V,F,dbla);
+	for(int i = 0; i < dbla.size(); ++i)
+	{
+		if(dbla(i) < 0.000001)
+		{
+			assocFace = F.row(i);
+			status = true;	
+			break;
+			// cout << dbla(i) << ", " << i << endl;
+			// cout << "[" << myFace(0) << ", " << myFace(1) << ", " << myFace(2) << "]\n";
+		}
+	}
+	return status;
+
+}
+
+// TEST - helps us see if stiffness matrix blows up or not
+// for the MCF case, we calcualte <Stiffness> once only. So if it blows up, clearly, something is wrong with <STITCHING> or <REMESHING>
+bool surfacehasStiffnessMatrixBlowUp(Eigen::MatrixXd& V, Eigen::MatrixXd& F)
+{
+	bool stat = false;
+	Eigen::SparseMatrix<double> L;
+	igl::cotmatrix(V,F,L);
+	double L_norm = L.norm();
+	if(isnan(L_norm))
+	{
+		stat = true;
+		break;
+	}
+	return stat;
+}
+
+// CHECK if a sparse matrix , type double, contains infinites
+bool matrixhasInfinites(Eigen::SparseMatrix<double>& M)
+{
+	bool stat = false;
+	for(int i = 0; i < M.rows(); ++i)
+	{
+		for(int j = 0; j < M.cols(); ++j)
+		{
+			// #NOTE :: there's a faster way. [coeffRef] is quite slow.
+			if(isinf(M.coeffRef(i,j))) 
+			{
+				cout << "[i,j] = [" << i << ", " << j << "]\n";
+				stat = true;
+				break;
+			}
+		}
+	}
+	return stat;
+}
+
+
+/* 
+ * #TODO :: write method to generate data. 
+ * Put <runPipeline()> in its own file. It intrudes on what is desired in <main.cpp>
+ * or better yet, seperate <data_generation> from <pipeline> code. 
+ * Put <data_generation> in its own file.
+ */
 
 int main(int argc, char *argv[])
 {
 	// EXECUTE IMPUSLE-BASED, J_ALIGN PIPELINE
-	runPipeline();
+	//runPipeline();
 
-/* igl::readOFF(TUTORIAL_SHARED_PATH "/stitchedSurfCase.off", scan1.V, scan1.F);
-	Eigen::VectorXd dbla;
-	igl::doublearea(scan1.V,scan1.F,dbla);
-	cout << dbla << endl;
-*/
-	// note :: just put in a better script for <smallSurfaceArea>
-	// output your boundary verts too!
+	Eigen::MatrixXd V_test;
+	Eigen::MatrixXi F_test;
 
-	/* #TODO :: write a method to generate data. Put <runPipeline()> in its own file. It intrudes on what I desire in main.cpp.	
-	 * or better yet ... seperate <data_generation> from <pipeline> code.
-	 * ... hmmm ... a desired structure could be the following?
- 	 *
-	 * 
-	 */
+	// #TODO :: for your set of tests, also store your test cases too. You don't want to always generate these btw. You need another directory GAAHHH!
+    igl::readOFF(TUTORIAL_SHARED_PATH "/stitchedSurfCase.off", V_test, F_test);
+  	//igl::readOBJ(TUTORIAL_SHARED_PATH "/surfaceBlowUpCase.obj", V, F);
+	//igl::readOFF(GLOBAL::pipelineScan1File,V_test,F_test);
 
 	// read the number of boundary-vertices for the camel
-/*
-	igl::readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F);
-	// NOTE :: get boundary loops from <stitched.F> instead
-	// u need to output the sttiched mitch. Code is deterministic. Print to file here.
-	std::vector<int> bndLoop
-	igl::boundary_loop(scan1.F, bndLoop);
-	cout << "# bndry verts = " << bndLoop.size() << endl;
-
-			/
-	// HERE, load in caes where the stiffness matrix blows up. Analyze why
-	// also #TODO :: get that bool_opers code fixed later. This is still an issue.
-*/
-
-/*
- *** COTANGENT MATRIX CALCULATIONS 
-	Eigen::MatrixXd V; 
-	Eigen::MatrixXi F;
-  	igl::readOBJ(TUTORIAL_SHARED_PATH "/surfaceBlowUpCase.obj", V, F);
-
-	Eigen::SparseMatrix<double> L;
-	igl::cotmatrix(V,F,L);
-
-	cout << L.norm() << endl;
-	double L_norm = L.norm();
-	cout << L_norm << endl;
-*/
-	// uhhh, I don't think <L> at first is the issue, but rather, something later in the algorithm itself, that is probably provoking this issue. Need to take a more careful look at this now!
-
 	// eval sum of diagonal coeffs too --- uhh, can't eval traces(matrices) for sparse(matrix)
 	// take rowwise sum
 	// wait a sec ... does it even make sense to take these norms? or not? HUH?
@@ -160,7 +200,6 @@ int main(int argc, char *argv[])
 	// check if your vertices are on the boundary or NOT
 	// we know vertex zero is on the boundary for sure ( based on indexing scheme )
 
-
 	// laplacian is a [V,V] matrix. 
 	// so we need to get the set of adj faces, and analyze those specific faces in more depth!
 	// hmm ... these are cotangents ... when do they approach [-inf,inf]? 
@@ -168,51 +207,11 @@ int main(int argc, char *argv[])
 	// cot(x) -> -\inf as x -> \pi
 	// so the aspect ratio needs to be checked, as well sa triangle flatness too, I guess, in the MCF algorithm.
 
-
-	// let us also run a test over each area of the triangle, and see what areas we get for said triagnles. If we get something close to zero, that'll be an issue for us
-	// hmm, some of them are small, but not small enough to make me suspect that they would blow up
-/*
-	cout << "Will print out triangle areas" << endl;
-	Eigen::VectorXd dbla;
-	igl::doublearea(V,F,dbla);
-	// note :: just seeing how small triangle areas can get
-	// there's only one really tiny triangle. 
-	// but it does correspond to vertex indices that are failing [ e.g. 0, 100, 200 ]
-	for(int i = 0; i < dbla.size(); ++i)
-	{
-		if(dbla(i) < 0.000001)
-		{
-			cout << dbla(i) << endl;
-			cout << i << endl;
-			Eigen::Vector3i myFace = F.row(i);
-			cout << "[" << myFace(0) << ", " << myFace(1) << ", " << myFace(2) << "]\n";
-		}
-	}
-	cout << "Done printing out triangle areas" << endl;
-	exit(0);
-*/
-/*
-	cout << "will exec nan check" << endl;
-	// wait a sec... this isn't the right set of dims
-	cout << "num rows in L " << L.rows() << endl;
-	cout << "num cols in L " << L.cols() << endl; // 2409
-	for(int i = 0; i < L.rows(); ++i)
-	{
-		for(int j = 0; j < L.cols(); ++j)
-		{
-			// #NOTE :: there's a faster way. [coeffRef] is quite slow.
-			// wait a sec ... the first entry itself is off? what??
-			if(isinf(L.coeffRef(i,j))) 
-			{
-				cout << "[i,j] = [" << i << ", " << j << "]\n";
-			}
-		}
-	}
-*/
-
-	// indices corresponding to inf :: [0,100], [0,200], [100,0], [100,200], [200,0], [200,100], [200,200]
-	// indices correspoding to nan :: [0,0], [100,100]. Two of these diagonal entries
-	// let's print out those rows. let's try the first row
+	/*
+	 * indices corresponding to inf :: [0,100], [0,200], [100,0], [100,200], [200,0], [200,100], [200,200]
+	 * indices correspoding to nan :: [0,0], [100,100]. Two of these diagonal entries
+	 * let's print out those rows. let's try the first row
+	 */
 
 	// okay, there is a [-inf] and [inf] here too.
 	// I preusme [-inf] + [inf] = [nan], right? 
@@ -245,17 +244,6 @@ int main(int argc, char *argv[])
 	cout << flowed_V.norm() << endl;
 	cout << "------------------------------------------------------" << endl;
 */
-
-	
-
-
-
-	// so this mesh seems completely valid
-	// are any of these triangles flat?
-	// any thing to note about computation of stiffness matrices too?
-	// okay, this code itself can't be changed.
-	// which of these rows is Nan? let's take a sum of each row
-	// eval sum, see triangle
 
 /*
 	igl::viewer::Viewer viewer;

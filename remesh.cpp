@@ -165,6 +165,8 @@ namespace REMESH
 	* Gets boundary vertices for both parts of the remeshed stitchedolated surface
 	* Based on solving for <boundary_loop> of this remeshed stitchedolated surface 
 	* {V,F} represent the remeshsed surface btw. [numBV_one, numBV_two] denote the stitched surface.
+	* NOTE :: technically, [numBV_one, numBV_two] were useful for testing purposes earlier, but are no longer useful now.
+	* NOTE :: technically, <V> is a useless parameter here now.
 	*/
 	void getRemeshedBoundaryVerts(const int numBV_one, const int numBV_two, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, std::vector<int>& remeshBoundaryOne, std::vector<int>& remeshBoundaryTwo)
 	{
@@ -172,7 +174,7 @@ namespace REMESH
 		// KNOW that the first [boundaryOne,boundaryTwo] vertices are already set.
 		// CONSTRUCT boundary loops for the remeshsed surface 
 		Eigen::MatrixXd remeshBndry;
-		std::vector<std::vector<int>> bndryLoop; // #NOTE :: thsi is the appropriate call
+		std::vector<std::vector<int>> bndryLoop; // #NOTE :: this is the appropriate call
 		// Refer to <hessian_energy.cpp> for your example.
 
 		// GET boundary_loops for the remeshed vertex
@@ -184,71 +186,7 @@ namespace REMESH
 		std::vector<int> firstBL = bndryLoop[0];
 		std::vector<int> secondBL = bndryLoop[1];
 
-		// ASSERT that all verts in boundaryOne are in the firstBL 
-		// [scan1 = boundary1], and [scan2 = boundary2] here
-		// #TODO :: am I indexing incorrectly here. Need to check again!
-		int b1_s_ptr = 0;
-		int b2_s_ptr = numBV_one;
-
-		// #TODO :: why does this fail for the camel heads. Need to find out here.
-		// huh ... this boundary loop code should work as expected.
-
-
-		// sort 2 boundary loop vectors BTW - makes things easier to debug!
-		// BUT ... don't use the sorted version! 
-		// #TODO :: assert correct number of boundary vertices here. This is probably a huge issue at the moment!
-/*
-		std::vector<int> sortFirstBL = firstBL;
-		std::sort(sortFirstBL.begin(), sortFirstBL.end());
-		std::cout << numBV_one << std::endl;
-		for(int i : sortFirstBL)
-			std::cout << i << " ";
-		std::cout << std::endl;	
-*/
-/*
-		while(b1_s_ptr < numBV_one)
-		{
-			// assert vector contains said index
-			if(std::find(firstBL.begin(), firstBL.end(), b1_s_ptr) == firstBL.end()) 
-			{
-				std::cout << "Fail to contain a vertex in boundary 1" << std::endl;
-				break;
-			}
-			b1_s_ptr++;
-		}
-*/
-//		std::cout << std::endl;
-/*
-		// ASSERT that all verts in boundaryTwo are in the secondBL 
-		while(b2_s_ptr < numBV_two)
-		{
-			// assert vector contains said index
-			if(std::find(secondBL.begin(), secondBL.end(), b2_s_ptr) == secondBL.end()) 
-			{
-				std::cout << "Fail to contain a vertex in boundary 2" << std::endl;
-				break;
-			}
-			b2_s_ptr++;
-		}
-*/
 		remeshBoundaryOne = firstBL;
 		remeshBoundaryTwo = secondBL;
-
-		// CONVERT type :: firstBL -> Eigen::VectorXi ( it is a vector, after all )
-/*
-		Eigen::VectorXi bl_one;
-		bl_one.resize(firstBL.size());
-		for(int i = 0; i < firstBL.size(); ++i)
-			bl_one(i) = firstBL[i];
-
-		Eigen::VectorXi bl_two;
-		bl_two.resize(secondBL.size());
-		for(int i = 0; i < secondBL.size(); ++i)
-			bl_two(i) = secondBL[i];
-
-		// NOW get those two boundaries!
-		igl::slice(V,bl_one,1,remeshBoundaryOne);
-		igl::slice(V,bl_two,1,remeshBoundaryTwo);
-*/		
 	}
 }

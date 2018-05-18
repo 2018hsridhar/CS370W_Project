@@ -1,3 +1,5 @@
+# note number 1 :: execute cmake only when cmake files update. else make only. Build system generators != actual builds
+# note number 2 :: use the <-j> flag, for parallel builds.
 cmake_minimum_required(VERSION 2.6)
 project(CS370W_RESEARCH_PROJECT)
 

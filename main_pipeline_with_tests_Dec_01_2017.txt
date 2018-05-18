@@ -1,0 +1,1076 @@
+﻿// #TODO :: perform <SLE> call yourself. Debugging might be a pain, so please focus on a simple test case ( 1 triangle, vary edge lengths accordingly ). In addition, REALIZE that you have to index your faces properly ( adding the vertices is easy ... faces is much harder )
+// YES, CGAL's code can be buggy! this is a thing
+// LETS run a bigger barrage of testing here too!
+
+
+
+
+// [1] what is the geometry of these bad triangles. We know [1] small surface area AND [2] they lie on the boundary
+// [2] What are the shared vertices
+// [3] Which are boundary vertices
+// [4] What do nearby triangles look like?
+// [5] How are these vertices set up exactly? 
+// [6] When introduced? verts in which of these 3 stages exactly? 
+// [7] one of these vertices is far, the other 2 are stupidely close. One of them is adjacent to only one triagnle. Find this out. Print #-adjacency for these indices.
+// [8] which operation is ADDING a vertex? Check if some sort of weird index renumbering is going on. 
+// #TODO :: do not use <collapse_small_triangles.h>. Can't ---> this fails to fix the actual bug!
+
+// CHECK if stitch surface has Nans, or [V,F] Nana,s [COMs, orientations], and if Forces are NaN
+// which step is causing the blow up
+// @ 17th iteration of CamelHeads ---> something is off. Fix this!
+// so we get a stiffness matrix with NaN entries @ iteration 17 --- didn't Kazhdan mention something like this in his paper. Should corroborate his findings from earlier BTW!
+
+// Vouga's questions
+// [1] are the triangles really flat or not
+// [2] print out the initial and final states of your test images. If it's close to zero, this is expected
+// [3] Run on more tests cases. Will be easy to do at the moment :-)
+// [4] gen stitched and remesh only every couple of stages. Must flow @ each stage though. You can't help that. This is a later extension after other issues get resolved 
+// [5] what sort of entries are in the [MASS, STIFFNESS] matrices. We should check Nan's or invalid rows here, and ask why
+// [6] VISUALIZE your three surfaces of interest [ 2 boundaries, stitching surface ] too
+// so for the Laplacian, it's given a decently valid remeshed mesh. aspect ratio doesn't seem to be an issue. And the call is basic:: it's <igl::cotMatrix(V,F,L)>, and computed once before we apply the MCF algorithm iteratively.
+// #TODO :: Note your current theory that your CGAL remeshing might be accidentally creating two copies, instead of using same vertex. Basically, one of the underlying operations here could be introducing FPE [ Floating-Point Exceptions ]. Thus, what you expect to be right, is not actually right.
+// END CONCLUSION ::  While I can tell if specific vertices are boundry vertices, I CANNOT tell if these numbering schemes maintain consistency. That is, just because index "1" is a boundary vertex in the <remeshed_output>, DOES NOT mean it is a boundary vertex in <iso_output>. ... So is there a way or not for us to determine when a specific vertex is introduced or not? I'm still rather unsure about this.
+
+// #TODO :: spend 10 hours on some organization and performance techniques. This will prove rather useful later for you. You would not want to be slowed down at the moment!
+// #TODO :: copy-pasta scripts from Matt Might, to notice commands used often. This will help you. I need some help with organization.
+// #TODO :: blog some of these things!
+
+// #TODO :: SET UP codebase automation work.
+// #TODO :: REMOVE dependencies for some targets - {glfw, CoMISo, glew }. CAN'T do this!
+// #TODO :: Better idea :: create a seperate testing file. Seriously. Don't include <tests> with <pipeline>. This will become annoying!
+// NOTE :: you have those three steps. Each step adds new vertices. Oh ... see where vertex is created. We mostly care about verts in that one triangle.
+// YOU know verts in bad triangle - find if those 3 exist. Find if verts exist in pre-remeshed mesh.
+
+// MY LIBRARIES  
+#include "glob_defs.h"
+#include "helpers.h"
+#include "stitchedSurface.h"
+#include "remesh.h"
+#include "meanCurvatureFlow.h"
+#include "sgd.h"  
+#include "vectormath.h"
+#include "rigidbodytemplate.h"
+#include "rigidbodyinstance.h"
+#include "j_align.h"
+
+// LibIgl includes
+#include <igl/writeOFF.h>
+// viewer logic ( viewing mostly )
+#include <igl/viewer/Viewer.h>
+#include <igl/cat.h>
+#include <igl/boundary_loop.h>
+
+// DBEUGGING ... cotmatrix
+// #TODO :: go check file ordering schemes again for <.off> between <stitched> and <remeshing>. I think renumbering occurs, BUT some order is still preserved here? .. hmmm ... 
+#include <igl/cotmatrix.h>
+#include <igl/doublearea.h>
+
+// C++ includes
+#include <iostream>
+#include <fstream>
+#include <algorithm> 
+
+// C++ Namespace includes 
+using namespace Eigen;  
+using namespace std;
+using namespace igl;
+
+// Forward declaration of classes
+class RigidBodyTemplate;
+class RigidBodyInstance;
+
+// PREALLOCATION
+// #NOTE :: unless limited, sometimes best to declare names of objects AFTER your datatype is declared instead. It'll allow you to extend to multiple structs then.
+struct Mesh
+{
+	Eigen::MatrixXd V; 
+	Eigen::MatrixXi F;
+	Eigen::MatrixXd bV;  // boundary vertices
+	Eigen::VectorXi bI; // boundary indices 
+	Eigen::MatrixXd N;
+	int numBV; 			// number of boundary vertices
+};
+struct Mesh scan1, scan2, scan1_rest, scan2_rest, stitched, remeshed, flowed, result;
+// after <result>, these structurse are specifically for debug outputs.
+// idea :: if we're running tests for /PROCESSING, include this as it's own seperate method ( to scale for later! ) 
+
+Eigen::Matrix4d T1 = Eigen::Matrix4d::Identity();
+Eigen::Matrix4d T2 = Eigen::Matrix4d::Identity();
+// I expect initialy COMS and orientations to be equal to 0. 
+const Vector3d scanOneCenter(0,0,0);
+const Vector3d scanOneOrient(0,0,0);
+const Vector3d scanTwoCenter(0,0,0);
+const Vector3d scanTwoOrient(0,0,0);
+double prev_energy = std::numeric_limits<double>::max();
+int iters = 0;
+const double h = 0.01;
+
+// FOR impulse based alignment scheme
+RigidBodyInstance *ScanOneBody;
+RigidBodyInstance *ScanTwoBody;
+RigidBodyTemplate *ScanOneTemplate;
+RigidBodyTemplate *ScanTwoTemplate;
+
+// METHOD HEADERS
+int runPipeline();
+bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod);
+ofstream debugFile;
+
+// METHOD BODY
+// also, output the mesh into the remeshed mesh
+// INPUT mesh can have some problems { your stitching algorithm )
+	// ... crud, is this wrong again! OMG!
+// GOOD ADVICE - write out each tests as seperate methods; Lest you get incredibly lost here.
+
+bool discoverPipelineFpeLocation();
+bool surfaceHasCotangentMatrixBlowUp(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F);
+bool matrixHasInfinites(Eigen::SparseMatrix<double>& M);
+int surfaceHasTriangleWithSmallArea(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, Eigen::Vector3i& assocFace);
+bool inBoundLoop(const std::vector<int>& boundLoop, int v);
+bool sameVertexIdxTest(const Eigen::MatrixXd& V1, const Eigen::MatrixXd& V2, int idx);
+bool vertexInSet(Eigen::MatrixXd& setV, Eigen::Vector3d& myV);
+int mod(int a, int b);
+
+// SIMPLE MOD OPERATION
+int mod(int a, int b)
+{
+	return (a%b+b)%b;
+}
+
+
+// GIVEN a vertex, assert whether in a boundary or not
+bool inBoundLoop(const std::vector<int>& boundLoop, int v )
+{
+	return (std::find(boundLoop.begin(), boundLoop.end(), v) != boundLoop.end());
+}
+
+// #TODO :: This test asserts or <sameVertexIdxTest> in 2 meshes.
+bool sameVertexIdxTest(const Eigen::MatrixXd& V1, const Eigen::MatrixXd& V2, int idx)
+{
+	Eigen::Vector3d v1 = V1.row(idx);
+	Eigen::Vector3d v2 = V2.row(idx);
+	double dist = std::fabs((v1 - v2).norm());
+	double TOL = 1e-6; // 1e-8 is too low
+	if(dist < TOL)
+	{
+		return true;
+	}
+	return false;
+}
+
+// #TODO :: better idea - how about you literally just look through each vertex, and check distances.
+// YES, it is a basic and dumb test. But let us do that!
+// this is probably a better idea
+bool vertexInSet(Eigen::MatrixXd& setV, Eigen::Vector3d& myV)
+{
+	for(int i = 0; i < setV.rows(); ++i)
+	{
+		Eigen::Vector3d myCurV = setV.row(i);
+		double dist = std::fabs((myCurV - myV).norm());
+		double TOL = 1e-4; // 1e-8 is too low
+		if(dist < TOL)
+		{		
+			return true;
+		}
+	}
+	return false;
+}
+
+
+// TEST - find out location of FPE in pipeline. 
+// Could be in stitching or remeshing portion of the algorithm.
+
+// what I do know
+// [1] 0 is a common vertex across all meshes
+// [2] 100 is a common vertex for [rem,sle]
+// [3] 200 is not at all common across meshes. This must be introduced in the codebase!
+// #TODO :: in addition, compute |boundary_vertices| for your three meshes. This too, is useful!
+
+
+// #TODO --- perhaps apply SLE call yourself, instead of using CGAL's method
+// #TODO --- analyze the boundary itself, and [prev|next] vertices here.
+
+bool discoverPipelineFpeLocation()
+{
+	Mesh stitch, remIn, sle, iso, remOut, rem_af_succ;
+
+	// READ different stages of the [stitching] and [remeshing] pipelines.
+    igl::readOFF(GLOBAL::stitching_output, stitch.V, stitch.F);
+    igl::readOFF(GLOBAL::remeshInputFile, remIn.V, remIn.F);
+    igl::readOFF(GLOBAL::sleOutputFile, sle.V, sle.F);
+    igl::readOFF(GLOBAL::isoOutputFile, iso.V, iso.F);
+    igl::readOFF(GLOBAL::remeshOutputFile, remOut.V, remOut.F);
+    igl::readOFF(GLOBAL::remesh_after_succ_file, rem_af_succ.V, rem_af_succ.F);
+
+	// COMPUTE cotangent matrices for each stage, and see which one blows up or not
+	bool stitch_fail = surfaceHasCotangentMatrixBlowUp(stitch.V, stitch.F);
+	bool remIn_fail = surfaceHasCotangentMatrixBlowUp(remIn.V, remIn.F);
+	bool sle_fail = surfaceHasCotangentMatrixBlowUp(sle.V, sle.F);
+	// it hapens @ iso_fail. Interesting. I wonder why.
+	// isotropic remeshing introduces FPE errors. I wonder why
+	bool iso_fail = surfaceHasCotangentMatrixBlowUp(iso.V, iso.F);
+	bool remOut_fail = surfaceHasCotangentMatrixBlowUp(remOut.V, remOut.F);
+	bool rem_af_succ_fail = surfaceHasCotangentMatrixBlowUp(rem_af_succ.V, rem_af_succ.F);
+
+	//std::cout << std::boolalpha;   
+	//std::boolalpha;
+	//cout.setf(ios base::boolalpha);
+	cout << stitch_fail << endl;
+	cout << remIn_fail << endl;
+	cout << sle_fail << endl;
+	cout << "--------------------------" << endl;
+	cout << iso_fail << endl;
+	cout << remOut_fail << endl;
+	cout << rem_af_succ_fail << endl;
+
+	// since we now that the computation of the cotangent matrix FAILS inbetween {sle, iso}
+	// let us see what goes wrong here, with {V,F} of each of them
+	// cout << sle.V << endl;
+	// cout << "--------------------------\n";
+	// cout << iso.V << endl;
+	// one idea :: how about we visualize these meshes instead? That might be better!
+
+	//igl::viewer::Viewer viewer;
+	//viewer.data.clear();
+	//viewer.data.set_mesh(sle.V,sle.F);
+	//viewer.data.set_mesh(iso.V,iso.F);
+	//return viewer.launch(); 
+	//return false;
+
+	// is there a small triangel in iso, vs sle? huh?
+	Eigen::Vector3i sleAssocFace;
+	Eigen::Vector3i isoAssocFace;
+	int isoBadFace = surfaceHasTriangleWithSmallArea(iso.V, iso.F, isoAssocFace);
+
+	// #TODO :: note your indexing here. This is a thing!
+	int ibf_v1 = isoAssocFace(0);
+	int ibf_v2 = isoAssocFace(1);
+	int ibf_v3 = isoAssocFace(2);
+
+	// wait, is this right [ iso.V.row] ? check again!
+	Eigen::Vector3d v1 = iso.V.row(ibf_v1);
+	Eigen::Vector3d v2 = iso.V.row(ibf_v2);
+	Eigen::Vector3d v3 = iso.V.row(ibf_v3);
+	cout << "--------------------------------------------------------\n";
+	cout << v1 << endl;
+	cout << v2 << endl;
+	cout << v3 << endl;
+	cout << "--------------------------------------------------------\n";
+
+	cout << isoBadFace << endl;
+	cout << "ISO BAD FACE IS" << endl;
+	cout << "[" << isoAssocFace(0) << ", " << isoAssocFace(1) << ", " << isoAssocFace(2) << "]\n";
+
+	// CHECK if v1 corresponds to same vertices across {rem, sle, iso }
+
+	// #TODO :: testing by position, NOT indices
+	// interesting - [0] is common across all stages, [100,200] is common only in {sle} and {iso} BUT NOT {rem}
+	// ... so both vertices {100} and {200} are introduced ONLY in the <SLE> stage.
+	// ... yet isn't it only in the <ISO> stage where the computation of <L> fails, and NOT the <SLE> stage? ... huh ... ???  
+	bool remV1 = vertexInSet(remIn.V, v1);
+	bool sleV1 = vertexInSet(sle.V, v1);
+	bool isoV1 = vertexInSet(iso.V, v1);
+	cout << "rem-v1 = [" << ibf_v1 << "]\t[" << remV1 << "]\n";
+	cout << "sle-v1 = [" << ibf_v1 << "]\t[" << sleV1 << "]\n";
+	cout << "iso-v1 =[" << ibf_v1 << "]\t[" << isoV1 << "]\n";
+
+	// CHECK if v2 corresponds to same vertices across {rem, sle, iso }
+	bool remV2 = vertexInSet(remIn.V, v2);
+	bool sleV2 = vertexInSet(sle.V, v2);
+	bool isoV2 = vertexInSet(iso.V, v2);
+	cout << "rem-v2 = [" << ibf_v2 << "]\t[" << remV2 << "]\n";
+	cout << "sle-v2 = [" << ibf_v2 << "]\t[" << sleV2 << "]\n";
+	cout << "iso-v2 =[" << ibf_v2 << "]\t[" << isoV2 << "]\n";
+
+	// CHECK if v3 corresponds to same vertices across {rem, sle, iso }
+	bool remV3 = vertexInSet(remIn.V, v3);
+	bool sleV3 = vertexInSet(sle.V, v3);
+	bool isoV3 = vertexInSet(iso.V, v3);
+	cout << "rem-v3 = [" << ibf_v3 << "]\t[" << remV3 << "]\n";
+	cout << "sle-v3 = [" << ibf_v3 << "]\t[" << sleV3 << "]\n";
+	cout << "iso-v3 =[" << ibf_v3 << "]\t[" << isoV3 << "]\n";
+
+	// CONFUSION - so verts {100,200} get introduced in the first boundary @ SLE
+	// YET the Laplacian explodes ONLY @ isotropic processing.
+	// ... huh, are the faces common between [sle, iso]? I need to find out about that too! This could be throwing an issue too! ...
+	// #TODO :: why does this occur? I'd like to find out more!!!
+
+	// LET us print out these vertices ( for their corresponding indices )
+	cout << "Vert 1 = " << v1 << endl;
+	cout << "Vert 2 = " << v2 << endl;
+	cout << "Vert 3 = " << v3 << endl;
+
+	// #TODO :: Implement the idea of collecting of boundary vertices here.
+	// ... hmmm, I need to find out which of these vertices are boundary vertices or not, right? I think I'm missing out that aspect here at the moment! 
+	// ... this was what Dr. Vouga was talking about, right? 
+	// ... analyze boundary_loops for both of these guys, and ask which vertex does or does not lie on boundary
+	// ... NOTE :: remIn -> sle -> iso, all produce boundary vertices.
+	// GOAL :: analyze whether boundary vertices in failed face for [iso] correspond to bndry verts for [remIn]
+	// #TODO :: put this in its own method, to extract both boundary_lops, instead, given set of faces? Do this later!
+
+	std::vector<std::vector<int>> remInBoundLoop;
+	igl::boundary_loop(remIn.F, remInBoundLoop);
+	std::vector<int> rem_BL_1 = remInBoundLoop[0];
+	std::vector<int> rem_BL_2 = remInBoundLoop[1];
+
+	std::vector<std::vector<int>> sleBoundLoop;
+	igl::boundary_loop(sle.F, sleBoundLoop);
+	std::vector<int> sle_BL_1 = sleBoundLoop[0];
+	std::vector<int> sle_BL_2 = sleBoundLoop[1];
+
+	std::vector<std::vector<int>> isoBoundLoop;
+	igl::boundary_loop(iso.F, isoBoundLoop);
+	std::vector<int> iso_BL_1 = isoBoundLoop[0];
+	std::vector<int> iso_BL_2 = isoBoundLoop[1];
+
+	// [1] search for index 0 in each of these first boundaries
+	// [2] if index 0 is here ,,, analyze the prev and next boundaries
+	// [3] ask what vertex indices these also correspond too!
+	// #TODO :: make this own method later!
+
+	// PRINT these boundary loops too! 
+	cout << "REM_BL_1" << endl;
+	for(int i = 0; i < rem_BL_1.size(); ++i)
+	{
+		cout << rem_BL_1[i] << ", ";
+	}
+	cout << endl;
+	cout << endl;
+	
+	cout << "SLE_BL_1" << endl;
+	for(int i = 0; i < sle_BL_1.size(); ++i)
+	{
+		cout << sle_BL_1[i] << ", ";
+	}
+	cout << endl;
+	cout << endl;
+
+	cout << "ISO_BL_1" << endl;
+	for(int i = 0; i < iso_BL_1.size(); ++i)
+	{
+		cout << iso_BL_1[i] << ", ";
+	}
+	cout << endl;
+	cout << endl;
+
+///////////////////	
+	// REM_IDX 
+	std::cout << "---------------------------------------------------------" << std::endl;
+	int rem_idx = -1;
+	for(int i = 0; i < rem_BL_1.size(); ++i)
+	{
+		if(rem_BL_1[i] == 0)
+		{
+			std::cout << "HIT :: rem_index = [" << i << "]\n";
+			rem_idx = i;
+			break;
+		}
+	}
+	std::cout << "---------------------------------------------------------" << std::endl;
+
+	// SLE_IDX
+	int sle_idx = -1;
+	for(int i = 0; i < sle_BL_1.size(); ++i)
+	{
+		if(sle_BL_1[i] == 0)
+		{
+			std::cout << "HIT :: sle_index = [" << i << "]\n";
+			sle_idx = i;
+			break;
+		}
+	}
+
+	std::cout << "---------------------------------------------------------" << std::endl;
+
+	// ISO_IDX
+	int iso_idx = -1;
+	for(int i = 0; i < iso_BL_1.size(); ++i)
+	{
+		if(iso_BL_1[i] == 0)
+		{
+			std::cout << "HIT :: iso_index = [" << i << "]\n";
+			iso_idx = i;
+			break;
+		}
+	}
+
+	std::cout << "---------------------------------------------------------" << std::endl;
+
+	// GIVEN three indices, get [prev,next] vertices for vertex [0]
+	int rem_prev = mod(rem_idx - 1,rem_BL_1.size());
+	int rem_next = mod(rem_idx + 1,rem_BL_1.size());
+	int rem_v_p = rem_BL_1[rem_prev];
+	int rem_v_n = rem_BL_1[rem_next];
+	
+	int sle_prev = mod(sle_idx - 1,sle_BL_1.size());
+	int sle_next = mod(sle_idx + 1,sle_BL_1.size());
+	int sle_v_p = sle_BL_1[sle_prev];
+	int sle_v_n = sle_BL_1[sle_next];
+
+	int iso_prev = mod(iso_idx - 1,iso_BL_1.size());
+	int iso_next = mod(iso_idx + 1,iso_BL_1.size());
+	int iso_v_p = iso_BL_1[iso_prev];
+	int iso_v_n = iso_BL_1[iso_next];
+
+	// with three verts,  print out boundaries
+	// #TODO :: confused - I expected an ordering like [200, 0, 100] for the <ISO_CASE>.
+	std::cout << "REM :: [" << rem_v_p << ", " << "0" << ", " << rem_v_n << "]\n";
+	std::cout << "SLE :: [" << sle_v_p << ", " << "0" << ", " << sle_v_n << "]\n";
+	std::cout << "ISO :: [" << iso_v_p << ", " << "0" << ", " << iso_v_n << "]\n";
+
+	// NOTE :: we want the corresponding INDICES to vertices at index [0,100,200] in the ISO mesh, from the SLE mesh.
+	// WE just compare positions and return indices, from the SLE mesh.
+	// this will simplify life a lot!
+	cout << ibf_v1 << endl; // 100
+	cout << ibf_v2 << endl; // 200
+	cout << ibf_v3 << endl; // 0
+
+	// [v1,v2,v3]
+	// loop over SLE boundary vertices ( by positions ) themselves; get indices for [v1,v2]
+	// #TODO :: REFACTOR into a seperate method.
+	int sle_B1_v1_map = -1;
+	int sle_B1_v2_map = -1;
+	int sle_B1_v104_map = -1;
+	Eigen::Vector3d v104 = iso.V.row(104);
+
+	// v1 test
+	for(int i = 0; i < sle.V.rows(); ++i)
+	{
+		Eigen::Vector3d myCurV = sle.V.row(i);
+		double dist = std::fabs((myCurV - v1).norm());
+		double TOL = 1e-4; // 1e-8 is too low
+		if(dist < TOL)
+		{		
+			sle_B1_v1_map = i;
+			break;
+		}
+	}
+
+	// v2 test
+	for(int i = 0; i < sle.V.rows(); ++i)
+	{
+		Eigen::Vector3d myCurV = sle.V.row(i);
+		double dist = std::fabs((myCurV - v2).norm());
+		double TOL = 1e-4; // 1e-8 is too low
+		if(dist < TOL)
+		{		
+			sle_B1_v2_map = i;
+			break;
+		}
+	}
+
+	// compare [104] in iso to [118] in sle - see if matching
+	for(int i = 0; i < sle.V.rows(); ++i)
+	{
+		Eigen::Vector3d myCurV = sle.V.row(i);
+		double dist = std::fabs((myCurV - v104).norm());
+		double TOL = 1e-4; // 1e-8 is too low
+		if(dist < TOL)
+		{		
+			sle_B1_v104_map = i;
+			break;
+		}
+	}
+
+	//
+	cout << "sle size = " << sle_BL_1.size() << "\t" << "iso size = " << iso_BL_1.size() << endl;
+	cout << "Corresponds to v1 @ 100 [" << sle_B1_v1_map << "]\n";
+	cout << "Corresponds to v2 @ 200 [" << sle_B1_v2_map << "]\n";
+	cout << "Corresponds to v104 @ 104 [" << sle_B1_v104_map << "]\n";
+
+
+
+
+	// SINCE EACH vertex is in iso_BL_1 ... let's print out each boudnary_loop for the three meshes
+	/*
+	for(int i : rem_BL_1)
+		cout << i << " ";
+	cout << endl;
+
+	std::sort(sle_BL_1.begin(), sle_BL_1.end());
+	for(int i : sle_BL_1)
+		cout << i << " ";
+	cout << endl;
+
+
+	for(int i : iso_BL_1)
+		cout << i << " ";
+	cout << endl;
+	*/
+
+	return 0;
+
+	// #TODO :: is split_long_edges introducing this boundary vertex, even if it isn't throwing you an err?
+	// In ISO mesh ::  what is wrong with vertices [200, 0, 124].
+	// Still unsure where FPE is getting introduced here. I need to find out.
+	// given an index, find out if a vector contains that value.
+	// #TODO :: write a method to determine [1] which boundary loop and [2] which vertices of a face are in said boundary loops. It can be a simple [x]->[y] mapping, IMO
+	// method not worth writing. Just copy->pasta these tests instead TBH!
+
+	// REM BOUNDARY TESTS
+	if (std::find(rem_BL_1.begin(), rem_BL_1.end(), ibf_v1) != rem_BL_1.end())
+	{
+		cout << "HERE REM_BL_1 V1" << endl;
+	}
+	
+	if (std::find(rem_BL_1.begin(), rem_BL_1.end(), ibf_v2) != rem_BL_1.end())
+	{
+		cout << "HERE REM_BL_1 V2" << endl;
+		// so '0' is part of the original boundary
+	}
+	
+	if (std::find(rem_BL_1.begin(), rem_BL_1.end(), ibf_v3) != rem_BL_1.end())
+	{
+		cout << "HERE REM_BL_1 V3" << endl;
+	}
+
+	if (std::find(rem_BL_2.begin(), rem_BL_2.end(), ibf_v1) != rem_BL_2.end())
+	{
+		cout << "HERE REM_BL_2 V1" << endl;
+	}
+	
+	if (std::find(rem_BL_2.begin(), rem_BL_2.end(), ibf_v2) != rem_BL_2.end())
+	{
+		cout << "HERE REM_BL_2 V2" << endl;
+		// so '0' is part of the original boundary
+	}
+	
+	if (std::find(rem_BL_2.begin(), rem_BL_2.end(), ibf_v3) != rem_BL_2.end())
+	{
+		cout << "HERE REM_BL_2 V3" << endl;
+	}
+
+	// SLE BOUNDARY TESTS
+	if (std::find(sle_BL_1.begin(), sle_BL_1.end(), ibf_v1) != sle_BL_1.end())
+	{
+		cout << "HERE SLE_BL_1 V1" << endl;
+	}
+	
+	if (std::find(sle_BL_1.begin(), sle_BL_1.end(), ibf_v2) != sle_BL_1.end())
+	{
+		cout << "HERE SLE_BL_1 V2" << endl;
+		// so '0' is part of the original boundary
+	}
+	
+	if (std::find(sle_BL_1.begin(), sle_BL_1.end(), ibf_v3) != sle_BL_1.end())
+	{
+		cout << "HERE SLE_BL_1 V3" << endl;
+	}
+
+	if (std::find(sle_BL_2.begin(), sle_BL_2.end(), ibf_v1) != sle_BL_2.end())
+	{
+		cout << "HERE SLE_BL_2 V1" << endl;
+	}
+	
+	if (std::find(sle_BL_2.begin(), sle_BL_2.end(), ibf_v2) != sle_BL_2.end())
+	{
+		cout << "HERE SLE_BL_2 V2" << endl;
+		// so '0' is part of the original boundary
+	}
+	
+	if (std::find(sle_BL_2.begin(), sle_BL_2.end(), ibf_v3) != sle_BL_2.end())
+	{
+		cout << "HERE SLE_BL_2 V3" << endl;
+	}
+
+	// ISO BOUNDARY TESTS
+	if (std::find(iso_BL_1.begin(), iso_BL_1.end(), ibf_v1) != iso_BL_1.end())
+	{
+		cout << "HERE ISO_BL_1 V1" << endl;
+	}
+	
+	if (std::find(iso_BL_1.begin(), iso_BL_1.end(), ibf_v2) != iso_BL_1.end())
+	{
+		cout << "HERE ISO_BL_1 V2" << endl;
+		// so '0' is part of the original boundary
+	}
+	
+	if (std::find(iso_BL_1.begin(), iso_BL_1.end(), ibf_v3) != iso_BL_1.end())
+	{
+		cout << "HERE ISO_BL_1 V3" << endl;
+	}
+
+	if (std::find(iso_BL_2.begin(), iso_BL_2.end(), ibf_v1) != iso_BL_2.end())
+	{
+		cout << "HERE ISO_BL_2 V1" << endl;
+	}
+	
+	if (std::find(iso_BL_2.begin(), iso_BL_2.end(), ibf_v2) != iso_BL_2.end())
+	{
+		cout << "HERE ISO_BL_2 V2" << endl;
+		// so '0' is part of the original boundary
+	}
+	
+	if (std::find(iso_BL_2.begin(), iso_BL_2.end(), ibf_v3) != iso_BL_2.end())
+	{
+		cout << "HERE ISO_BL_2 V3" << endl;
+	}
+
+}
+
+// TEST - helps us see if surface has a really tiny triangle
+// return face assoc with this tiny triangle
+int surfaceHasTriangleWithSmallArea(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, Eigen::Vector3i& assocFace)
+{
+	int faceIdx = -1;
+	cout << "Will print out triangle areas" << endl;
+	// NOTE :: See how small triangle areas can get. Even if just one really tiny triangle.
+	// CHECK which vertex indices said triangle corresponds to [ e.g. {0, 100, 200} ]
+	Eigen::VectorXd dbla;
+	igl::doublearea(V,F,dbla);
+	for(int i = 0; i < dbla.size(); ++i)
+	{
+		if(dbla(i) < 0.000001)
+		{
+			assocFace = F.row(i);
+			faceIdx = i;
+			//break;
+			std::cout << "Face area = " << ", " << dbla(i) << std::endl;
+			std::cout << "Face Idx = " << ", " << i << std::endl;
+			std::cout << "[" << assocFace(0) << ", " << assocFace(1) << ", " << assocFace(2) << "]\n";
+		}
+	}
+	return faceIdx;
+
+}
+
+// TEST - helps us see if stiffness matrix blows up or not
+// for the MCF case, we calcualte <Stiffness> once only. So if it blows up, clearly, something is wrong with <STITCHING> or <REMESHING>
+bool surfaceHasCotangentMatrixBlowUp(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F)
+{
+	bool stat = false;
+	Eigen::SparseMatrix<double> L;
+	igl::cotmatrix(V,F,L);
+	double L_norm = L.norm();
+	if(isnan(L_norm))
+	{
+		stat = true;
+	}
+	return stat;
+}
+
+// CHECK if a sparse matrix , type double, contains infinites
+// #TODO :: understand why this method hates <const> for <coeffRef> access. It's weird.
+bool matrixHasInfinites(Eigen::SparseMatrix<double>& M)
+{
+	bool stat = false;
+	for(int i = 0; i < M.rows(); ++i)
+	{
+		for(int j = 0; j < M.cols(); ++j)
+		{
+			// #NOTE :: there's a faster way. [coeffRef] is quite slow.
+			//cout << L.coeffRef(0,j) << endl;
+			if(isinf(M.coeffRef(i,j))) 
+			{
+				cout << "[i,j] = [" << i << ", " << j << "]\n";
+				stat = true;
+				break;
+			}
+		}
+	}
+	return stat;
+}
+
+/* 
+ * #TODO :: write method to generate data. 
+ * Put <runPipeline()> in its own file. It intrudes on what is desired in <main.cpp>
+ * or better yet, seperate <data_generation> from <pipeline> code. 
+ * Put <data_generation> in its own file.
+ */
+
+int main(int argc, char *argv[])
+{
+	discoverPipelineFpeLocation();
+	// EXECUTE IMPUSLE-BASED, J_ALIGN PIPELINE
+	//runPipeline();
+
+	//Eigen::MatrixXd V_test;
+	//Eigen::MatrixXi F_test;
+
+    //igl::readOFF(TUTORIAL_SHARED_PATH "/stitchedSurfCase.off", V_test, F_test);
+
+	// goal :: for a bunch of the <PROCESSING> files, run <L_norm_explode> after <runPipeline()>
+	// see which one of them fails.
+
+
+	// #TODO :: For thes tests, store associated test cases too. You don't want to always generate these. You need another directory and structure to organize such cases though.
+  	//igl::readOBJ(TUTORIAL_SHARED_PATH "/surfaceBlowUpCase.obj", V, F);
+	//igl::readOFF(GLOBAL::pipelineScan1File,V_test,F_test);
+
+	// read the number of boundary-vertices for the camel
+	// eval sum of diagonal coeffs too --- uhh, can't eval traces(matrices) for sparse(matrix)
+	// take rowwise sum
+	// wait a sec ... does it even make sense to take these norms? or not? HUH?
+	// Eigen::VectorXd row_sum = V.rowwise().sum();
+	// cout << row_sum << endl;
+	// NOTE:: the sum of these row elements seems completely valid
+	// NOTE :: we operate specifically on the Frobenius norm here.
+	// #TODO :: omit rows containing [a] Nans or [b] Infs?
+	// #TODO :: does L work off of facse, or vertices? I believe faces. 
+
+	// nan check
+	//cout << "Num vertices = " << V.rows() << endl;
+	//cout << "Num faces = " << F.rows() << endl;
+
+	// check if your vertices are on the boundary or NOT
+	// we know vertex zero is on the boundary for sure ( based on indexing scheme )
+
+	// laplacian is a [V,V] matrix. 
+	// so we need to get the set of adj faces, and analyze those specific faces in more depth!
+	// hmm ... these are cotangents ... when do they approach [-inf,inf]? 
+	// cot(x) -> \inf as x -> 0
+	// cot(x) -> -\inf as x -> \pi
+	// so the aspect ratio needs to be checked, as well sa triangle flatness too, I guess, in the MCF algorithm.
+
+	/*
+	 * indices corresponding to inf :: [0,100], [0,200], [100,0], [100,200], [200,0], [200,100], [200,200]
+	 * indices correspoding to nan :: [0,0], [100,100]. Two of these diagonal entries
+	 * let's print out those rows. let's try the first row
+	 */
+
+	// okay, there is a [-inf] and [inf] here too.
+	// I preusme [-inf] + [inf] = [nan], right? 
+	// where does this stem from though?
+	// let us check those too!
+/*
+	cout << "------------------------------------------------------" << endl;
+	for(int j = 0; j < L.cols(); ++j)
+	{
+		// wait a sec ... the first entry itself is off? what??
+		cout << L.coeffRef(0,j) << endl;
+	}
+	cout << "------------------------------------------------------" << endl;
+	cout << endl;
+
+	// in lapaclian, equals -(sum) of all other row entries
+
+	cout << "done with nan check" << endl;
+*/
+
+/*
+	cout << L << endl;
+	cout << "V_vertics" << endl;
+	cout << V.norm() << endl;
+	cout << "------------------------------------------------------" << endl;
+	Eigen::MatrixXd flowed_V;
+	MCF::computeMeanCurvatureFlow(V,F,0.001, flowed_V);
+	cout << "------------------------------------------------------" << endl;
+	cout << "flowed_V_vertices" << endl;
+	cout << flowed_V.norm() << endl;
+	cout << "------------------------------------------------------" << endl;
+*/
+
+/*
+	igl::viewer::Viewer viewer;
+	viewer.data.clear();
+	viewer.data.set_mesh(V,F);
+	return viewer.launch();
+*/
+
+}
+
+int runPipeline() 
+{
+/*
+	// #TODO :: work on setting up the visualization correctly!
+	igl::viewer::Viewer viewer;
+	std::cout << "Executing Zero-Overlap, Impuslse-Driven, rigid Alignment Pipeline" << std::endl;
+
+	if(!readOFF(GLOBAL::pipelineScan1File,scan1.V,scan1.F)) {
+		std::cout << "Failed to load partial scan one." << std::endl;
+		return -1;
+	} 
+	readOFF(GLOBAL::pipelineScan1File,scan1_rest.V,scan1_rest.F);
+
+	if(!readOFF(GLOBAL::pipelineScan2File,scan2.V,scan2.F)) {
+		std::cout << "Failed to load partial scan two." << std::endl;
+		return -1;
+	}
+	readOFF(GLOBAL::pipelineScan2File,scan2_rest.V,scan2_rest.F);
+
+	std::cout << "Executing pipeline for the following meshes" << std::endl;
+	std::cout << "Mesh one [" << GLOBAL::pipelineScan1File << "]" << std::endl;
+	std::cout << "Mesh two [" << GLOBAL::pipelineScan2File << "]" << std::endl;
+
+	std::cout << "Opening debug file" << std::endl;
+	debugFile.open(GLOBAL::pipelineDebugFile);
+
+	igl::cat(1,scan1.V,scan2.V,result.V);
+	igl::cat(1,scan1.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
+	viewer.data.clear();
+	viewer.data.set_mesh(result.V,result.F);
+	viewer.callback_key_down = key_down;
+	std::cout<<"Press [space] to smooth."<<std::endl;
+	std::cout<<"Press [r] to reset."<<std::endl;
+
+	// SETUP templates and body instances
+	// Initial Configuration vector values also set up here too!
+	std::cout << "Setting up template and body instances.\n"; 
+	ScanOneTemplate = new RigidBodyTemplate(scan1.V,scan1.F);
+	ScanTwoTemplate = new RigidBodyTemplate(scan2.V,scan2.F);
+
+	ScanOneBody = new RigidBodyInstance(*ScanOneTemplate,scanOneCenter,scanOneOrient);
+	ScanTwoBody = new RigidBodyInstance(*ScanTwoTemplate,scanTwoCenter,scanTwoOrient);
+
+	// any debug output here btw?
+	std::cout << "Finished setting up template and body instances.\n"; 
+
+	viewer.launch();
+	return 0;
+*/
+}
+
+bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int mod)
+{
+/*
+	switch(key)
+	{
+		case 'r':
+		case 'R':
+			iters = 0;
+			// restore mesh data
+			scan1.V = scan1_rest.V;
+			scan1.F = scan1_rest.F;
+			scan2.V = scan2_rest.V;
+			scan2.F = scan2_rest.F;
+			// restore templates 
+			ScanOneTemplate = new RigidBodyTemplate(scan1.V,scan1.F);
+			ScanTwoTemplate = new RigidBodyTemplate(scan2.V,scan2.F);
+			ScanOneBody = new RigidBodyInstance(*ScanOneTemplate,scanOneCenter,scanOneOrient);
+			ScanTwoBody = new RigidBodyInstance(*ScanTwoTemplate,scanTwoCenter,scanTwoOrient);
+			break;
+		case ' ':
+		{
+			std::cout << "Running J_Align for [" << iters << "] th iteration" << std::endl;;
+			debugFile << "Running J_ALIGN for [" << iters << "] th iteration.\n";
+
+			// GENERATE stitchedOLATING SURFACE
+			//cout << "Generating stitchedolating surface" << endl;
+			// let's output STITCHED_SURF for camel heads case, to same file, all the time
+			// #TODO :: change <stitched> to <STITCH>, as its a better naming convention.
+			STITCHED_SURF::generateStitchedSurface(scan1.V,scan1.F,scan2.V,scan2.F, stitched.V,stitched.F);
+			igl::writeOFF(GLOBAL::stitching_output, stitched.V, stitched.F);
+
+			double rEL = REMESH::avgEdgeLenInputMeshes(scan1.V,scan1.F,scan2.V,scan2.F);
+			bool remSucc = REMESH::remeshSurface(stitched.V,stitched.F,remeshed.V,remeshed.F, rEL);
+			igl::writeOFF(GLOBAL::remesh_after_succ_file, remeshed.V, remeshed.F);
+
+			if(!remSucc)
+			{
+				std::cout << "BAD REMESHING!" << std::endl;
+				std::cout << "Printing out stitchedolating surface" << std::endl;
+				std::string output_bad_mesh = "badstitchedSurf[" + std::to_string(iters) + "].off";
+				std::string scan1_bad = "badScan1.off";
+				std::string scan2_bad = "badScan2.off";
+				igl::writeOFF(output_bad_mesh, stitched.V, stitched.F);
+				exit(0);
+			}
+
+
+			// APPLY MCF TO SURFACE [ denoted as 'flowed' here ]
+			assert(MCF::meshHasBoundary(remeshed.V,remeshed.F));
+			// #TODO :: fix MCF algorithm. failure is here. Nan's are getting introduced here. 
+			// Need we re-read Kazhdan's ( surface pinch cases? Perhaps. Or what val is set too also ) 
+			ofstream myFile (GLOBAL::mcfDebugText, std::ios_base::app); // need append mode
+			if (myFile.is_open())
+			{
+				myFile << "Iteration [" << std::to_string(iters) << "]\n";
+			}
+			myFile.close();
+			MCF::computeMeanCurvatureFlow(remeshed.V,remeshed.F,0.001, flowed.V);
+			flowed.F = remeshed.F;
+*/
+			// write mcf file ... see if Nan's
+/*
+			std::string remesh_mesh = "remeshMesh[" + std::to_string(iters) + "].off";
+			igl::writeOFF(remesh_mesh, remeshed.V, remeshed.F);
+			std::string mcf_mesh = "mcfMesh[" + std::to_string(iters) + "].off";
+			igl::writeOFF(mcf_mesh, flowed.V, flowed.F);
+*/
+			// CHECK IF impulses improved alignment
+			// #TODO :: why do we get a <NaN> value here on 87th iteration of camel heads? That's somewhat off.
+			// IF we get a area to have NaN ... one of these vertices/triangles posses a NaN ... where is the problem in the pipeline. 
+			// PUT some ASSERTIONS here!
+/*
+			double local_energy = SGD::calculateSurfaceEnergy(flowed.V,flowed.F);
+
+			// this energy calculation seems awfully FISHY!
+			std::cout << "Prev energy = [" << prev_energy << "]" << std::endl;
+			std::cout << "Local energy = [" << local_energy << "]" << std::endl;
+			debugFile << "Prev energy = [" << prev_energy << "].\n"; 
+			debugFile << "Local energy = [" << local_energy << "].\n"; 
+
+			///////////////////////////////////////////////////////////////////////////	
+			// something tells me that I need to be careufl with this local energy value
+			// and need to double check magnitudes of F_ext being used here!
+			// [T1,T2] need to be properly updated here!
+			// #TODO :: change this threshold.  
+			// simplest thing ... large # of iterations ( i.e. 500 ), don't stop early!
+			// use derivative f of energy ( close to 0 ). Magnitude of grad(E)
+			// compare both [trans,rot] of rigid bodies
+
+			//if(local_energy < 0.1) // #TODO :: find a better approach here??
+			if(local_energy < 0.025) // #TODO :: find a better approach here??
+			{
+				std::cout << "Impulse based alignment Converged to a solution" << std::endl;
+				std::cout << "Printing optimal transformation matrices" << std::endl;	
+				std::cout << "Transformation matrix, for scan one [t1] is:\n";
+				std::cout << T1 << "\n";
+				std::cout << "Transformation matrix, for scan one [t2] is:\n";
+				std::cout << T2 << "\n";
+				debugFile << "SGD Converged to a solution.\n";
+				debugFile << "Printing optimal transformation matrix.\n";
+				debugFile << "Transformation matrix, for scan one [t1] is:\n";
+				debugFile << T1 << "\n";
+				debugFile << "Transformation matrix, for scan one [t2] is:\n";
+				debugFile << T2 << "\n";
+				std::cout << "Closing debug file, exiting program execution.\n";
+				// close file
+				debugFile.close();	
+				// exit program
+			}
+			else
+			{
+				prev_energy = local_energy;
+			}
+*/
+			/*******************************
+			 *** IMPULSE BASED ALIGNMENT ***
+			 *******************************/
+			// [1] CALCULATE boundary vertices for both scans
+			// generate boundary vertices from stitchedolating surface
+			// #TODO :: doesn't <generateBoundaryVertices> return a std::vector<int> in actuality? use that instead!
+			// #TODO :: not the insanely limited scope of <boundaryOne|boundaryTwo> here.
+
+			/*
+			Eigen::MatrixXd boundaryOne;
+			Eigen::MatrixXd boundaryTwo;
+
+			STITCHED_SURF::generateBoundaryVertices(scan1.V, scan1.F,boundaryOne); 
+			STITCHED_SURF::generateBoundaryVertices(scan2.V, scan2.F,boundaryTwo); 
+			int bvOne_num = boundaryOne.rows();
+			int bvTwo_num = boundaryTwo.rows();
+			*/
+
+			// #TODO :: write a better test. We want to compare boundary loops, not pointers. That test might've been bad.
+			// I note that meshes passed here are [scan1.F, scan2.F], versus [stitched.F]
+			// perhaps this is causing the difference for us? Let us check later!
+/*
+			std::vector<int> stitchBoundaryOne;
+			std::vector<int> stitchBoundaryTwo;
+			igl::boundary_loop(scan1.F,stitchBoundaryOne);
+			igl::boundary_loop(scan2.F,stitchBoundaryTwo);
+			int bvOne_num = stitchBoundaryOne.size();
+			int bvTwo_num = stitchBoundaryTwo.size();
+*/
+
+
+/*
+			// NOTE :: get boundary loops from <stitched.F> instead
+			std::vector<std::vector<int>> stitch_bndryLoop;
+			igl::boundary_loop(stitched.F, stitch_bndryLoop);
+
+			// GET both boundary loop vectors
+			std::vector<int> stitch_firstBL = stitch_bndryLoop[0];
+			std::vector<int> stitch_secondBL = stitch_bndryLoop[1];
+			int bvOne_num = stitch_firstBL.size();
+			int bvTwo_num = stitch_secondBL.size();
+
+			// get FLOWED mesh ( after remeshing too, btw ) boundary vertices, for both scan parts
+			std::vector<int> remeshBoundaryOne;
+			std::vector<int> remeshBoundaryTwo;
+
+			REMESH::getRemeshedBoundaryVerts(bvOne_num, bvTwo_num, flowed.V, flowed.F, remeshBoundaryOne, remeshBoundaryTwo);
+			cout << "Done collecting remeshed boundary vertices" << endl;
+
+			// #TODO :: eyeball both sets here
+			//std::sort(stitchBoundaryOne.begin(), stitchBoundaryOne.end());
+			//std::sort(stitchBoundaryTwo.begin(), stitchBoundaryTwo.end());
+*/			
+			// now sort and print them out ( let's focus on 1st boundary ) 
+/*
+			std::sort(stitch_firstBL.begin(), stitch_firstBL.end());
+			std::sort(stitch_secondBL.begin(), stitch_secondBL.end());
+			std::sort(remeshBoundaryOne.begin(), remeshBoundaryOne.end());
+			std::sort(remeshBoundaryTwo.begin(), remeshBoundaryTwo.end());
+
+
+			for ( int i : stitch_firstBL )
+				std::cout << i << " ";
+			std::cout << std::endl;
+			std::cout << "----------------------------------------------------------------------" << std::endl;
+			for ( int i : remeshBoundaryOne )
+				std::cout << i << " ";
+			std::cout << std::endl;
+			std::cout << "----------------------------------------------------------------------" << std::endl;
+
+			std::cout << "----------------------------------------------------------------------" << std::endl;
+
+			for ( int i : stitch_secondBL)
+				std::cout << i << " ";
+			std::cout << std::endl;
+			std::cout << "----------------------------------------------------------------------" << std::endl;
+			for ( int i : remeshBoundaryTwo )
+				std::cout << i << " ";
+			std::cout << std::endl;
+			std::cout << "----------------------------------------------------------------------" << std::endl;
+
+			exit(0);
+*/
+			// #TODO :: move method below to another file? Possibly an issue?
+
+			// [2] SOLVE for delta_cVel, delta_omega, for both scans
+			// NOTE :: Can assume $\rho$ Vol = 1 [ that is, our setting is of const unit mass ]
+/*
+			Eigen::Vector3d delta_cVel_1 = Eigen::Vector3d(0,0,0);
+			Eigen::Vector3d delta_omega_1 = Eigen::Vector3d(0,0,0);
+
+			Eigen::Vector3d delta_cVel_2 = Eigen::Vector3d(0,0,0);
+			Eigen::Vector3d delta_omega_2 = Eigen::Vector3d(0,0,0);
+
+			// [3] SOLVE for external forces assoc w/boundary 1
+			Eigen::MatrixXd boundaryV_1;
+			Eigen::MatrixXd extBndForceMat_1;
+			J_ALIGN::solveExternalForcesForBoundary(remeshBoundaryOne, flowed.V, flowed.F, boundaryV_1, extBndForceMat_1);  
+
+			// [4] SOLVE for external forces assoc w/boundary 2 
+			Eigen::MatrixXd boundaryV_2;
+			Eigen::MatrixXd extBndForceMat_2;
+			J_ALIGN::solveExternalForcesForBoundary(remeshBoundaryTwo, flowed.V, flowed.F, boundaryV_2, extBndForceMat_2);  
+
+			// [5] solve for config_deltas
+			J_ALIGN::solve_config_deltas(boundaryV_1, extBndForceMat_1, ScanOneBody, delta_cVel_1,delta_omega_1);
+			J_ALIGN::solve_config_deltas(boundaryV_2, extBndForceMat_2, ScanTwoBody, delta_cVel_2,delta_omega_2);
+
+			// [6] update rigid body instance configurations
+			J_ALIGN::updateConfiguration(ScanOneBody,delta_cVel_1,delta_omega_1);
+			J_ALIGN::updateConfiguration(ScanTwoBody,delta_cVel_2,delta_omega_2);
+
+			// [7] GENERATE transformation [ rot + trans ] components
+			// #TODO :: fix this transformation. It isn't correct. Something about it is off apparantely.
+			Eigen::Matrix4d T1 = Eigen::Matrix4d::Identity();
+			Eigen::Matrix4d T2 = Eigen::Matrix4d::Identity();
+			J_ALIGN::solveTransformation(ScanOneBody, T1);
+			J_ALIGN::solveTransformation(ScanTwoBody, T2);
+
+			// [7] APPLY rigid transformations to both boundaries.
+			HELPER::applyRigidTransformation(scan1_rest.V,T1,scan1.V);
+			HELPER::applyRigidTransformation(scan2_rest.V,T2,scan2.V);
+			++iters;
+
+			
+			// [8] CREATE global mesh, contain the two inputs aligned based on impulses
+			igl::cat(1,scan1.V,scan2.V,result.V);
+			igl::cat(1,scan1.F, MatrixXi(scan2.F.array() + scan1.V.rows()), result.F);
+			viewer.data.clear();
+			viewer.data.set_mesh(result.V,result.F);
+			break;
+		}
+		default:
+			return false;	
+	}
+	return true;
+*/
+}
+
+// #TODO ---> put a modulus operation here too!

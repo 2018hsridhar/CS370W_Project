@@ -1,0 +1,160 @@
+// *** NOTE ::: <nested_cages_data> is now located in the </p> directory too!
+// ERR - in some cases, these bool opers seg fault? Perhaps invalid shapes being used under some of these settings? I need to check this!
+// #TODO :: REMEMBER that your inputs are 3D trimeshs's with CLEARLY DEFINED BOUNDARIES! you're not passing those 2d-mirrors here! That was an err in logic.
+
+// YES - BOOL OPERS DO NOT WORK AS EXPECTED. you can't take the intersection of 2 different objs, even if they share the same plane, to get a boundary. In addition, all bool operations will result in water tight meshes, and the output of vertices and faces is 
+// [1] not guaranteed to be in order as your inputs
+// [2] will most likely possess floating point exception [ FPE ] errors
+
+// USER_DEFINED LIBRARIES
+#include "bool_opers.h" // primary include
+#include "glob_defs.h"
+#include "stitchedSurface.h"
+#include "remesh.h"
+#include "vectormath.h" // NOTE :: needed for projecting a mesh randomly into space
+#include "path.h"
+#include "helpers.h"
+
+// LIBIGL INCLUDES
+// specific to CSG/bool opers + unit-sphere scaling
+#include <igl/readOFF.h>
+#include <igl/writeOFF.h>
+#include <igl/readOBJ.h>
+#include <igl/writeOBJ.h>
+#include <igl/viewer/Viewer.h>
+
+// includes for CSG/bool opers AND unit-sphere scaling
+#include <igl/copyleft/cgal/mesh_boolean.h>
+#include <igl/centroid.h> 
+#include <igl/random_dir.h>
+// EIGEN INCLUDES
+#include <Eigen/Core>
+
+// C++ STATIC LIB INCLUDES
+#include <iostream>
+#include <iostream>
+#include <fstream>
+
+// C++ NAMESPACES 
+using namespace Eigen;  
+using namespace std;
+using namespace igl;
+
+struct Mesh
+{
+	Eigen::MatrixXd V; 
+	Eigen::MatrixXi F;
+	Eigen::MatrixXd bV;  // boundary vertices
+	Eigen::VectorXi bI;  // boundary indices - for specific faces [ NOT a {0,1} boolean thing ] 
+	Eigen::MatrixXd N;   // Normals ( for Faces? or Vertices? )
+	int numBV; 		 	 // number of boundary vertices
+} obj1_preSc, obj2_preSc, obj1, obj2, meshL, meshR, frag1, frag2, scan1,scan2, stitched, remeshed, t1, t2, concat;
+
+// NOTE the bool oper being used hereBTW!
+const char * MESH_BOOLEAN_TYPE_NAMES[] =
+{
+	"Union",
+	"Intersect",
+	"Minus",
+	"XOR",
+	"Resolve",
+};
+
+bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int modifier);
+
+//#TODO :: extend logic to split into three pieces now.
+// well, turns out with the vector <j>, you now longer need the <RECTANGULAR-PRISM SCALING>!
+// Just set them to <UNIT-SPHERE-SCALING> instead :-).
+
+/* 
+ * NOTE :: let's use the viewer here. It'll help you see some stuff ( for debugging purposes, that is )!
+ * will prove useful for data generation later
+ * having to see this in blender is taking WAY to much time
+ */
+
+// This function is called every time a keyboard button is pressed
+// send issue to Alec - seg fault, could be an issue
+// git pull - get latest version of Libigl too. If there exist a bug, ... well, we have to handle it :-)
+bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int modifier)
+{
+  std::cout<<"Key: "<<key<<" "<<(unsigned int)key<<std::endl;
+  if (key == '1')
+  {
+    viewer.data.clear();
+    viewer.data.set_mesh(obj1.V,obj1.F);
+    viewer.core.align_camera_center(obj1.V,obj1.F);
+  }
+  else if (key == '2')
+  {
+    viewer.data.clear();
+    viewer.data.set_mesh(obj2.V,obj2.F);
+    viewer.core.align_camera_center(obj2.V,obj2.F);
+  }
+  else if (key == '3')
+  {
+    viewer.data.clear();
+	// you are segfaulting @ <viewer.data.set_mesh>. Why
+	// you should have a valid mesh by this point of time too!
+	// case in point :: obj1 = sphere.obj, obj2 = armadillo.obj
+	// #TODO :: ascertain cause for seg fault if we pass in meshes in { sphere, cube } order
+    viewer.data.set_mesh(frag1.V,frag1.F);
+    viewer.core.align_camera_center(frag1.V,frag1.F);
+  }
+  else if (key == '4')
+  {
+    viewer.data.clear();
+    viewer.data.set_mesh(frag2.V,frag2.F);
+    viewer.core.align_camera_center(frag2.V,frag2.F);
+  }
+  else if (key == '5')
+  {
+    viewer.data.clear();
+    viewer.data.set_mesh(concat.V,concat.F);
+    viewer.core.align_camera_center(concat.V,concat.F);
+  }
+  return false;
+}
+
+int main(int argc, char *argv[])
+{
+	igl::readOBJ(GLOBAL::boolOpersMeshOne,obj1_preSc.V,obj1_preSc.F); 
+	igl::readOBJ(GLOBAL::boolOpersMeshTwo,obj2_preSc.V,obj2_preSc.F); 
+
+	BOOL_OPERS::applyUnitSphereRescaling(obj1_preSc.V, obj1_preSc.F, obj1.V,obj1.F);
+	BOOL_OPERS::applyUnitSphereRescaling(obj2_preSc.V, obj2_preSc.F, obj2.V,obj2.F);
+
+	std::cout << "generating bool oper meshes" << std::endl;	
+	BOOL_OPERS::generateBoolOperMeshes(obj2.V,obj2.F, meshL.V, meshL.F, meshR.V, meshR.F);
+
+	std::cout << "generating mesh frag 1" << std::endl;	
+	BOOL_OPERS::generateMeshFragment(obj1.V,obj1.F,meshL.V,meshL.F, frag1.V, frag1.F);
+
+	std::cout << "generating mesh frag 2" << std::endl;	
+	BOOL_OPERS::generateMeshFragment(obj1.V,obj1.F,meshR.V,meshR.F, frag2.V, frag2.F);
+
+	std::cout << "Writing out mesh frag 1" << std::endl;	
+	igl::writeOBJ(GLOBAL::boolOpersFragOne,frag1.V,frag1.F);
+
+	std::cout << "Writing out mesh frag 2" << std::endl;	
+	igl::writeOBJ(GLOBAL::boolOpersFragTwo,frag2.V,frag2.F);
+
+	// extra step - throw and concat meshes, to view your inputs
+	BOOL_OPERS::throwMeshInSpace(frag1.V,frag1.F,t1.V,t1.F);
+	BOOL_OPERS::throwMeshInSpace(frag2.V,frag2.F,t2.V,t2.F);
+
+	igl::cat(1,t1.V,t2.V,concat.V);	
+	igl::cat(1,t1.F,MatrixXi(t2.F.array() + t1.V.rows()),concat.F);	
+
+	std::cout<<R"(
+		1 Switch to first mesh
+		2 Switch to second mesh
+		3 Switch to first frag
+		4 Switch to second frag 
+		5 concat
+	)";
+
+	igl::viewer::Viewer viewer;
+	viewer.callback_key_down = &key_down;
+	viewer.data.set_mesh(obj1.V,obj1.F);
+	viewer.launch();
+}

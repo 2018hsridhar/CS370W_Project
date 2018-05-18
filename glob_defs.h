@@ -5,15 +5,13 @@
 #include "path.h"
 
 // #TODO :: read up how globals.h is set up as 
-// note :: most of these should be a bunch of consts
-// and you should also describe what they are
+// #TODO :: describe what variables actually dop
+// #TODO Put all the globally-used numbers in here.
+// #TODO :: capitalize all consts [ generally a good idea ]
 
-// Avoid the use of magic numbers and multiple defines.
-// Put all the globally-used numbers in here.
-
-// remember :: constants are ALWAYS capitalized!
-
-// #TODO :: in glob_defs, have variables you can set ( for say, edge lengths in CGAl code, or files you want to test ... wait, for files you want to tet, that's a good @(#)$u idea ) . Your files should or should not be different, based on what you do and do not want to test. A.K.A. make it configurable!
+// Avoid the use of following
+// [1] magic numbers 
+// [2] multiple defines.
 
 namespace GLOBAL
 {
@@ -65,6 +63,10 @@ namespace GLOBAL
 	extern const char* boolOpersMeshTwo;
 	extern const char* boolOpersFragOne;
 	extern const char* boolOpersFragTwo;
+
+	// triangle-test
+	extern const char* simpleTriangleFile;
+	extern const char* twoTrianglesFile;
 }
 #endif
 

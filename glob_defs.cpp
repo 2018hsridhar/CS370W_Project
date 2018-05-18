@@ -7,7 +7,7 @@
 namespace GLOBAL
 {
 
-	// #TODO :: usea  different directory aside from <shared>. 
+	// #TODO :: use another directory aside from <shared>. 
 	// These two directories should've been seperated in the beginning.
 	// this is getting incredibly frustrating.
 	// NOTE :: only for the two inputs should the shared paths be used. Not for 
@@ -59,6 +59,11 @@ namespace GLOBAL
 	//const char* boolOpersMeshTwo = SHARED_PATH "/cube.obj";
 	const char* boolOpersFragOne = "fragment1.obj";
 	const char* boolOpersFragTwo = "fragment2.obj";
+
+	// simple triangle file	
+	const char* simpleTriangleFile = SHARED_PATH "/1triangle.off";
+	const char* twoTrianglesFile = SHARED_PATH "/2triangles.off";
+
 }
 #endif
 

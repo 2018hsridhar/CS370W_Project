@@ -1,5 +1,4 @@
-﻿// formerly know as "animatedPipeline_may16.txt"
-// C++ includes
+﻿// C++ includes
 #include <iostream>
 #include <fstream>
 

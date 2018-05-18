@@ -169,9 +169,9 @@ namespace MCF
 			if ( solver.info() != Eigen::Success )  {
 				std::cout << "Solving B failed." << std::endl;
 			}
-			std::cout << "U_norm = " << std::endl;
-			std::cout << U.norm() << std::endl;
-			std::cout << "[.....................]" << endl;
+			// std::cout << "U_norm = " << std::endl;
+			// std::cout << U.norm() << std::endl;
+			// std::cout << "[.....................]" << endl;
 
 			int numVertices = Vc.rows();
 			// SOLVE for difference, between current and previous iteration of MCF ( Vc vs U )

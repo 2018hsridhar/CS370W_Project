@@ -1,0 +1,48 @@
+Mirror planes case, spaced apart by <xxx> amoutn of units
+
+Remesh /= NUMBER, # Trials
+1, 305
+2, 305
+3. 124 ... REMESH fails here. IDK why --- visualize this
+4, 305
+5.
+
+--- I expect that no matter how fine remeshing is, the number of trials/iterations to convergence stays constant.
+It sems like the impulse based alignment scheme works, but failure occurs in remeshing of certain meshes? Unsure why
+--- well, becuase of the remesh invariant, I really don't hav eto refine my remesh edge len.
+--- Do I need to adjust for a proper 'h-value', or not? unsure here?
+--- @ h = 1.0, this algo just keeps springing back-and-forth
+--- @ h = 0.5, same behavior as h = 1.0, but more iterations
+--- @ h = 0.025, this just tanks weirdly. It does converge in a nice number of iterations, and then starts to rotate in a weird manner. That shouldn't be happening.
+--- @ h = 0.01, the algorithm looks completely reasonable.
+--- there seems to be an issue in STITCHED_SURF generation here. Fix this
+
+
+Camel case --- god this is incredibly slow!
+	--- needed @ h = 0.1 to be sufficiently fast
+	--- took around 86 iteratinos to end @ this step size to
+
+--- try for the area case ... translated version matters
+--- plot force vectors ... see them @ final iteration
+
+-----------------------------------------
+---- need a line search in this step
+--- [1] compute grad
+--- [2] set an alpha val, per timestep, to figuer scaling to decr energy
+--- ... use backtracking
+--- if your initial update doesn't decrease energy ... well, binary search till we decr energy
+--- in practice, can (a) reset alpha to [1], or just try 2( prev_alpha) to start. Mem to alpha in the past
+
+
+
+
+
+--------------- OPTIMIZE WHEN POSSIBLE ------------------------
+--- TRY simplest thing at first.
+--- REMESH and stitched every so often ( only when surface changes shape dramatically ! )
+--- remesh only when the triangles get bad ( bad aspect ratio )
+--- always have to FLOW your algo
+--- stitched surface is based on faces only! 
+--- this is easy to get bugged! VISUALIZE IT CORRECTLY!
+
+*** CHECK each iteration makes positive progress ( include line searching too ) 

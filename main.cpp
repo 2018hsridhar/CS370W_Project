@@ -33,6 +33,7 @@ struct Mesh
 	Eigen::MatrixXi F;
 } scan1,scan2,stitched,remeshed, result;
 
+<<<<<<< HEAD
 void runPipeline();
 
 int main(int argc, char *argv[])

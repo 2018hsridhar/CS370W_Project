@@ -1,10 +1,9 @@
-﻿// this code, is the non-animated version, of the pipeline
-// it was developed for the following reasons
-// [1] expedite test cases
-// [2] execute on condor clusters [TBD] 
-// Due to SGD, in the REMESHED mesh [ versus the stitched mesh ] , we can ignore any extra vertices introduced by the REMESHING operation
-// reference for c++ timer library is :: http://www.cplusplus.com/reference/ctime/
-// http://www.cplusplus.com/reference/ctime/clock/ ... uhh, make sure your units make sense! 
+﻿// Non-animated pipeline version :: developed for following reasons
+// [1] EXPEDITE test cases
+// [2] EXECUTE on condor clusters
+// Due to SGD, in the REMESHED mesh [ versus the stitched mesh ] --- extra vertices introduced by the REMESHING operation can be safely ignored
+// c++ timer library reference :: http://www.cplusplus.com/reference/ctime/
+
 // C++ includes
 #include <iostream>
 #include <fstream>
@@ -33,7 +32,6 @@ struct Mesh
 	Eigen::MatrixXi F;
 } scan1,scan2,stitched,remeshed, result;
 
-<<<<<<< HEAD
 void runPipeline();
 
 int main(int argc, char *argv[])

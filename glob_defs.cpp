@@ -11,8 +11,8 @@ namespace GLOBAL
 	// These two directories should've been seperated in the beginning.
 	// this is getting incredibly frustrating.
 	// NOTE :: only for the two inputs should the shared paths be used. Not for 
-	const char* stitchedSurfGenScan1File = SHARED_PATH "/planexy.off";
-    const char* stitchedSurfGenScan2File = SHARED_PATH "/mirrorPlane.off";
+	const char* stitchedSurfGenScan1File = MESHES_PATH "/planexy.off";
+    const char* stitchedSurfGenScan2File = MESHES_PATH "/mirrorPlane.off";
 
 	const char* stitching_output = PROC_PATH "/stitching.off";
 	const char* remeshInputFile = PROC_PATH "/offset.off";
@@ -23,46 +23,46 @@ namespace GLOBAL
 	const char* mcfDebugText = PROC_PATH "/mcf_debug.txt";
 	const char* surfaceBlowUpCase = PROC_PATH "/surfaceBlowUpCase.off";
 
-	//const char* stitchedSurfGenScan1File = SHARED_PATH "/planexy.off";
-    //const char* stitchedSurfGenScan2File = SHARED_PATH "/mirrorPlane.off";
-//	const char* remeshInputFile = SHARED_PATH "/offset.off";
- //   const char* remeshOutputFile = SHARED_PATH "/offsetRemesh.off";
+	//const char* stitchedSurfGenScan1File = MESHES_PATH "/planexy.off";
+    //const char* stitchedSurfGenScan2File = MESHES_PATH "/mirrorPlane.off";
+//	const char* remeshInputFile = MESHES_PATH "/offset.off";
+ //   const char* remeshOutputFile = MESHES_PATH "/offsetRemesh.off";
 
-	const char* rigidIcpInputScanFile = SHARED_PATH "/bunny.off";
-	const char* rigidIcpOutputScanFile = SHARED_PATH "/bunny90.off";
+	const char* rigidIcpInputScanFile = MESHES_PATH "/bunny.off";
+	const char* rigidIcpOutputScanFile = MESHES_PATH "/bunny90.off";
 
-	const char* meanCurvFlowOutputScanFile = SHARED_PATH "/mcf.off";
+	const char* meanCurvFlowOutputScanFile = MESHES_PATH "/mcf.off";
 
 	// a nice user setting, for my configuration!
-	const char* viewMesh = SHARED_PATH "/badstitchedSurf.off";
+	const char* viewMesh = MESHES_PATH "/badstitchedSurf.off";
 
-//	const char* pipelineScan1File = SHARED_PATH "/2triangles.off";
+//	const char* pipelineScan1File = MESHES_PATH "/2triangles.off";
 	// #TODO :: test non-animated pipeline here with boundary mesh
-	//const char* pipelineScan1File = SHARED_PATH "/planexy.off";
-	//const char* pipelineScan1File = SHARED_PATH "/testBoundary.off";
-	//const char* pipelineScan2File = SHARED_PATH "/mirrorPlane.off";
-	const char* pipelineScan1File = SHARED_PATH "/camelhead.off";
-	const char* pipelineScan2File = SHARED_PATH "/camelhead2.off";
-	const char* pipelineOutputFile = SHARED_PATH "/result.off";
+	//const char* pipelineScan1File = MESHES_PATH "/planexy.off";
+	//const char* pipelineScan1File = MESHES_PATH "/testBoundary.off";
+	//const char* pipelineScan2File = MESHES_PATH "/mirrorPlane.off";
+	const char* pipelineScan1File = MESHES_PATH "/camelhead.off";
+	const char* pipelineScan2File = MESHES_PATH "/camelhead2.off";
+	const char* pipelineOutputFile = MESHES_PATH "/result.off";
 
 	// DEBUG VARS
-	const char* pipelineDebugFile = SHARED_PATH "/debug.txt";
-	const char* mcfDebugFile = SHARED_PATH "/mcfLog.txt";
+	const char* pipelineDebugFile = MESHES_PATH "/debug.txt";
+	const char* mcfDebugFile = MESHES_PATH "/mcfLog.txt";
 
 	// BOOL OPERS FILES
 	// NOTE :: <.OBJ> files are used since <blender> lacks <.OFF> file support.
-	const char* boolOpersMeshOne = SHARED_PATH "/sphere.obj";
-	const char* boolOpersMeshTwo= SHARED_PATH "/sphere.obj";
-	//const char* boolOpersMeshTwo= SHARED_PATH "/armadillo.obj";
-	//const char* boolOpersMeshOne = SHARED_PATH "/armadillo.obj";
-	//const char* boolOpersMeshOne = SHARED_PATH "/cube.obj";
-	//const char* boolOpersMeshTwo = SHARED_PATH "/cube.obj";
+	const char* boolOpersMeshOne = MESHES_PATH "/sphere.obj";
+	const char* boolOpersMeshTwo= MESHES_PATH "/sphere.obj";
+	//const char* boolOpersMeshTwo= MESHES_PATH "/armadillo.obj";
+	//const char* boolOpersMeshOne = MESHES_PATH "/armadillo.obj";
+	//const char* boolOpersMeshOne = MESHES_PATH "/cube.obj";
+	//const char* boolOpersMeshTwo = MESHES_PATH "/cube.obj";
 	const char* boolOpersFragOne = "fragment1.obj";
 	const char* boolOpersFragTwo = "fragment2.obj";
 
 	// simple triangle file	
-	const char* simpleTriangleFile = SHARED_PATH "/1triangle.off";
-	const char* twoTrianglesFile = SHARED_PATH "/2triangles.off";
+	const char* simpleTriangleFile = MESHES_PATH "/1triangle.off";
+	const char* twoTrianglesFile = MESHES_PATH "/2triangles.off";
 
 }
 #endif

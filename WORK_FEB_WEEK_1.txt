@@ -1,0 +1,15 @@
+1. SLE operations
+    - implement this. Try to get it working
+
+2. Basic codebase instrumentation
+	- 20 trials, planes cases - throw them out in various positions
+	- PROFILE everything
+	- collect basic statistics
+	- hand over statistics to Vouga
+	- AVOID use of new SLE method here
+
+3. <GProf, Valgrind> = more advanced instrumentation
+	- Try to Instrument own codebase
+	- [1] <pragma> optimizations?
+	- [2] <other> optimizations?
+

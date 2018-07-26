@@ -1,8 +1,7 @@
-// path.h --- represents routes to commonly access directories. 
-// it's akin to <router> logic in MVC apps
-// all of these paths include <..> since we perform external, vs internal, builds
-// also, you need to keep your tests consolidated. This will prove even more useful in the future
-// #TODO :: slowly shift your files from <tutroial_shared_path.h> to <path.h>. 
+// path.h :: represents routes to commonly access directories. 
+// ---- Akin to <router> logic in MVC apps
+// All paths include <..> since we perform external builds, NOT, internal builds
+// KEEP tests consolidated into one directory.
 
 #ifndef path_h_included
 #define path_h_included
@@ -10,8 +9,13 @@
 // path to <mesh> directory. Represents commonly accessed meshes. 
 #ifndef SHARED_PATH
 //#define SHARED_PATH "../MESHES"
-#define SHARED_PATH "../shared"
+//#define SHARED_PATH "../shared"
 #endif
+
+#ifndef MESHES_PATH 
+#define MESHES_PATH "../MESHES"
+#endif
+
 
 // path to <processing> dir. Represents meshes in the stage of being processed.
 #ifndef PROC_PATH
